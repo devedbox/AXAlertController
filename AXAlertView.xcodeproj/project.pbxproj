@@ -15,6 +15,8 @@
 		01BB35A01CB35031002B5D1A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 01BB359E1CB35031002B5D1A /* LaunchScreen.storyboard */; };
 		01BB35AB1CB35031002B5D1A /* AXAlertViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BB35AA1CB35031002B5D1A /* AXAlertViewTests.m */; };
 		01BB35B61CB35031002B5D1A /* AXAlertViewUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BB35B51CB35031002B5D1A /* AXAlertViewUITests.m */; };
+		01BB35C51CB35118002B5D1A /* AXAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BB35C41CB35118002B5D1A /* AXAlertView.m */; };
+		3DA8ED676693A24D990DA890 /* libPods-AXAlertView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +53,11 @@
 		01BB35B11CB35031002B5D1A /* AXAlertViewUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AXAlertViewUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		01BB35B51CB35031002B5D1A /* AXAlertViewUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AXAlertViewUITests.m; sourceTree = "<group>"; };
 		01BB35B71CB35031002B5D1A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		01BB35C31CB35118002B5D1A /* AXAlertView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AXAlertView.h; path = AXAlertView/AXAlertView.h; sourceTree = "<group>"; };
+		01BB35C41CB35118002B5D1A /* AXAlertView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AXAlertView.m; path = AXAlertView/AXAlertView.m; sourceTree = "<group>"; };
+		37D7438B4F614BD7E4BD7FDA /* Pods-AXAlertView.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertView.release.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView.release.xcconfig"; sourceTree = "<group>"; };
+		525EDD5E82AD48153196FAAB /* Pods-AXAlertView.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertView.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView.debug.xcconfig"; sourceTree = "<group>"; };
+		6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AXAlertView.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3DA8ED676693A24D990DA890 /* libPods-AXAlertView.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,6 +93,8 @@
 				01BB35A91CB35031002B5D1A /* AXAlertViewTests */,
 				01BB35B41CB35031002B5D1A /* AXAlertViewUITests */,
 				01BB358E1CB35031002B5D1A /* Products */,
+				E2AAD5D8A448265B45220D41 /* Pods */,
+				5C6ADC35B98060AEB3163FA0 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -106,6 +116,7 @@
 				01BB35961CB35031002B5D1A /* ViewController.h */,
 				01BB35971CB35031002B5D1A /* ViewController.m */,
 				01BB35991CB35031002B5D1A /* Main.storyboard */,
+				01BB35C61CB3511B002B5D1A /* AXAlertView */,
 				01BB359C1CB35031002B5D1A /* Assets.xcassets */,
 				01BB359E1CB35031002B5D1A /* LaunchScreen.storyboard */,
 				01BB35A11CB35031002B5D1A /* Info.plist */,
@@ -140,6 +151,32 @@
 			path = AXAlertViewUITests;
 			sourceTree = "<group>";
 		};
+		01BB35C61CB3511B002B5D1A /* AXAlertView */ = {
+			isa = PBXGroup;
+			children = (
+				01BB35C31CB35118002B5D1A /* AXAlertView.h */,
+				01BB35C41CB35118002B5D1A /* AXAlertView.m */,
+			);
+			name = AXAlertView;
+			sourceTree = "<group>";
+		};
+		5C6ADC35B98060AEB3163FA0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E2AAD5D8A448265B45220D41 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				525EDD5E82AD48153196FAAB /* Pods-AXAlertView.debug.xcconfig */,
+				37D7438B4F614BD7E4BD7FDA /* Pods-AXAlertView.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -147,9 +184,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 01BB35BA1CB35031002B5D1A /* Build configuration list for PBXNativeTarget "AXAlertView" */;
 			buildPhases = (
+				25810A4B9622CC84E9595A08 /* Check Pods Manifest.lock */,
 				01BB35891CB35031002B5D1A /* Sources */,
 				01BB358A1CB35031002B5D1A /* Frameworks */,
 				01BB358B1CB35031002B5D1A /* Resources */,
+				778588F1201373AF92D9D57A /* Embed Pods Frameworks */,
+				D928CC80A8424EC54CB67211 /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -265,11 +305,60 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		25810A4B9622CC84E9595A08 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		778588F1201373AF92D9D57A /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D928CC80A8424EC54CB67211 /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		01BB35891CB35031002B5D1A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				01BB35C51CB35118002B5D1A /* AXAlertView.m in Sources */,
 				01BB35981CB35031002B5D1A /* ViewController.m in Sources */,
 				01BB35951CB35031002B5D1A /* AppDelegate.m in Sources */,
 				01BB35921CB35031002B5D1A /* main.m in Sources */,
@@ -411,6 +500,7 @@
 		};
 		01BB35BB1CB35031002B5D1A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 525EDD5E82AD48153196FAAB /* Pods-AXAlertView.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = AXAlertView/Info.plist;
@@ -422,6 +512,7 @@
 		};
 		01BB35BC1CB35031002B5D1A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 37D7438B4F614BD7E4BD7FDA /* Pods-AXAlertView.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = AXAlertView/Info.plist;
@@ -496,6 +587,7 @@
 				01BB35BC1CB35031002B5D1A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		01BB35BD1CB35031002B5D1A /* Build configuration list for PBXNativeTarget "AXAlertViewTests" */ = {
 			isa = XCConfigurationList;
@@ -504,6 +596,7 @@
 				01BB35BF1CB35031002B5D1A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		01BB35C01CB35031002B5D1A /* Build configuration list for PBXNativeTarget "AXAlertViewUITests" */ = {
 			isa = XCConfigurationList;
@@ -512,6 +605,7 @@
 				01BB35C21CB35031002B5D1A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
