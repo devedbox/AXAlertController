@@ -10,9 +10,24 @@
 
 @class AXAlertViewAction;
 @class AXAlertViewActionConfiguration;
+@class AXAlertView;
+NS_ASSUME_NONNULL_BEGIN
+@protocol AXAlertViewDelegate <NSObject>
+@optional
+- (void)alertViewWillShow:(AXAlertView *)alertView;
+- (void)alertViewDidShow:(AXAlertView *)alertView;
+
+- (void)alertViewWillHide:(AXAlertView *)alertView;
+- (void)alertViewDidHide:(AXAlertView *)alertView;
+@end
+
+typedef void(^AXAlertViewShowsBlock)(AXAlertView *alertView, BOOL animated);
+typedef void(^AXAlertViewTouchBlock)(AXAlertView *alertView);
 
 /// UIAlertController
 @interface AXAlertView : UIView
+/// Delegate.
+@property(assign, nonatomic) id<AXAlertViewDelegate>delegate;
 /// Title text color. Default is #FEB925.
 @property(strong, nonatomic, nullable) UIColor *titleColor UI_APPEARANCE_SELECTOR;
 /// Text font of title. Default is system bold 17 pt.
@@ -29,10 +44,46 @@
 ///
 /// @discusstion This is a limits of horizontal action item. If the count of actions is more than the limits count, the action will show vertically.
 @property(assign, nonatomic) NSInteger horizontalLimits UI_APPEARANCE_SELECTOR;
+/// Dim background. Default is YES.
+@property(assign, nonatomic) BOOL dimBackground;
+/// Content prefered height. Default is 354.
+@property(assign, nonatomic) CGFloat preferedHeight;
+/// Content prefered edge margin. Default is 40.
+@property(assign, nonatomic) CGFloat preferedMargin;
+/// Corner radius. Default is 6.
+@property(assign, nonatomic) CGFloat cornerRadius;
 /// Custom view.
-@property(weak, nonatomic, nullable) IBOutlet UIView *customView;
+@property(strong, nonatomic, nullable) IBOutlet UIView *customView;
+/// Title.
+@property(nonatomic, nullable) NSString *title;
+/// Action item configuration. This is a default configuration of all action item.
+@property(strong, nonatomic, nullable) AXAlertViewActionConfiguration *actionConfiguration;
+/// Alert view will show block.
+@property(copy, nonatomic, nullable) AXAlertViewShowsBlock willShow;
+/// Alert view did show block.
+@property(copy, nonatomic, nullable) AXAlertViewShowsBlock didShow;
+/// Alert view will hide.
+@property(copy, nonatomic, nullable) AXAlertViewShowsBlock willHide;
+/// Alert view did hide.
+@property(copy, nonatomic, nullable) AXAlertViewShowsBlock didHide;
+/// Alert view did touch.
+@property(copy, nonatomic, nullable) AXAlertViewTouchBlock touch;
 
-- (void)addActions:(AXAlertViewAction *_Nonnull)actions,...;
+- (void)setActions:(AXAlertViewAction *_Nonnull)actions,...;
+- (void)appendActions:(AXAlertViewAction *_Nonnull)actions,...;
+- (void)show:(BOOL)animated;
+- (void)showInView:(UIView *_Nonnull)view animated:(BOOL)animated;
+- (void)showInView:(UIView *_Nonnull)view animated:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didShow;
+- (void)hide:(BOOL)animated;
+- (void)hide:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didHide;
+
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration forItemAtIndex:(NSUInteger)index UI_APPEARANCE_SELECTOR;
+
+- (void)viewWillShow:(AXAlertView *)alertView animated:(BOOL)animated __attribute((objc_requires_super));
+- (void)viewDidShow:(AXAlertView *)alertView animated:(BOOL)animated __attribute((objc_requires_super));
+
+- (void)viewWillHide:(AXAlertView *)alertView animated:(BOOL)animated __attribute((objc_requires_super));
+- (void)viewDidHide:(AXAlertView *)alertView animated:(BOOL)animated __attribute((objc_requires_super));
 @end
 
 typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *_Nonnull action);
@@ -50,7 +101,12 @@ typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *_Nonnull action);
 /// Font of title.
 @property(strong, nonatomic, nullable) UIFont *font;
 /// Text color of title.
-@property(strong, nonatomic, nullable) UIColor *textColor;
+@property(strong, nonatomic, nullable) UIColor *tintColor;
 /// Background color.
-@property(readonly, nonatomic, nonnull) UIColor *backgroundColor;
+@property(strong, nonatomic, nonnull) UIColor *backgroundColor;
+/// Corner radius.
+@property(assign, nonatomic) CGFloat cornerRadius;
+/// Prefered height. Only used for default configuration.
+@property(assign, nonatomic) CGFloat preferedHeight;
 @end
+NS_ASSUME_NONNULL_END
