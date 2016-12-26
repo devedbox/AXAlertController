@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "AXAlertView"
-  s.version      = "0.0.1"
+  s.version      = "0.0.2"
   s.summary      = "A customized alert view."
 
   # This description is used to generate tags and improve search results.
@@ -24,8 +24,7 @@ Pod::Spec.new do |s|
   #   * Try to keep it short, snappy and to the point.
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
-  s.description  = <<-DESC
-                   A customized alert view. A subclass of UIView. A simple way to show a custom alert view.
+s.description  = "A customized alert view. A subclass of UIView. A simple way to show a custom alert view."
 
   s.homepage     = "https://github.com/devedbox/AXAlertView"
   # s.screenshots  = "www.example.com/screenshots_1.gif", "www.example.com/screenshots_2.gif"
@@ -79,7 +78,7 @@ Pod::Spec.new do |s|
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/devedbox/AXAlertView.git", :tag => "0.0.1" }
+  s.source       = { :git => "https://github.com/devedbox/AXAlertView.git", :tag => "0.0.2" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
@@ -132,6 +131,6 @@ Pod::Spec.new do |s|
    s.requires_arc = true
 
   # s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/libxml2" }
-s.dependency "pop"
+s.dependency "AXAnimationChain"
 
 end

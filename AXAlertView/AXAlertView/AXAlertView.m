@@ -7,27 +7,30 @@
 //
 
 #import "AXAlertView.h"
-#import <pop/POP.h>
+#import <AXAnimationChain/UIView+AnimationChain.h>
+#import <AXAnimationChain/AXChainAnimator.h>
+#import <AXAnimationChain/UIView+ChainAnimator.h>
+#import <objc/runtime.h>
 
-@interface AXAlertView ()
+@interface AXAlertView () <UIScrollViewDelegate>
 {
     NSMutableArray<AXAlertViewAction *> *_actionItems;
     NSArray<UIButton *> *_actionButtons;
     NSMutableDictionary<NSNumber*,AXAlertViewActionConfiguration*> *_actionConfig;
+    
+    // Transition view of translucent.
+    UIView *__weak _translucentTransitionView;
+    
+    BOOL _processing;
 }
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
 /// Container view.
-@property(strong, nonatomic) UIView *containerView;
+@property(strong, nonatomic) UIScrollView *containerView;
 /// Content container view.
 @property(strong, nonatomic) UIView *contentContainerView;
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_8_0
 /// Blur effect view.
 @property(strong, nonatomic) UIVisualEffectView *effectView;
-#else
-/// Blur effect bar.
-@property(strong, nonatomic) UIToolbar *effectBar;
-#endif
 @end
 
 @implementation AXAlertView
@@ -62,11 +65,14 @@
     _titleFont = [UIFont boldSystemFontOfSize:17];
     _translucent = YES;
     _contentInset = UIEdgeInsetsMake(10, 10, 10, 10);
-    _customViewInset = UIEdgeInsetsMake(20, 0, 20, 0);
+    _customViewInset = UIEdgeInsetsMake(0, 0, 0, 0);
     _padding = 10;
+    _actionItemPadding = 5;
+    _actionItemMargin = 8;
     _horizontalLimits = 2;
     _dimBackground = YES;
-    _preferedHeight = 354;
+    _opacity = 0.3;
+    _preferedHeight = .0;
     _preferedMargin = 40;
     _cornerRadius = 6;
     _actionConfiguration = [[AXAlertViewActionConfiguration alloc] init];
@@ -75,7 +81,8 @@
     _actionConfiguration.font = [UIFont boldSystemFontOfSize:15];
     _actionConfiguration.cornerRadius = 4;
     _actionConfiguration.preferedHeight = 44.0;
-    self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
+    
+    super.backgroundColor = [UIColor clearColor];
     [self addSubview:self.containerView];
     [self.containerView addSubview:self.contentContainerView];
     [self.containerView addSubview:self.titleLabel];
@@ -102,23 +109,106 @@
 
 - (void)didMoveToSuperview {
     [super didMoveToSuperview];
+    
+    [self setNeedsLayout];
+    
+    CGPoint contentOffset = _containerView.contentOffset;
+    _effectView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y);
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
     
     CGRect currentFrame = self.frame;
+    
+    CGSize sizeOfCustomView = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2 - (_contentInset.left+_contentInset.right)-(_customViewInset.left+_customViewInset.right), 0);
+    CGSize sizeOfTitleLabel = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2 - (_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right), 0);
+    
+    // Calculate size of title label.
+    if (_titleLabel.numberOfLines == 1) {
+        [_titleLabel sizeToFit];
+        
+        sizeOfTitleLabel.height = _titleLabel.bounds.size.height;
+    } else {
+        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(sizeOfTitleLabel.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:_titleLabel.font} context:NULL].size;
+        sizeOfTitleLabel.height = ceil(size.height);
+    }
+    
+    // Calculate size of the custom view.
+    if ([_customView isKindOfClass:UILabel.class]) {
+        // Calculte the size of label.
+        UILabel *label = (UILabel *)_customView;
+        CGSize size = [label.text boundingRectWithSize:CGSizeMake(sizeOfCustomView.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:label.font} context:NULL].size;
+        sizeOfCustomView.height = ceil(size.height)+_customViewInset.top+_customViewInset.bottom;
+    } else {
+        // Size that fit the width of SELF.
+        [_customView sizeToFit];
+        sizeOfCustomView.height = _customView.bounds.size.height+_customViewInset.top+_customViewInset.bottom;
+    }
+    
+    CGFloat heightOfContainer = .0;
+    heightOfContainer += _contentInset.top;
+    if (_titleLabel.text.length > 0) {
+        heightOfContainer += _titleInset.top;
+        heightOfContainer += sizeOfTitleLabel.height;
+        heightOfContainer += _titleInset.bottom;
+        heightOfContainer += _padding;
+    }
+    heightOfContainer += sizeOfCustomView.height;
+    
+    CGFloat heightOfItems = .0;
+    
+    if (_actionItems.count > _horizontalLimits) {
+        for (int i = 0; i < _actionItems.count; i++) {
+            AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+            if (config) {
+                if (i == 0) {
+                    heightOfContainer += _padding;
+                } else {
+                    heightOfContainer += _actionItemPadding;
+                }
+                heightOfContainer += config.preferedHeight;
+                heightOfItems += config.preferedHeight;
+            }
+        }
+    } else {
+        CGFloat maxHeightOfItem = .0;
+        for (int i = 0; i < _actionItems.count; i++) {
+            AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+            if (config) {
+                maxHeightOfItem = MAX(maxHeightOfItem, config.preferedHeight);
+                heightOfItems = maxHeightOfItem;
+            }
+        }
+        heightOfContainer += _padding;
+        heightOfContainer += maxHeightOfItem;
+    }
+    heightOfContainer += _contentInset.bottom;
+    
+    heightOfContainer = MAX(heightOfContainer, _preferedHeight);
+    
     // Frame of container view.
     CGRect rect_container = _containerView.frame;
     rect_container.origin.x = _preferedMargin;
-    rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(_preferedHeight, CGRectGetHeight(currentFrame)-_preferedMargin*2)*.5;
-    rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2, MIN(_preferedHeight, CGRectGetHeight(currentFrame)-_preferedMargin*2));
-    _containerView.frame = rect_container;
+    
+    if (heightOfContainer > CGRectGetHeight(currentFrame)-_preferedHeight*2) { // Too large to cut.
+        rect_container.origin.y = _preferedMargin;
+        rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2, CGRectGetHeight(currentFrame)-_preferedMargin*2);
+        _containerView.frame = rect_container;
+        _containerView.contentSize = CGSizeMake(rect_container.size.width, heightOfContainer);
+        _containerView.scrollEnabled = YES;
+    } else {
+        rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-_preferedMargin*2)*.5;
+        rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2, MIN(heightOfContainer, CGRectGetHeight(currentFrame)-_preferedMargin*2));
+        _containerView.frame = rect_container;
+        _containerView.contentSize = rect_container.size;
+        _containerView.scrollEnabled = NO;
+    }
     
     // Frame of title label.
     CGRect rect_title = _titleLabel.frame;
-    rect_title.origin.x = _contentInset.left;
-    rect_title.origin.y = _contentInset.top;
+    rect_title.origin.x = _contentInset.left+_titleInset.left;
+    rect_title.origin.y = _contentInset.top+_titleInset.top;
     rect_title.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right);
     _titleLabel.frame = rect_title;
     
@@ -127,15 +217,13 @@
     rect_content.origin.x = _contentInset.left;
     rect_content.origin.y = CGRectGetMaxY(rect_title) + _padding;
     rect_content.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right);
-    if (_actionButtons.count > _horizontalLimits) {
-        rect_content.size.height = CGRectGetHeight(rect_container)-(_actionConfiguration.preferedHeight+_padding)*_actionButtons.count - _padding - (CGRectGetMinY(rect_content)-CGRectGetMinY(rect_container));
-    } else {
-        rect_content.size.height = CGRectGetHeight(rect_container)-_actionConfiguration.preferedHeight-_padding*2 - (CGRectGetMaxY(rect_title) + _padding);
-    }
+    rect_content.size.height = MAX(sizeOfCustomView.height, CGRectGetHeight(rect_container)-heightOfItems-_actionItemPadding*(_actionItems.count-1)-_padding*2-_contentInset.bottom-CGRectGetMaxY(rect_title));
     _contentContainerView.frame = rect_content;
     
     [self configureActions];
-    _customView.frame = _contentContainerView.bounds;
+    _customView.frame = CGRectMake(_customViewInset.left, _customViewInset.top, CGRectGetWidth(_contentContainerView.bounds)-(_customViewInset.left+_customViewInset.right), CGRectGetHeight(_contentContainerView.bounds)-(_customViewInset.top+_customViewInset.bottom));
+    
+    [self setNeedsDisplay];
 }
 #pragma mark - Public method
 - (void)setActions:(AXAlertViewAction *)actions, ... {
@@ -171,41 +259,17 @@
 }
 
 - (void)showInView:(UIView *)view animated:(BOOL)animated {
-    [self viewWillShow:self animated:animated];
+    if (_processing) return;
     [view addSubview:self];
-    
-    void (^_addPopPopUpAnimations)(UIView *_view) = ^(UIView *_view) {
-        [_view.layer pop_removeAnimationForKey:@"kPOPLayerScaleXY"];
-        [_view.layer pop_removeAnimationForKey:@"kPOPLayerOpacity"];
-        [self.layer pop_removeAnimationForKey:@"kPOPLayerOpacity"];
-        POPSpringAnimation *anim = [POPSpringAnimation animationWithPropertyNamed:kPOPLayerScaleXY];
-        anim.springBounciness = 10;
-        anim.springSpeed = 20;
-        anim.fromValue = [NSValue valueWithCGPoint:CGPointMake(0, 0)];
-        anim.toValue = [NSValue valueWithCGPoint:CGPointMake(1.0, 1.0)];
-        
-        POPBasicAnimation *opacityAnim = [POPBasicAnimation animationWithPropertyNamed:kPOPLayerOpacity];
-        
-        opacityAnim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-        opacityAnim.duration = 0.3;
-        opacityAnim.fromValue = @0.0;
-        opacityAnim.toValue = @1.0;
-        
-//        [_view.layer pop_addAnimation:anim forKey:@"kPOPLayerScaleXY"];
-        [_view.layer pop_addAnimation:opacityAnim forKey:@"kPOPLayerOpacity"];
-        [self.layer pop_addAnimation:opacityAnim forKey:@"kPOPLayerOpacity"];
-    };
-    
-    _containerView.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(0.0, 0.0), CGAffineTransformMakeTranslation(0, -200));
-    [UIView animateWithDuration:0.45 delay:0.0 usingSpringWithDamping:0.8 initialSpringVelocity:0.8 options:7 animations:^{
-        _containerView.transform = CGAffineTransformIdentity;
-    } completion:^(BOOL finished) {
-        if (finished) {
-            [self viewDidShow:self animated:animated];
-        }
-    }];
-    
-    _addPopPopUpAnimations(_containerView);
+    [self viewWillShow:self animated:animated];
+    [self.containerView.chainAnimator.combineSpring.property(@"transform.scale").fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(50).damping(20) easeOut];
+    self.chainAnimator.basic.property(@"opacity").fromValue(@(.0)).toValue(@(1.0)).duration(0.5).target(self).complete(@selector(_showComplete:)).animate();
+    objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    self.containerView.animate();
+}
+
+- (void)_showComplete:(AXChainAnimator *)sender {
+    [self viewDidShow:self animated:[objc_getAssociatedObject(self.containerView.chainAnimator, _cmd) boolValue]];
 }
 
 - (void)showInView:(UIView *)view animated:(BOOL)animated completion:(AXAlertViewShowsBlock)didShow
@@ -215,14 +279,15 @@
 }
 
 - (void)hide:(BOOL)animated {
+    if (_processing) return;
     [self viewWillHide:self animated:animated];
-    [UIView animateWithDuration:0.25 delay:0.25 options:7 animations:^{
-        self.alpha = 0.0;
-    } completion:^(BOOL finished) {
-        if (finished) {
-            [self viewDidHide:self animated:animated];
-        }
-    }];
+    self.opacityTo(.0).duration(0.25).target(self).complete(@selector(_hideComplete:));
+    objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_hideComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    self.animate();
+}
+
+- (void)_hideComplete:(AXChainAnimator *)sender {
+    [self viewDidHide:self animated:[objc_getAssociatedObject(self.containerView.chainAnimator, _cmd) boolValue]];
 }
 
 - (void)hide:(BOOL)animated completion:(AXAlertViewShowsBlock)didHide
@@ -236,65 +301,71 @@
 - (void)drawRect:(CGRect)rect {
     // Drawing code
     [super drawRect:rect];
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
+    CGContextAddPath(context, outterPath);
+    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
+    CGContextFillPath(context);
+    CGPathRef innerPath = CGPathCreateWithRoundedRect(self.containerView.frame, _cornerRadius, _cornerRadius, nil);
+    CGContextAddPath(context, innerPath);
+    CGContextSetBlendMode(context, kCGBlendModeClear);
+    CGContextFillPath(context);
 }
 #pragma mark - Getters
+- (UIColor *)backgroundColor {
+    return _containerView.backgroundColor;
+}
+
 - (UILabel *)titleLabel {
     if (_titleLabel) return _titleLabel;
     _titleLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    _titleLabel.textColor = _titleColor;
-    _titleLabel.font = _titleFont;
+    _titleLabel.textColor = [UIColor colorWithRed:0.996 green:0.725 blue:0.145 alpha:1.00];
+    _titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _titleLabel.numberOfLines = 1;
     _titleLabel.textAlignment = NSTextAlignmentCenter;
     _titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     return _titleLabel;
 }
 
-- (UIView *)containerView {
+- (UIScrollView *)containerView {
     if (_containerView) return _containerView;
-    _containerView = [[UIView alloc] initWithFrame:CGRectZero];
-    _containerView.backgroundColor = [UIColor whiteColor];
+    _containerView = [[UIScrollView alloc] initWithFrame:CGRectZero];
+    _containerView.clipsToBounds = YES;
+    _containerView.backgroundColor = [UIColor clearColor];
     _containerView.layer.cornerRadius = _cornerRadius;
     _containerView.layer.masksToBounds = YES;
     _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    _containerView.showsVerticalScrollIndicator = NO;
+    _containerView.showsHorizontalScrollIndicator = NO;
+    _containerView.delegate = self;
     return _containerView;
 }
 
 - (UIView *)contentContainerView {
     if (_contentContainerView) return _contentContainerView;
     _contentContainerView = [[UIView alloc] initWithFrame:CGRectZero];
-    _contentContainerView.backgroundColor = [UIColor orangeColor];
+    _contentContainerView.backgroundColor = [UIColor clearColor];
     _contentContainerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     return _contentContainerView;
 }
 
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_8_0
 - (UIVisualEffectView *)effectView {
     if (_effectView) return _effectView;
-    _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleDark]];
+    _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
     _effectView.frame = self.bounds;
     _effectView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     return _effectView;
 }
-#else
-- (UIToolbar *)effectBar {
-    if (_effectBar) return _effectBar;
-    _effectBar = [[UIToolbar alloc] initWithFrame:self.bounds];
-    for (UIView *view in [_effectBar subviews]) {
-        if ([view isKindOfClass:[UIImageView class]] && [[view subviews] count] == 0) {
-            [view setHidden:YES];
-        }
-    }
-    _effectBar.barStyle = UIBarStyleBlack;
-    _effectBar.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    return _effectBar;
-}
-#endif
 
 - (NSString *)title {
     return _titleLabel.text;
 }
 
 #pragma mark - Setters
+- (void)setBackgroundColor:(UIColor *)backgroundColor {
+    _containerView.backgroundColor = backgroundColor;
+}
+
 - (void)setTitle:(NSString *)title {
     _titleLabel.text = title;
     [_titleLabel sizeToFit];
@@ -330,27 +401,26 @@
 
 - (void)setTranslucent:(BOOL)translucent {
     _translucent = translucent;
-    /*
+    
     if (_translucent) {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_8_0
-        [self insertSubview:self.effectView atIndex:0];
-        _effectView.frame = _containerView.frame;
+        [self.containerView insertSubview:self.effectView atIndex:0];
+        if (_translucentStyle == AXAlertViewTranslucentDark) {
+            _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
+        } else {
+            _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight];
+        }
+        _effectView.frame = _containerView.bounds;
         _containerView.backgroundColor = [UIColor clearColor];
-#else
-        [self insertSubview:self.effectBar atIndex:0];
-        effectBar.frame = _containerView.frame;
-        _containerView.backgroundColor = [UIColor clearColor];
-#endif
     } else {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_8_0
         [_effectView removeFromSuperview];
         _containerView.backgroundColor = [UIColor whiteColor];
-#else
-        [_effectBar removeFromSuperview]
-        _containerView.backgroundColor = [UIColor whiteColor];
-#endif
     }
-     */
+}
+
+- (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
+    _translucentStyle = translucentStyle;
+    
+    [self setTranslucent:_translucent];
 }
 
 - (void)setContentInset:(UIEdgeInsets)contentInset {
@@ -365,8 +435,27 @@
     [self configureCustomView];
 }
 
+- (void)setTitleInset:(UIEdgeInsets)titleInset {
+    _titleInset = titleInset;
+    [self setNeedsLayout];
+}
+
 - (void)setPadding:(CGFloat)padding {
     _padding = padding;
+    [self setNeedsLayout];
+    [self configureActions];
+    [self configureCustomView];
+}
+
+- (void)setActionItemMargin:(CGFloat)actionItemMargin {
+    _actionItemMargin = actionItemMargin;
+    [self setNeedsLayout];
+    [self configureActions];
+    [self configureCustomView];
+}
+
+- (void)setActionItemPadding:(CGFloat)actionItemPadding {
+    _actionItemPadding = actionItemPadding;
     [self setNeedsLayout];
     [self configureActions];
     [self configureCustomView];
@@ -379,11 +468,18 @@
 
 - (void)setDimBackground:(BOOL)dimBackground {
     _dimBackground = dimBackground;
+    /*
     if (dimBackground) {
         self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
     } else {
         self.backgroundColor = [UIColor clearColor];
     }
+     */
+}
+
+- (void)setOpacity:(CGFloat)opacity {
+    _opacity = opacity;
+    [self setNeedsDisplay];
 }
 
 - (void)setPreferedHeight:(CGFloat)preferedHeight {
@@ -412,9 +508,11 @@
 }
 
 - (void)handleActionButtonDidClick:(UIButton *_Nonnull)sender {
+    [self hide:YES];
     AXAlertViewAction *action = _actionItems[sender.tag-1];
     if (action.handler) {
-        action.handler(action);
+        __weak typeof(action) weakRef = action;
+        action.handler(weakRef);
     }
 }
 
@@ -430,6 +528,27 @@
 }
 #pragma mark - Public
 - (void)viewWillShow:(AXAlertView *)alertView animated:(BOOL)animated {
+    // Set container view to clear background color of translucent.
+    if (self.translucent) self.containerView.backgroundColor = [UIColor clearColor];
+    
+    [self.layer removeAllAnimations];
+    [self.containerView.layer removeAllAnimations];
+    
+    _processing = YES;
+    
+    [self layoutSubviews];
+    
+    // Get the current translucent transition view.
+    UIGraphicsBeginImageContextWithOptions(self.containerView.bounds.size, NO, 2);
+    [self.containerView.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.effectView.frame];
+    imageView.image = image;
+    
+    [self.containerView insertSubview:imageView atIndex:0];
+    _translucentTransitionView = imageView;
+    
     if (_willShow != NULL && _willShow != nil) {
         _willShow(self, animated);
     }
@@ -439,6 +558,13 @@
 }
 
 - (void)viewDidShow:(AXAlertView *)alertView animated:(BOOL)animated {
+    [self.layer removeAllAnimations];
+    [self.containerView.layer removeAllAnimations];
+    // Remove translucent view from container view.
+    [_translucentTransitionView removeFromSuperview];
+    
+    _processing = NO;
+    
     if (_didShow != NULL && _didShow != nil) {
         _didShow(self, animated);
     }
@@ -448,6 +574,11 @@
 }
 
 - (void)viewWillHide:(AXAlertView *)alertView animated:(BOOL)animated {
+    [self.layer removeAllAnimations];
+    [self.containerView.layer removeAllAnimations];
+    
+    _processing = YES;
+    
     if (_willHide != NULL && _willHide != nil) {
         _willHide(self, animated);
     }
@@ -457,6 +588,16 @@
 }
 
 - (void)viewDidHide:(AXAlertView *)alertView animated:(BOOL)animated {
+    [self removeFromSuperview];
+    [self.layer removeAllAnimations];
+    [self.containerView.layer removeAllAnimations];
+    [_translucentTransitionView removeFromSuperview];
+    
+    _processing = NO;
+    
+    // Scroll container view to title.
+    [_containerView scrollRectToVisible:CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), 10) animated:NO];
+    
     if (_didHide != NULL && _didHide != nil) {
         _didHide(self, animated);
     }
@@ -482,20 +623,29 @@
     _actionButtons = [self buttonsWithActions:_actionItems];
     if (_actionButtons.count == 0) return;
     if (_actionButtons.count > _horizontalLimits) {
-        for (NSInteger i = _actionButtons.count-1; i >=0 ; i--) {
-            UIButton *button = _actionButtons[_actionButtons.count-1-i];
-            button.tag = _actionButtons.count-1-i;
-            [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
-            [button setFrame:CGRectMake(_contentInset.left, CGRectGetHeight(_containerView.frame) - (CGRectGetHeight(_containerView.frame)- MIN(_preferedHeight, CGRectGetHeight(_containerView.frame)))*.5 - (_actionConfiguration.preferedHeight+_padding)*(i+1), CGRectGetWidth(_containerView.frame)-(_contentInset.left+_contentInset.right), _actionConfiguration.preferedHeight)];
-            [self.containerView addSubview:button];
-        }
-    } else {
-        CGFloat buttonWidth = (CGRectGetWidth(_containerView.frame)-_contentInset.left-_contentInset.right-_padding*(_actionButtons.count-1))/_actionButtons.count;
-        for (NSInteger i = 0; i < _actionButtons.count; i++) {
+        for (NSInteger i = 0; i < _actionButtons.count ; i++) {
             UIButton *button = _actionButtons[i];
             button.tag = i+1;
             [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
-            [button setFrame:CGRectMake(_contentInset.left+(buttonWidth+_padding)*i, CGRectGetHeight(_containerView.frame) - (CGRectGetHeight(_containerView.frame)- MIN(_preferedHeight, CGRectGetHeight(_containerView.frame)))*.5 - (_actionConfiguration.preferedHeight+_padding), buttonWidth, _actionConfiguration.preferedHeight)];
+            AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+            CGFloat beginContext = .0;
+            if (i == 0) {
+                beginContext = CGRectGetMaxY(_contentContainerView.frame) + _padding;
+            } else {
+                UIButton *lastItem = _actionButtons[i-1];
+                beginContext = CGRectGetMaxY(lastItem.frame) + _actionItemPadding;
+            }
+            [button setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_containerView.frame)-_actionItemMargin*2, config.preferedHeight)];
+            [self.containerView addSubview:button];
+        }
+    } else {
+        CGFloat buttonWidth = (CGRectGetWidth(_containerView.frame)-_actionItemMargin*2-_actionItemPadding*(_actionButtons.count-1))/_actionButtons.count;
+        for (NSInteger i = 0; i < _actionButtons.count; i++) {
+            UIButton *button = _actionButtons[i];
+            button.tag = i+1;
+            AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+            [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
+            [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetMaxY(_contentContainerView.frame)+_padding, buttonWidth, config.preferedHeight)];
             [self.containerView addSubview:button];
         }
     }
@@ -506,25 +656,60 @@
     for (NSInteger i = 0; i < actions.count; i++) {
         UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
         [button setTitle:[actions[i] title] forState:UIControlStateNormal];
+        [button setImage:[actions[i] image] forState:UIControlStateNormal];
         AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:@(i)];
         if (!config) {
             config = _actionConfiguration;
         }
-        [button setBackgroundColor:config.backgroundColor?config.backgroundColor:_actionConfiguration.backgroundColor];
+        UIColor *backgroundColor = config.backgroundColor?config.backgroundColor:_actionConfiguration.backgroundColor;
+        if (!backgroundColor) {
+            backgroundColor = [self window].tintColor;
+        }
+        [button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
+        [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
+        [button setBackgroundImage:[self rectangleImageWithColor:[UIColor grayColor] size:CGSizeMake(10, 10)] forState:UIControlStateDisabled];
+        [button setBackgroundColor:[UIColor clearColor]];
         [button.titleLabel setFont:config.font?config.font:_actionConfiguration.font];
-        [button setTintColor:config.tintColor?config.tintColor:_actionConfiguration.tintColor];
-        button.layer.cornerRadius = config.cornerRadius>0?config.cornerRadius:_actionConfiguration.cornerRadius;
+        UIColor *tintColor = config.tintColor?config.tintColor:_actionConfiguration.tintColor;
+        if (!tintColor) {
+            tintColor = [[self window] tintColor];
+        }
+        [button setTintColor:tintColor];
+        button.layer.cornerRadius = config.cornerRadius;
         button.layer.masksToBounds = YES;
         [buttons addObject:button];
     }
     return buttons;
 }
+
+- (UIImage *)rectangleImageWithColor:(UIColor *)color size:(CGSize)size {
+    UIGraphicsBeginImageContextWithOptions(size, NO, 2.0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSetFillColorWithColor(context, color.CGColor);
+    CGContextFillRect(context, CGRectMake(0, 0, size.width, size.height));
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
+}
+
+#pragma mark - UIScrollViewDelegate.
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == _containerView) {
+        CGPoint contentOffset = scrollView.contentOffset;
+        _effectView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y);
+    }
+}
 @end
 
 @implementation AXAlertViewAction
 - (instancetype)initWithTitle:(NSString *)title handler:(AXAlertViewActionHandler)handler {
+    return [self initWithTitle:title image:nil handler:handler];
+}
+
+- (instancetype)initWithTitle:(NSString *)title image:(UIImage *)image handler:(AXAlertViewActionHandler)handler {
     if (self = [super init]) {
-        _title = title;
+        _title = [title copy];
+        _image = image;
         _handler = [handler copy];
     }
     return self;
@@ -535,10 +720,22 @@
 }
 
 + (instancetype)actionWithTitle:(NSString *)title handler:(AXAlertViewActionHandler)handler {
-    return [[self alloc] initWithTitle:title handler:handler];
+    return [self actionWithTitle:title image:nil handler:handler];
+}
+
++ (instancetype)actionWithTitle:(NSString *)title image:(UIImage *)image handler:(AXAlertViewActionHandler)handler {
+    return [[self alloc] initWithTitle:title image:image handler:handler];
 }
 @end
 
 @implementation AXAlertViewActionConfiguration
-
+- (id)copyWithZone:(NSZone *)zone {
+    AXAlertViewActionConfiguration *config = [[AXAlertViewActionConfiguration allocWithZone:zone] init];
+    config.font = [self.font copy];
+    config.tintColor = [self.tintColor copy];
+    config.backgroundColor = [self.backgroundColor copy];
+    config.cornerRadius = self.cornerRadius;
+    config.preferedHeight = self.preferedHeight;
+    return config;
+}
 @end
