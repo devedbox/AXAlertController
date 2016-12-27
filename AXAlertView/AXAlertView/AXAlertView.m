@@ -82,7 +82,7 @@
     _actionItemMargin = 8;
     _horizontalLimits = 2;
     _dimBackground = YES;
-    _opacity = 0.3;
+    _opacity = 0.4;
     _preferedHeight = .0;
     _preferedMargin = 40;
     _cornerRadius = 6;
@@ -605,6 +605,14 @@
     [self.containerView.layer removeAllAnimations];
     
     _processing = YES;
+    
+    if (_translucent) {
+        // Get the current translucent transition view.
+        UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:YES withCapInsets:UIEdgeInsetsZero];
+        [snapshot setFrame:self.containerView.bounds];
+        [self.containerView addSubview:snapshot];
+        _translucentTransitionView = snapshot;
+    }
     
     if (_willHide != NULL && _willHide != nil) {
         _willHide(self, animated);
