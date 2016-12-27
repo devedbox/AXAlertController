@@ -288,7 +288,7 @@
     [view addSubview:self];
     [self viewWillShow:self animated:animated];
     [self.containerView.chainAnimator.combineSpring.property(@"transform.scale").fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(50).damping(20) easeOut];
-    self.chainAnimator.basic.property(@"opacity").fromValue(@(.0)).toValue(@(1.0)).duration(0.5).target(self).complete(@selector(_showComplete:)).animate();
+    self.chainAnimator.basic.property(@"opacity").fromValue(@(.0)).toValue(@(1.0)).duration(0.35).target(self).complete(@selector(_showComplete:)).animate();
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     self.containerView.animate();
 }
@@ -306,7 +306,7 @@
 - (void)hide:(BOOL)animated {
     if (_processing) return;
     [self viewWillHide:self animated:animated];
-    self.opacityTo(.0).duration(0.35).target(self).complete(@selector(_hideComplete:));
+    self.opacityTo(.0).duration(0.25).target(self).complete(@selector(_hideComplete:));
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_hideComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     self.animate();
 }
@@ -604,8 +604,6 @@
     [self.layer removeAllAnimations];
     [self.containerView.layer removeAllAnimations];
     
-    _processing = YES;
-    
     if (_translucent) {
         // Get the current translucent transition view.
         UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:YES withCapInsets:UIEdgeInsetsZero];
@@ -689,7 +687,7 @@
 - (NSArray<AXVisualEffectButton*> *_Nonnull)buttonsWithActions:(NSArray<AXAlertViewAction*> *_Nonnull)actions {
     NSMutableArray *buttons = [@[] mutableCopy];
     for (NSInteger i = 0; i < actions.count; i++) {
-        AXVisualEffectButton *button = [AXVisualEffectButton buttonWithType:UIButtonTypeSystem];
+        AXVisualEffectButton *button = [AXVisualEffectButton buttonWithType:UIButtonTypeCustom];
         [button setTitle:[actions[i] title] forState:UIControlStateNormal];
         [button setImage:[actions[i] image] forState:UIControlStateNormal];
         AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:@(i)];

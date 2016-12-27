@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "AXAlertView"
-  s.version      = "0.1.1"
+  s.version      = "0.1.2"
   s.summary      = "A customized alert view."
 
   # This description is used to generate tags and improve search results.
@@ -78,7 +78,7 @@ s.description  = "A customized alert view. A subclass of UIView. A simple way to
   #  Supports git, hg, bzr, svn and HTTP.
   #
 
-  s.source       = { :git => "https://github.com/devedbox/AXAlertView.git", :tag => "0.1.1" }
+  s.source       = { :git => "https://github.com/devedbox/AXAlertView.git", :tag => "0.1.2" }
 
 
   # ――― Source Code ―――――――――――――――――――――――――――――――――――――――――――――――――――――――――――――― #
