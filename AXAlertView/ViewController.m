@@ -28,7 +28,7 @@
     [showButton setBackgroundColor:[UIColor clearColor]];
     [showButton setAdjustsImageWhenHighlighted:YES];
     [showButton setAdjustsImageWhenDisabled:YES];
-    [showButton setTintColor:[UIColor blackColor]];
+    [showButton setTintColor:[UIColor whiteColor]];
     [showButton.layer setCornerRadius:4];
     [showButton.layer setMasksToBounds:YES];
     [showButton addTarget:self action:@selector(showAlertView:) forControlEvents:UIControlEventTouchUpInside];
@@ -41,7 +41,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColorTo([UIColor orangeColor]).duration(0.25).animate();
+    self.view.backgroundColor = [UIColor orangeColor];
     // Do any additional setup after loading the view, typically from a nib.
     _alertView = [[AXAlertView alloc] initWithFrame:self.view.bounds];
     UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectZero];
@@ -71,6 +71,7 @@
     [_alertView showInView:self.view animated:YES];
      */
     // Do any additional setup after loading the view, typically from a nib.
+    
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.view.bounds];
     alertView.titleInset = UIEdgeInsetsMake(35, 0, 35, 0);
     alertView.contentInset = UIEdgeInsetsMake(0, 30, 0, 30);
@@ -83,8 +84,6 @@
     alertView.title = @"告知当前状态，信息和解决方法，如果文字换行的情况";
     alertView.titleLabel.font = [UIFont systemFontOfSize:14];
     alertView.titleLabel.textColor = [UIColor blackColor];
-    alertView.translucent = NO;
-    alertView.backgroundColor = [UIColor whiteColor];
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
     cancelConfig.preferedHeight = 50;
@@ -93,8 +92,14 @@
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     confirmConfig.backgroundColor = [UIColor blackColor];
     confirmConfig.preferedHeight = 50;
-    cancelConfig.cornerRadius = .0;
+    confirmConfig.cornerRadius = .0;
+    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
-    [alertView show:YES];
+    [alertView showInView:self.view animated:YES];
+    /*
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Heheda" message:@"Hahaha" preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
+    [self presentViewController:alert animated:YES completion:NULL];
+     */
 }
 @end

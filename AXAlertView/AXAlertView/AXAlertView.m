@@ -15,13 +15,14 @@
 @interface AXAlertView () <UIScrollViewDelegate>
 {
     NSMutableArray<AXAlertViewAction *> *_actionItems;
-    NSArray<UIButton *> *_actionButtons;
+    NSArray<__kindof UIButton *> *_actionButtons;
     NSMutableDictionary<NSNumber*,AXAlertViewActionConfiguration*> *_actionConfig;
     
     // Transition view of translucent.
     UIView *__weak _translucentTransitionView;
     
     BOOL _processing;
+    UIColor * _backgroundColor;
 }
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
@@ -29,6 +30,15 @@
 @property(strong, nonatomic) UIScrollView *containerView;
 /// Content container view.
 @property(strong, nonatomic) UIView *contentContainerView;
+/// Blur effect view.
+@property(strong, nonatomic) UIVisualEffectView *effectView;
+@end
+
+@interface AXVisualEffectButton : UIButton
+/// Translucent. Defailts to YES.
+@property(assign, nonatomic) BOOL translucent;
+/// Translucent style. Defaults to Light.
+@property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle;
 /// Blur effect view.
 @property(strong, nonatomic) UIVisualEffectView *effectView;
 @end
@@ -64,6 +74,7 @@
     _titleColor = [UIColor colorWithRed:0.996 green:0.725 blue:0.145 alpha:1.00];
     _titleFont = [UIFont boldSystemFontOfSize:17];
     _translucent = YES;
+    _hidesOnTouch = NO;
     _contentInset = UIEdgeInsetsMake(10, 10, 10, 10);
     _customViewInset = UIEdgeInsetsMake(0, 0, 0, 0);
     _padding = 10;
@@ -81,6 +92,7 @@
     _actionConfiguration.font = [UIFont boldSystemFontOfSize:15];
     _actionConfiguration.cornerRadius = 4;
     _actionConfiguration.preferedHeight = 44.0;
+    _actionConfiguration.translucent = YES;
     
     super.backgroundColor = [UIColor clearColor];
     [self addSubview:self.containerView];
@@ -90,6 +102,10 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
     [self addGestureRecognizer:tap];
+    /*
+    _opacityLayer = [AXOpacityLayer layer];
+    [self.layer addSublayer:_opacityLayer];
+     */
     
     [self layoutSubviews];
 }
@@ -99,11 +115,18 @@
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 }
 #pragma mark - Override
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    if (_processing) return self;
+    return [super hitTest:point withEvent:event];
+}
+
 - (void)willMoveToSuperview:(UIView *)newSuperview {
     [super willMoveToSuperview:newSuperview];
     if (newSuperview) {
         [self configureActions];
         [self configureCustomView];
+        
+        [self setTranslucent:_translucent];
     }
 }
 
@@ -205,6 +228,8 @@
         _containerView.scrollEnabled = NO;
     }
     
+    _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer-heightOfItems);
+    
     // Frame of title label.
     CGRect rect_title = _titleLabel.frame;
     rect_title.origin.x = _contentInset.left+_titleInset.left;
@@ -281,7 +306,7 @@
 - (void)hide:(BOOL)animated {
     if (_processing) return;
     [self viewWillHide:self animated:animated];
-    self.opacityTo(.0).duration(0.25).target(self).complete(@selector(_hideComplete:));
+    self.opacityTo(.0).duration(0.35).target(self).complete(@selector(_hideComplete:));
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_hideComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     self.animate();
 }
@@ -301,6 +326,7 @@
 - (void)drawRect:(CGRect)rect {
     // Drawing code
     [super drawRect:rect];
+    
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
     CGContextAddPath(context, outterPath);
@@ -331,7 +357,7 @@
     if (_containerView) return _containerView;
     _containerView = [[UIScrollView alloc] initWithFrame:CGRectZero];
     _containerView.clipsToBounds = YES;
-    _containerView.backgroundColor = [UIColor clearColor];
+    _containerView.backgroundColor = [UIColor whiteColor];
     _containerView.layer.cornerRadius = _cornerRadius;
     _containerView.layer.masksToBounds = YES;
     _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
@@ -363,6 +389,7 @@
 
 #pragma mark - Setters
 - (void)setBackgroundColor:(UIColor *)backgroundColor {
+    _backgroundColor = backgroundColor;
     _containerView.backgroundColor = backgroundColor;
 }
 
@@ -413,8 +440,11 @@
         _containerView.backgroundColor = [UIColor clearColor];
     } else {
         [_effectView removeFromSuperview];
-        _containerView.backgroundColor = [UIColor whiteColor];
+        _containerView.backgroundColor = _backgroundColor?:[UIColor whiteColor];
     }
+    
+    [self configureActions];
+    [self setNeedsLayout];
 }
 
 - (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
@@ -521,7 +551,7 @@
         _touch(self);
     }
     CGPoint point = [tap locationInView:self];
-    if (CGRectContainsRect(self.containerView.frame, CGRectMake(point.x, point.y, 1, 1))) {
+    if (CGRectContainsRect(self.containerView.frame, CGRectMake(point.x, point.y, 1, 1)) || !_hidesOnTouch) {
         return;
     }
     [self hide:YES];
@@ -538,16 +568,13 @@
     
     [self layoutSubviews];
     
-    // Get the current translucent transition view.
-    UIGraphicsBeginImageContextWithOptions(self.containerView.bounds.size, NO, 2);
-    [self.containerView.layer renderInContext:UIGraphicsGetCurrentContext()];
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.effectView.frame];
-    imageView.image = image;
-    
-    [self.containerView insertSubview:imageView atIndex:0];
-    _translucentTransitionView = imageView;
+    if (_translucent) {
+        // Get the current translucent transition view.
+        UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:YES withCapInsets:UIEdgeInsetsZero];
+        [snapshot setFrame:self.containerView.bounds];
+        [self.containerView addSubview:snapshot];
+        _translucentTransitionView = snapshot;
+    }
     
     if (_willShow != NULL && _willShow != nil) {
         _willShow(self, animated);
@@ -651,10 +678,10 @@
     }
 }
 
-- (NSArray<UIButton*> *_Nonnull)buttonsWithActions:(NSArray<AXAlertViewAction*> *_Nonnull)actions {
+- (NSArray<AXVisualEffectButton*> *_Nonnull)buttonsWithActions:(NSArray<AXAlertViewAction*> *_Nonnull)actions {
     NSMutableArray *buttons = [@[] mutableCopy];
     for (NSInteger i = 0; i < actions.count; i++) {
-        UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+        AXVisualEffectButton *button = [AXVisualEffectButton buttonWithType:UIButtonTypeSystem];
         [button setTitle:[actions[i] title] forState:UIControlStateNormal];
         [button setImage:[actions[i] image] forState:UIControlStateNormal];
         AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:@(i)];
@@ -665,9 +692,15 @@
         if (!backgroundColor) {
             backgroundColor = [self window].tintColor;
         }
-        [button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
-        [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
-        [button setBackgroundImage:[self rectangleImageWithColor:[UIColor grayColor] size:CGSizeMake(10, 10)] forState:UIControlStateDisabled];
+        if (!config.translucent || !_translucent) {
+            [button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
+        } else {
+            [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.1] size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
+        }
+        /*
+        [button setBackgroundImage:[self rectangleImageWithColor:_translucent?[backgroundColor colorWithAlphaComponent:0.8]:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
+         */
+        if (!config.translucent || !_translucent) [button setBackgroundImage:[self rectangleImageWithColor:[UIColor grayColor] size:CGSizeMake(10, 10)] forState:UIControlStateDisabled];
         [button setBackgroundColor:[UIColor clearColor]];
         [button.titleLabel setFont:config.font?config.font:_actionConfiguration.font];
         UIColor *tintColor = config.tintColor?config.tintColor:_actionConfiguration.tintColor;
@@ -677,6 +710,10 @@
         [button setTintColor:tintColor];
         button.layer.cornerRadius = config.cornerRadius;
         button.layer.masksToBounds = YES;
+        
+        button.translucent = config.translucent&&_translucent;
+        button.translucentStyle = config.translucentStyle;
+        
         [buttons addObject:button];
     }
     return buttons;
@@ -698,6 +735,84 @@
         CGPoint contentOffset = scrollView.contentOffset;
         _effectView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y);
     }
+}
+@end
+
+@implementation AXVisualEffectButton
+- (instancetype)init {
+    if (self = [super init]) {
+        [self initializer];
+    }
+    return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    if (self = [super initWithCoder:aDecoder]) {
+        [self initializer];
+    }
+    return self;
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        [self initializer];
+    }
+    return self;
+}
+
+- (void)initializer {
+    _translucent = YES;
+    _translucentStyle = AXAlertViewTranslucentLight;
+}
+
+- (void)willMoveToSuperview:(UIView *)newSuperview {
+    [super willMoveToSuperview:newSuperview];
+    
+    if (newSuperview && _translucent) {
+        [self insertSubview:self.effectView atIndex:0];
+    }
+}
+
+- (void)insertSubview:(UIView *)view atIndex:(NSInteger)index {
+    [super insertSubview:view atIndex:index];
+    if (_translucent) [super insertSubview:_effectView atIndex:0];
+}
+
+- (void)didMoveToSuperview {
+    [super didMoveToSuperview];
+    
+    if (_translucent) {
+        [self sendSubviewToBack:_effectView];
+    }
+}
+
+- (void)setTranslucent:(BOOL)translucent {
+    _translucent = translucent;
+    if (_translucent) {
+        if (_translucentStyle == AXAlertViewTranslucentDark) {
+            _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
+        } else {
+            _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight];
+        }
+        [self insertSubview:self.effectView atIndex:0];
+    } else {
+        [_effectView removeFromSuperview];
+    }
+}
+
+- (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
+    _translucentStyle = translucentStyle;
+    
+    [self setTranslucent:_translucent];
+}
+
+- (UIVisualEffectView *)effectView {
+    if (_effectView) return _effectView;
+    _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
+    _effectView.frame = self.bounds;
+    _effectView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    _effectView.userInteractionEnabled = NO;
+    return _effectView;
 }
 @end
 
@@ -729,6 +844,19 @@
 @end
 
 @implementation AXAlertViewActionConfiguration
+- (instancetype)init {
+    if (self = [super init]) {
+        _font = [UIFont boldSystemFontOfSize:15];
+        _tintColor = [UIColor colorWithRed:0.996 green:0.725 blue:0.145 alpha:1.00];
+        _backgroundColor = [UIColor whiteColor];
+        _cornerRadius = 4;
+        _preferedHeight = 44.0;
+        _translucent = YES;
+        _translucentStyle = AXAlertViewTranslucentLight;
+    }
+    return self;
+}
+
 - (id)copyWithZone:(NSZone *)zone {
     AXAlertViewActionConfiguration *config = [[AXAlertViewActionConfiguration allocWithZone:zone] init];
     config.font = [self.font copy];
@@ -736,6 +864,8 @@
     config.backgroundColor = [self.backgroundColor copy];
     config.cornerRadius = self.cornerRadius;
     config.preferedHeight = self.preferedHeight;
+    config.translucent = self.translucent;
+    config.translucentStyle = self.translucentStyle;
     return config;
 }
 @end
