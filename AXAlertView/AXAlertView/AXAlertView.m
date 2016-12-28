@@ -700,13 +700,14 @@
         }
         if (!config.translucent || !_translucent) {
             [button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
+            [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.8] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
         } else {
             [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.1] size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
         }
         /*
         [button setBackgroundImage:[self rectangleImageWithColor:_translucent?[backgroundColor colorWithAlphaComponent:0.8]:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
-         */
         if (!config.translucent || !_translucent) [button setBackgroundImage:[self rectangleImageWithColor:[UIColor grayColor] size:CGSizeMake(10, 10)] forState:UIControlStateDisabled];
+         */
         [button setBackgroundColor:[UIColor clearColor]];
         [button.titleLabel setFont:config.font?config.font:_actionConfiguration.font];
         UIColor *tintColor = config.tintColor?config.tintColor:_actionConfiguration.tintColor;

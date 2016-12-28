@@ -80,7 +80,11 @@
     alertView.actionItemMargin = 0;
     alertView.actionItemPadding = 0;
     alertView.titleLabel.numberOfLines = 0;
-    [alertView setActions:[AXAlertViewAction actionWithTitle:@"" image:[UIImage imageNamed:@"cancel"] handler:NULL],[AXAlertViewAction actionWithTitle:@"" image:[UIImage imageNamed:@"confirm"] handler:NULL],nil];
+    [alertView setActions:[AXAlertViewAction actionWithTitle:@"" image:[UIImage imageNamed:@"cancel"] handler:NULL],[AXAlertViewAction actionWithTitle:@"" image:[UIImage imageNamed:@"confirm"] handler:^(AXAlertViewAction * _Nonnull __weak action) {
+        if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"https://www.baidu.com"]]) {
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.baidu.com"]];
+        }
+    }],nil];
     alertView.title = @"告知当前状态，信息和解决方法，如果文字换行的情况";
     alertView.titleLabel.font = [UIFont systemFontOfSize:14];
     alertView.titleLabel.textColor = [UIColor blackColor];
