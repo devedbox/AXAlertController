@@ -287,7 +287,7 @@
     if (_processing) return;
     [view addSubview:self];
     [self viewWillShow:self animated:animated];
-    [self.containerView.chainAnimator.combineSpring.property(@"transform.scale").fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(50).damping(20) easeOut];
+    [self.containerView.chainAnimator.combineSpring.property(@"transform.scale").fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(100).damping(20) easeOut];
     self.chainAnimator.basic.property(@"opacity").fromValue(@(.0)).toValue(@(1.0)).duration(0.35).target(self).complete(@selector(_showComplete:)).animate();
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     self.containerView.animate();
@@ -606,7 +606,7 @@
     
     if (_translucent) {
         // Get the current translucent transition view.
-        UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:YES withCapInsets:UIEdgeInsetsZero];
+        UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:NO withCapInsets:UIEdgeInsetsZero];
         [snapshot setFrame:self.containerView.bounds];
         [self.containerView addSubview:snapshot];
         _translucentTransitionView = snapshot;
