@@ -45,16 +45,17 @@
     // Do any additional setup after loading the view, typically from a nib.
     _alertView = [[AXAlertView alloc] initWithFrame:self.view.bounds];
     UILabel *textLabel = [[UILabel alloc] initWithFrame:CGRectZero];
-    textLabel.text = @"到你的骄傲带哦带爱上电脑我回到id宝id赛欧作曲 : G.E.M.作词 : G.E.M. 阳光下的泡沫 是彩色的 就像被骗的我 是幸福的 追究什么对错 你的谎言 基于你还爱我 美丽的泡沫 虽然一刹花火 你所有承诺 虽然都太脆弱 但爱像泡沫 如果能够看破 有什么难过 早该知道泡沫 一触就破 就像已伤的心 不胜折磨 也不是谁的错 谎言再多 基于你还爱我 美丽的泡沫 虽然一刹花火 你所有承诺 虽然都太脆弱 爱本是泡沫 如果能够看破 有什么难过 再美的花朵 盛开过就凋落 再亮眼的星 一闪过就坠落 爱本是泡沫 如果能够看破 有什么难过 为什么难过 有什么难过 为什么难过 全都是泡沫 只一刹的花火 你所有承诺 全部都太脆弱 而你的轮廓 怪我没有看破 才如此难过 相爱的把握 要如何再搜索 相拥着寂寞 难道就不寂寞 爱本是泡沫 怪我没有看破 才如此难过 在雨下的泡沫 一触就破 当初炽热的心 早已沉没 说什么你爱我 如果骗我 我宁愿你沉默";
+    textLabel.text = @"到你的骄傲带哦带爱上电脑我回到id宝id赛欧作曲 : G.E.M.作词 : G.E.M. 阳光下的泡沫 是彩色的 就像被骗的我 是幸福的 追究什么对错 你的谎言 基于你还爱我 美丽的泡沫 虽然一刹花火 你所有承诺 虽然都太脆弱 但爱像泡沫 如果能够看破 有什么难过 早该知道泡沫 一触就破 就像已伤的心 不胜折磨 也不是谁的错 谎言再多";
     textLabel.numberOfLines = 0;
     _alertView.customView = textLabel;
     [_alertView setActions:[AXAlertViewAction actionWithTitle:@"确定" handler:^(AXAlertViewAction *action) {
         [_alertView showInView:self.view animated:YES];
     }],[AXAlertViewAction actionWithTitle:@"取消" handler:NULL],nil];
-    _alertView.horizontalLimits = 1;
+    _alertView.horizontalLimits = 2;
     _alertView.preferedHeight = 200;
     _alertView.title = @"测试";
     _alertView.translucent = YES;
+    _alertView.hidesOnTouch = YES;
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -67,27 +68,27 @@
 }
 
 - (void)showAlertView:(UIButton *)sender {
-    /*
-    [_alertView showInView:self.view animated:YES];
-     */
+    
+//    [_alertView showInView:self.view animated:YES];
+//    return;
     // Do any additional setup after loading the view, typically from a nib.
     
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.view.bounds];
-    alertView.titleInset = UIEdgeInsetsMake(35, 0, 35, 0);
-    alertView.contentInset = UIEdgeInsetsMake(0, 30, 0, 30);
+    alertView.titleInset = UIEdgeInsetsMake(35, 30, 35, 30);
     alertView.padding = 0;
     alertView.cornerRadius = .0;
     alertView.actionItemMargin = 0;
     alertView.actionItemPadding = 0;
     alertView.titleLabel.numberOfLines = 0;
+    alertView.title = @"告知当前状态，信息和解决方法，如果文字换行的情况";
+    alertView.titleLabel.font = [UIFont systemFontOfSize:14];
+    alertView.titleLabel.textColor = [UIColor blackColor];
+    
     [alertView setActions:[AXAlertViewAction actionWithTitle:@"" image:[UIImage imageNamed:@"cancel"] handler:NULL],[AXAlertViewAction actionWithTitle:@"" image:[UIImage imageNamed:@"confirm"] handler:^(AXAlertViewAction * _Nonnull __weak action) {
         if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"https://www.baidu.com"]]) {
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.baidu.com"]];
         }
     }],nil];
-    alertView.title = @"告知当前状态，信息和解决方法，如果文字换行的情况";
-    alertView.titleLabel.font = [UIFont systemFontOfSize:14];
-    alertView.titleLabel.textColor = [UIColor blackColor];
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
     cancelConfig.preferedHeight = 50;
@@ -100,6 +101,19 @@
     confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
     [alertView showInView:self.view animated:YES];
+    
+    /*
+    for (int i = 0; i < 10; i++) {
+        [alertView appendActions:[AXAlertViewAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] image:nil handler:NULL], nil];
+        AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
+        confirmConfig.backgroundColor = [UIColor blackColor];
+        confirmConfig.preferedHeight = 50;
+        confirmConfig.cornerRadius = .0;
+//        confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+        [alertView setActionConfiguration:confirmConfig forItemAtIndex:i];
+    }
+    [alertView show:YES];
+    
     /*
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Heheda" message:@"Hahaha" preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];

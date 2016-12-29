@@ -46,11 +46,11 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 @property(assign, nonatomic) BOOL hidesOnTouch UI_APPEARANCE_SELECTOR;
 /// Translucent style. Default is Light.
 @property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle UI_APPEARANCE_SELECTOR;
-/// Content inset. Defaults to (10, 10, 10, 10)
+/// Content inset. Defaults to (0, 0, 0, 0)
 @property(assign, nonatomic) UIEdgeInsets contentInset UI_APPEARANCE_SELECTOR;
-/// Custom view inset. Defaults to (0, 0, 0, 0)
+/// Custom view inset. Defaults to (0, 10, 10, 10)
 @property(assign, nonatomic) UIEdgeInsets customViewInset UI_APPEARANCE_SELECTOR;
-/// Title label content inset. Defaults to (0, 0, 0, 0)
+/// Title label content inset. Defaults to (10, 10, 10, 10).
 @property(assign, nonatomic) UIEdgeInsets titleInset UI_APPEARANCE_SELECTOR;
 /// Content padding. Defaults to 10.
 @property(assign, nonatomic) CGFloat padding UI_APPEARANCE_SELECTOR;

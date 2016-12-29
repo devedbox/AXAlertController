@@ -18,7 +18,6 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
-    [AXAlertView appearance].contentInset = UIEdgeInsetsMake(20, 20, 20, 20);
     return YES;
 }
 

@@ -27,9 +27,9 @@
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
 /// Container view.
-@property(strong, nonatomic) UIScrollView *containerView;
+@property(strong, nonatomic) UIView *containerView;
 /// Content container view.
-@property(strong, nonatomic) UIView *contentContainerView;
+@property(strong, nonatomic) UIScrollView *contentContainerView;
 /// Blur effect view.
 @property(strong, nonatomic) UIVisualEffectView *effectView;
 @end
@@ -75,8 +75,9 @@
     _titleFont = [UIFont boldSystemFontOfSize:17];
     _translucent = YES;
     _hidesOnTouch = NO;
-    _contentInset = UIEdgeInsetsMake(10, 10, 10, 10);
-    _customViewInset = UIEdgeInsetsMake(0, 0, 0, 0);
+    _contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
+    _titleInset = UIEdgeInsetsMake(10, 10, 0, 10);
+    _customViewInset = UIEdgeInsetsMake(0, 10, 0, 10);
     _padding = 10;
     _actionItemPadding = 5;
     _actionItemMargin = 8;
@@ -102,12 +103,6 @@
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
     [self addGestureRecognizer:tap];
-    /*
-    _opacityLayer = [AXOpacityLayer layer];
-    [self.layer addSublayer:_opacityLayer];
-     */
-    
-    [self layoutSubviews];
 }
 
 - (void)dealloc {
@@ -127,6 +122,9 @@
         [self configureCustomView];
         
         [self setTranslucent:_translucent];
+    } else {
+        // Ensure remove the translucent transition view from super view.
+        [_translucentTransitionView removeFromSuperview];
     }
 }
 
@@ -134,41 +132,45 @@
     [super didMoveToSuperview];
     
     [self setNeedsLayout];
-    
-    CGPoint contentOffset = _containerView.contentOffset;
-    _effectView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y);
 }
 
 - (void)layoutSubviews {
+    // Call SUPER.
     [super layoutSubviews];
-    
+    // Get the current frame of SELF.
     CGRect currentFrame = self.frame;
-    
+    // Initialize a CGSize struct of custom view and title label using the current frame and prefered magin and the insets.
     CGSize sizeOfCustomView = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2 - (_contentInset.left+_contentInset.right)-(_customViewInset.left+_customViewInset.right), 0);
     CGSize sizeOfTitleLabel = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2 - (_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right), 0);
-    
     // Calculate size of title label.
-    if (_titleLabel.numberOfLines == 1) {
+    if (_titleLabel.numberOfLines == 1) {// If number of lines of the title label.
+        // Size to fit text content.
         [_titleLabel sizeToFit];
-        
+        // Set height of the title label.
         sizeOfTitleLabel.height = _titleLabel.bounds.size.height;
-    } else {
+    } else {// Or calculate the size using the TextKit.
+        // Calculate size.
         CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(sizeOfTitleLabel.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:_titleLabel.font} context:NULL].size;
+        // Set height of size.
         sizeOfTitleLabel.height = ceil(size.height);
     }
-    
+    // Height of the title label will only be allowed to half of height of SELF.
+    sizeOfTitleLabel.height = MIN(sizeOfTitleLabel.height, CGRectGetHeight(currentFrame)*.5);
     // Calculate size of the custom view.
-    if ([_customView isKindOfClass:UILabel.class]) {
+    if ([_customView isKindOfClass:UILabel.class]) {// For the case of custom view is being a kind of UILabel.
         // Calculte the size of label.
         UILabel *label = (UILabel *)_customView;
+        // Using bounding rect way.
         CGSize size = [label.text boundingRectWithSize:CGSizeMake(sizeOfCustomView.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:label.font} context:NULL].size;
+        // Set height of size.
         sizeOfCustomView.height = ceil(size.height)+_customViewInset.top+_customViewInset.bottom;
-    } else {
+    } else {// Size to fit content whatever it is.
         // Size that fit the width of SELF.
         [_customView sizeToFit];
+        // Set height of size.
         sizeOfCustomView.height = _customView.bounds.size.height+_customViewInset.top+_customViewInset.bottom;
     }
-    
+    // Plus all the heights and paddings adding to a total height of container view.
     CGFloat heightOfContainer = .0;
     heightOfContainer += _contentInset.top;
     if (_titleLabel.text.length > 0) {
@@ -178,7 +180,7 @@
         heightOfContainer += _padding;
     }
     heightOfContainer += sizeOfCustomView.height;
-    
+    // Plus all the heights of the action items ignoring the paddings.
     CGFloat heightOfItems = .0;
     
     if (_actionItems.count > _horizontalLimits) {
@@ -214,41 +216,43 @@
     CGRect rect_container = _containerView.frame;
     rect_container.origin.x = _preferedMargin;
     
-    if (heightOfContainer > CGRectGetHeight(currentFrame)-_preferedHeight*2) { // Too large to cut.
+    if (heightOfContainer > CGRectGetHeight(currentFrame)-_preferedMargin*2) { // Too large to cut.
         rect_container.origin.y = _preferedMargin;
         rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2, CGRectGetHeight(currentFrame)-_preferedMargin*2);
         _containerView.frame = rect_container;
-        _containerView.contentSize = CGSizeMake(rect_container.size.width, heightOfContainer);
-        _containerView.scrollEnabled = YES;
+        // Enabled the scroll of the content container view.
+        _contentContainerView.scrollEnabled = YES;
+        _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer);
     } else {
         rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-_preferedMargin*2)*.5;
         rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2, MIN(heightOfContainer, CGRectGetHeight(currentFrame)-_preferedMargin*2));
         _containerView.frame = rect_container;
-        _containerView.contentSize = rect_container.size;
-        _containerView.scrollEnabled = NO;
+        // Disable the scroll of the content container view.
+        _contentContainerView.scrollEnabled = NO;
+        _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), _contentInset.top+_titleInset.top+sizeOfTitleLabel.height+_titleInset.bottom);
     }
-    
-    _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer-heightOfItems);
     
     // Frame of title label.
     CGRect rect_title = _titleLabel.frame;
     rect_title.origin.x = _contentInset.left+_titleInset.left;
     rect_title.origin.y = _contentInset.top+_titleInset.top;
-    rect_title.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right);
+    rect_title.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right);
+    rect_title.size.height = sizeOfTitleLabel.height;
     _titleLabel.frame = rect_title;
     
     // Frame of conent container view.
     CGRect rect_content = _contentContainerView.frame;
     rect_content.origin.x = _contentInset.left;
-    rect_content.origin.y = CGRectGetMaxY(rect_title) + _padding;
+    rect_content.origin.y = CGRectGetMaxY(rect_title) + _titleInset.bottom + _padding;
     rect_content.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right);
-    rect_content.size.height = MAX(sizeOfCustomView.height, CGRectGetHeight(rect_container)-heightOfItems-_actionItemPadding*(_actionItems.count-1)-_padding*2-_contentInset.bottom-CGRectGetMaxY(rect_title));
+    rect_content.size.height = CGRectGetHeight(rect_container)-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_contentInset.bottom;
     _contentContainerView.frame = rect_content;
-    
-    [self configureActions];
-    _customView.frame = CGRectMake(_customViewInset.left, _customViewInset.top, CGRectGetWidth(_contentContainerView.bounds)-(_customViewInset.left+_customViewInset.right), CGRectGetHeight(_contentContainerView.bounds)-(_customViewInset.top+_customViewInset.bottom));
+    // Calculate the content size of the content container view.
+    _contentContainerView.contentSize = CGSizeMake(CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right), heightOfContainer-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_contentInset.bottom);
+    _customView.frame = CGRectMake(_customViewInset.left, _customViewInset.top, sizeOfCustomView.width, sizeOfCustomView.height-(_customViewInset.top+_customViewInset.bottom));
     
     [self setNeedsDisplay];
+    [self configureActions];
 }
 #pragma mark - Public method
 - (void)setActions:(AXAlertViewAction *)actions, ... {
@@ -287,10 +291,10 @@
     if (_processing) return;
     [view addSubview:self];
     [self viewWillShow:self animated:animated];
-    [self.containerView.chainAnimator.combineSpring.property(@"transform.scale").fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(100).damping(20) easeOut];
-    self.chainAnimator.basic.property(@"opacity").fromValue(@(.0)).toValue(@(1.0)).duration(0.35).target(self).complete(@selector(_showComplete:)).animate();
+    if (animated) [self.containerView.chainAnimator.combineSpring.property(@"transform.scale").fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(100).damping(20) easeOut];
+    self.chainAnimator.basic.property(@"opacity").fromValue(@(.0)).toValue(@(1.0)).duration(animated?0.35:.0).target(self).complete(@selector(_showComplete:)).animate();
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    self.containerView.animate();
+    if (animated) self.containerView.animate();
 }
 
 - (void)_showComplete:(AXChainAnimator *)sender {
@@ -306,9 +310,8 @@
 - (void)hide:(BOOL)animated {
     if (_processing) return;
     [self viewWillHide:self animated:animated];
-    self.opacityTo(.0).duration(0.25).target(self).complete(@selector(_hideComplete:));
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_hideComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    self.animate();
+    self.chainAnimator.basic.property(@"opacity").fromValue(@(1.0)).toValue(@(.0)).duration(animated?0.25:.0).target(self).complete(@selector(_hideComplete:)).animate();
 }
 
 - (void)_hideComplete:(AXChainAnimator *)sender {
@@ -353,25 +356,26 @@
     return _titleLabel;
 }
 
-- (UIScrollView *)containerView {
+- (UIView *)containerView {
     if (_containerView) return _containerView;
-    _containerView = [[UIScrollView alloc] initWithFrame:CGRectZero];
+    _containerView = [[UIView alloc] initWithFrame:CGRectZero];
     _containerView.clipsToBounds = YES;
     _containerView.backgroundColor = [UIColor whiteColor];
     _containerView.layer.cornerRadius = _cornerRadius;
     _containerView.layer.masksToBounds = YES;
     _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    _containerView.showsVerticalScrollIndicator = NO;
-    _containerView.showsHorizontalScrollIndicator = NO;
-    _containerView.delegate = self;
     return _containerView;
 }
 
-- (UIView *)contentContainerView {
+- (UIScrollView *)contentContainerView {
     if (_contentContainerView) return _contentContainerView;
-    _contentContainerView = [[UIView alloc] initWithFrame:CGRectZero];
+    _contentContainerView = [[UIScrollView alloc] initWithFrame:CGRectZero];
     _contentContainerView.backgroundColor = [UIColor clearColor];
     _contentContainerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    _contentContainerView.showsVerticalScrollIndicator = NO;
+    _contentContainerView.showsHorizontalScrollIndicator = NO;
+    _contentContainerView.alwaysBounceVertical = YES;
+    _contentContainerView.delegate = self;
     return _contentContainerView;
 }
 
@@ -573,6 +577,10 @@
         UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:YES withCapInsets:UIEdgeInsetsZero];
         [snapshot setFrame:self.containerView.bounds];
         [self.containerView addSubview:snapshot];
+        // Remove the former from the container view if exits.
+        if (_translucentTransitionView.superview == self.containerView) {
+            [_translucentTransitionView removeFromSuperview];
+        }
         _translucentTransitionView = snapshot;
     }
     
@@ -603,15 +611,23 @@
 - (void)viewWillHide:(AXAlertView *)alertView animated:(BOOL)animated {
     [self.layer removeAllAnimations];
     [self.containerView.layer removeAllAnimations];
-    
+    // Remove the former from the container view if exits.
+    if (_translucentTransitionView.superview == self.containerView) {
+        [_translucentTransitionView removeFromSuperview];
+    }
+    /*
     if (_translucent) {
         // Get the current translucent transition view.
         UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:NO withCapInsets:UIEdgeInsetsZero];
         [snapshot setFrame:self.containerView.bounds];
         [self.containerView addSubview:snapshot];
+        // Remove the former from the container view if exits.
+        if (_translucentTransitionView.superview == self.containerView) {
+            [_translucentTransitionView removeFromSuperview];
+        }
         _translucentTransitionView = snapshot;
     }
-    
+    */
     if (_willHide != NULL && _willHide != nil) {
         _willHide(self, animated);
     }
@@ -627,9 +643,6 @@
     [_translucentTransitionView removeFromSuperview];
     
     _processing = NO;
-    
-    // Scroll container view to title.
-    [_containerView scrollRectToVisible:CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), 10) animated:NO];
     
     if (_didHide != NULL && _didHide != nil) {
         _didHide(self, animated);
@@ -663,23 +676,23 @@
             AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
             CGFloat beginContext = .0;
             if (i == 0) {
-                beginContext = CGRectGetMaxY(_contentContainerView.frame) + _padding;
+                beginContext = CGRectGetMaxY(_customView.frame) + _padding;
             } else {
                 UIButton *lastItem = _actionButtons[i-1];
                 beginContext = CGRectGetMaxY(lastItem.frame) + _actionItemPadding;
             }
-            [button setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_containerView.frame)-_actionItemMargin*2, config.preferedHeight)];
-            [self.containerView addSubview:button];
+            [button setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
+            [self.contentContainerView addSubview:button];
         }
     } else {
-        CGFloat buttonWidth = (CGRectGetWidth(_containerView.frame)-_actionItemMargin*2-_actionItemPadding*(_actionButtons.count-1))/_actionButtons.count;
+        CGFloat buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-_actionItemPadding*(_actionButtons.count-1))/_actionButtons.count;
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
             UIButton *button = _actionButtons[i];
             button.tag = i+1;
             AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
             [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
-            [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetMaxY(_contentContainerView.frame)+_padding, buttonWidth, config.preferedHeight)];
-            [self.containerView addSubview:button];
+            [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetMaxY(_customView.frame)+_padding, buttonWidth, config.preferedHeight)];
+            [self.contentContainerView addSubview:button];
         }
     }
 }
@@ -702,7 +715,8 @@
             [button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
             [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.8] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
         } else {
-            [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.1] size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
+            [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.0] size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
+            [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.3] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
         }
         /*
         [button setBackgroundImage:[self rectangleImageWithColor:_translucent?[backgroundColor colorWithAlphaComponent:0.8]:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
@@ -741,6 +755,7 @@
     if (scrollView == _containerView) {
         CGPoint contentOffset = scrollView.contentOffset;
         _effectView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y);
+        _titleLabel.transform = CGAffineTransformMakeTranslation(0, contentOffset.y);
     }
 }
 @end

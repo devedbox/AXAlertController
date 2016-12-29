@@ -1,11 +1,11 @@
 PODS:
-  - AXAnimationChain (0.0.3)
+  - AXAnimationChain (0.0.5)
 
 DEPENDENCIES:
   - AXAnimationChain
 
 SPEC CHECKSUMS:
-  AXAnimationChain: e83a37cb8e8cd99f7e15b8940f2373e3890cb2af
+  AXAnimationChain: 97a4ef99c39a66d2a7ecc884696069a286571064
 
 PODFILE CHECKSUM: 55e839e34274d9071531c6dea56d512014aca7d9
 
