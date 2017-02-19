@@ -7,9 +7,7 @@
 //
 
 #import "AXAlertView.h"
-#import <AXAnimationChain/UIView+AnimationChain.h>
-#import <AXAnimationChain/AXChainAnimator.h>
-#import <AXAnimationChain/UIView+ChainAnimator.h>
+#import <AXAnimationChain/AXAnimationChain.h>
 #import <objc/runtime.h>
 
 @interface AXAlertView () <UIScrollViewDelegate>
