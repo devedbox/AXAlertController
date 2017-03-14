@@ -702,7 +702,7 @@
             button.tag = i+1;
             AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
             [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
-            [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetMaxY(_customView.frame)+_padding, buttonWidth, config.preferedHeight)];
+            [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
             [self.contentContainerView addSubview:button];
         }
     }
