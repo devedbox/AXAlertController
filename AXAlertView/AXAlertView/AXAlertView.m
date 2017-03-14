@@ -411,6 +411,8 @@
         _actionConfig = [@{} mutableCopy];
     }
     [_actionConfig setObject:configuration forKey:@(index)];
+    // Update the configuration of the button at indec.
+    [self _updateConfigurationOfItemAtIndex:index];
 }
 
 - (void)setCustomView:(UIView *)customView {
@@ -654,6 +656,15 @@
 
 #pragma mark - Private
 
+- (void)_updateConfigurationOfItemAtIndex:(NSUInteger)index {
+    // Get the button item from the content container view.
+    AXVisualEffectButton *buttonItem = [_contentContainerView viewWithTag:index+1];
+    // Get the configuration of the configs.
+    AXAlertViewActionConfiguration *config = _actionConfig[@(index)];
+    // Setup button with configuration.
+    [self _setupButtonItem:&buttonItem withConfiguration:config];
+}
+
 - (void)configureCustomView {
     if (!self.customView) {
         return;
@@ -703,41 +714,48 @@
         AXVisualEffectButton *button = [AXVisualEffectButton buttonWithType:UIButtonTypeCustom];
         [button setTitle:[actions[i] title] forState:UIControlStateNormal];
         [button setImage:[actions[i] image] forState:UIControlStateNormal];
-        AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:@(i)];
-        if (!config) {
-            config = _actionConfiguration;
-        }
-        UIColor *backgroundColor = config.backgroundColor?config.backgroundColor:_actionConfiguration.backgroundColor;
-        if (!backgroundColor) {
-            backgroundColor = [self window].tintColor;
-        }
-        if (!config.translucent || !_translucent) {
-            [button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
-            [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.8] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
-        } else {
-            [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.0] size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
-            [button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.3] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
-        }
-        /*
-        [button setBackgroundImage:[self rectangleImageWithColor:_translucent?[backgroundColor colorWithAlphaComponent:0.8]:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
-        if (!config.translucent || !_translucent) [button setBackgroundImage:[self rectangleImageWithColor:[UIColor grayColor] size:CGSizeMake(10, 10)] forState:UIControlStateDisabled];
-         */
-        [button setBackgroundColor:[UIColor clearColor]];
-        [button.titleLabel setFont:config.font?config.font:_actionConfiguration.font];
-        UIColor *tintColor = config.tintColor?config.tintColor:_actionConfiguration.tintColor;
-        if (!tintColor) {
-            tintColor = [[self window] tintColor];
-        }
-        [button setTintColor:tintColor];
-        button.layer.cornerRadius = config.cornerRadius;
-        button.layer.masksToBounds = YES;
         
-        button.translucent = config.translucent&&_translucent;
-        button.translucentStyle = config.translucentStyle;
+        AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:@(i)];
+        [self _setupButtonItem:&button withConfiguration:config];
         
         [buttons addObject:button];
     }
     return buttons;
+}
+
+- (void)_setupButtonItem:(AXVisualEffectButton **)button withConfiguration:(AXAlertViewActionConfiguration *)config {
+    if (!config) {
+        config = _actionConfiguration;
+    }
+    UIColor *backgroundColor = config.backgroundColor?config.backgroundColor:_actionConfiguration.backgroundColor;
+    if (!backgroundColor) {
+        backgroundColor = [self window].tintColor;
+    }
+    if (!config.translucent || !_translucent) {
+        [*button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
+        [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.8] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
+    } else {
+        [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.0] size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
+        [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.3] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
+    }
+    /*
+     [(*button) setBackgroundImage:[self rectangleImageWithColor:_translucent?[backgroundColor colorWithAlphaComponent:0.8]:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
+     if (!config.translucent || !_translucent) [(*button) setBackgroundImage:[self rectangleImageWithColor:[UIColor grayColor] size:CGSizeMake(10, 10)] forState:UIControlStateDisabled];
+     */
+    [*button setBackgroundColor:[UIColor clearColor]];
+    [(*button).titleLabel setFont:config.font?config.font:_actionConfiguration.font];
+    UIColor *tintColor = config.tintColor?config.tintColor:_actionConfiguration.tintColor;
+    if (!tintColor) {
+        tintColor = [[self window] tintColor];
+    }
+    /* Fixed the bug that cannot change the tint color of the custom style button.
+    [*button setTintColor:tintColor]; */
+    [(*button) setTitleColor:tintColor forState:UIControlStateNormal];
+    (*button).layer.cornerRadius = config.cornerRadius;
+    (*button).layer.masksToBounds = YES;
+    
+    (*button).translucent = config.translucent&&_translucent;
+    (*button).translucentStyle = config.translucentStyle;
 }
 
 - (UIImage *)rectangleImageWithColor:(UIColor *)color size:(CGSize)size {
