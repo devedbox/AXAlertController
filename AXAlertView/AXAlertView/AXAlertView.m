@@ -227,7 +227,7 @@
         _containerView.frame = rect_container;
         // Disable the scroll of the content container view.
         _contentContainerView.scrollEnabled = NO;
-        _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), _contentInset.top+_titleInset.top+sizeOfTitleLabel.height+_titleInset.bottom);
+        _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), _contentInset.top+_titleInset.top+sizeOfTitleLabel.height+sizeOfCustomView.height+_titleInset.bottom);
     }
     
     // Frame of title label.
