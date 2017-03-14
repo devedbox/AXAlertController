@@ -570,9 +570,10 @@
     
     [self layoutSubviews];
     
+#if !TARGET_IPHONE_SIMULATOR
     if (_translucent) {
         // Get the current translucent transition view.
-        UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:NO withCapInsets:UIEdgeInsetsZero];
+        UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:YES withCapInsets:UIEdgeInsetsZero];
         [snapshot setFrame:self.containerView.bounds];
         [self.containerView addSubview:snapshot];
         // Remove the former from the container view if exits.
@@ -581,6 +582,7 @@
         }
         _translucentTransitionView = snapshot;
     }
+#endif
     
     if (_willShow != NULL && _willShow != nil) {
         _willShow(self, animated);
