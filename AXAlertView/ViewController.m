@@ -74,31 +74,49 @@
     // Do any additional setup after loading the view, typically from a nib.
     
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.view.bounds];
-    alertView.titleInset = UIEdgeInsetsMake(35, 30, 35, 30);
+//    alertView.titleInset = UIEdgeInsetsMake(35, 30, 35, 30);
+    alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
     alertView.padding = 0;
-    alertView.cornerRadius = .0;
+    alertView.cornerRadius = 10.0;
     alertView.actionItemMargin = 0;
     alertView.actionItemPadding = 0;
     alertView.titleLabel.numberOfLines = 0;
-    alertView.title = @"告知当前状态，信息和解决方法，如果文字换行的情况";
-    alertView.titleLabel.font = [UIFont systemFontOfSize:14];
+    alertView.hidesOnTouch = YES;
+//    alertView.title = @"告知当前状态，信息和解决方法，如果文字换行的情况";
+    alertView.title = @"兑换申请已受理";
+    UILabel *label = [UILabel new];
+    label.font = [UIFont systemFontOfSize:14];
+    label.numberOfLines = 0;
+    label.text = @"您还有497个流量币可以兑换，继续兑换？";
+    
+    alertView.customView = label;
+    
+//    alertView.titleLabel.font = [UIFont systemFontOfSize:14];
+    
+    alertView.titleLabel.font = [UIFont fontWithName:@"PingFangSC-Medium" size:18];
     alertView.titleLabel.textColor = [UIColor blackColor];
     
-    [alertView setActions:[AXAlertViewAction actionWithTitle:@"" image:[UIImage imageNamed:@"cancel"] handler:NULL],[AXAlertViewAction actionWithTitle:@"" image:[UIImage imageNamed:@"confirm"] handler:^(AXAlertViewAction * _Nonnull __weak action) {
+    
+    [alertView setActions:[AXAlertViewAction actionWithTitle:@"取消" image:nil handler:NULL],[AXAlertViewAction actionWithTitle:@"确认" image:nil handler:^(AXAlertViewAction * _Nonnull __weak action) {
+        /*
         if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"https://www.baidu.com"]]) {
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.baidu.com"]];
-        }
+        } 
+         */
     }],nil];
+    
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
     cancelConfig.preferedHeight = 50;
     cancelConfig.cornerRadius = .0;
+    cancelConfig.tintColor = [UIColor blueColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     confirmConfig.backgroundColor = [UIColor blackColor];
     confirmConfig.preferedHeight = 50;
     confirmConfig.cornerRadius = .0;
-    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+    confirmConfig.tintColor = [UIColor blueColor];
+//    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
     [alertView showInView:self.view animated:YES];
     
@@ -109,7 +127,10 @@
         confirmConfig.backgroundColor = [UIColor blackColor];
         confirmConfig.preferedHeight = 50;
         confirmConfig.cornerRadius = .0;
+        confirmConfig.tintColor = [UIColor blackColor];
+//        confirmConfig.translucent = NO;
 //        confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+        confirmConfig.translucentStyle = AXAlertViewTranslucentLight;
         [alertView setActionConfiguration:confirmConfig forItemAtIndex:i];
     }
     [alertView show:YES];

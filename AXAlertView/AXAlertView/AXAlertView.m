@@ -289,10 +289,17 @@
     if (_processing) return;
     [view addSubview:self];
     [self viewWillShow:self animated:animated];
-    if (animated) [self.containerView.chainAnimator.combineSpring.property(@"transform.scale").fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(100).damping(20) easeOut];
-    self.chainAnimator.basic.property(@"opacity").fromValue(@(.0)).toValue(@(1.0)).duration(animated?0.35:.0).target(self).complete(@selector(_showComplete:)).animate();
+    
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    if (animated) self.containerView.animate();
+    
+    if (animated) {
+        [CATransaction begin];
+        [self.containerView.chainAnimator.basic.property(@"transform.scale").duration(0.01).toValue(@1.2).nextToSpring.property(@"transform.scale").duration(0.5).fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(100).damping(20) easeOut].target(self).complete(@selector(_showComplete:)).animate();
+        [CATransaction flush];
+        [CATransaction commit];
+    } else {
+        [self _showComplete:self.chainAnimator];
+    }
 }
 
 - (void)_showComplete:(AXChainAnimator *)sender {
@@ -630,6 +637,9 @@
         _translucentTransitionView = snapshot;
     }
     */
+    
+    _processing = YES;
+    
     if (_willHide != NULL && _willHide != nil) {
         _willHide(self, animated);
     }
