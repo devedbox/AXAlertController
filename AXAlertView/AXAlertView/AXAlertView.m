@@ -126,6 +126,7 @@
     [self addSubview:self.containerView];
     [self.containerView addSubview:self.contentContainerView];
     [self.containerView addSubview:self.titleLabel];
+    [self.contentContainerView addSubview:self.stackView];
     
 #if AXAlertViewUsingAutolayout
     // Add contraints to self of container view.
@@ -950,7 +951,7 @@
                                  attribute:NSLayoutAttributeBottom
                                  relatedBy:NSLayoutRelationEqual
                                     toItem:_stackView
-                                 attribute:NSLayoutAttributeTrailing
+                                 attribute:NSLayoutAttributeBottom
                                 multiplier:1.0
                                   constant:.0];
     // Add contraints to the content view.
@@ -982,6 +983,7 @@
     [_contentContainerView addSubview:_customView];
     
     [_stackView removeFromSuperview];
+    [_contentContainerView addSubview:_stackView];
     [self _addContraintsOfCustomViewAndStackViewToContentView];
     
     [self setNeedsLayout];
