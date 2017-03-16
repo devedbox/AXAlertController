@@ -10,6 +10,10 @@
 #import <AXAnimationChain/AXAnimationChain.h>
 #import <objc/runtime.h>
 
+#ifndef AXUsingAutolayout
+#define AXUsingAutolayout 1
+#endif
+
 @interface AXAlertView () <UIScrollViewDelegate>
 {
     NSMutableArray<AXAlertViewAction *> *_actionItems;
@@ -21,6 +25,13 @@
     
     BOOL _processing;
     UIColor * _backgroundColor;
+    // Contraints.
+    NSLayoutConstraint *__weak _leadingOfContainer; // Leading contraint of the container view to self.
+    NSLayoutConstraint *__weak _trailingOfContainer; // Trailing contraint of the container view to self.
+    NSLayoutConstraint *__weak _heightOfContainer; // Height contraint of the container view to self.
+    NSLayoutConstraint *__weak _topOfContainer; // Top contraint of the container view to self.
+    NSLayoutConstraint *__weak _bottomOfContainer;// Bottom contraint of the container view to self.
+    
 }
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
@@ -30,6 +41,8 @@
 @property(strong, nonatomic) UIScrollView *contentContainerView;
 /// Blur effect view.
 @property(strong, nonatomic) UIVisualEffectView *effectView;
+/// Stack view.
+@property(strong, nonatomic) UIStackView *stackView;
 @end
 
 @interface AXVisualEffectButton : UIButton
@@ -97,6 +110,13 @@
     [self addSubview:self.containerView];
     [self.containerView addSubview:self.contentContainerView];
     [self.containerView addSubview:self.titleLabel];
+    
+#if AXUsingAutolayout
+    // Add contraints to self of container view.
+    [self _addContraintsOfContainerToSelf];
+    
+#endif
+    
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
@@ -392,6 +412,12 @@
     return _effectView;
 }
 
+- (UIStackView *)stackView {
+    if (_stackView) return _stackView;
+    _stackView = [UIStackView new];
+    return _stackView;
+}
+
 - (NSString *)title {
     return _titleLabel.text;
 }
@@ -665,6 +691,22 @@
 }
 
 #pragma mark - Private
+
+- (void)_addContraintsOfContainerToSelf {
+    NSLayoutConstraint *leadingOfContainer = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:_containerView attribute:NSLayoutAttributeLeading multiplier:1.0 constant:_preferedMargin];
+    NSLayoutConstraint *trailingOfContainer = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:_containerView attribute:NSLayoutAttributeTrailing multiplier:1.0 constant:_preferedMargin];
+    NSLayoutConstraint *heightOfContainer = [NSLayoutConstraint constraintWithItem:_containerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:_preferedHeight];
+    NSLayoutConstraint *topOfContainer = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:_containerView attribute:NSLayoutAttributeTop multiplier:1.0 constant:_preferedMargin];
+    NSLayoutConstraint *bottomOfContainer = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:_containerView attribute:NSLayoutAttributeBottom multiplier:1.0 constant:_preferedMargin];
+    [self addConstraints:@[leadingOfContainer, trailingOfContainer, heightOfContainer, topOfContainer, bottomOfContainer]];
+    
+    // Add reference to the contraints.
+    _leadingOfContainer = leadingOfContainer;
+    _trailingOfContainer = trailingOfContainer;
+    _heightOfContainer = heightOfContainer;
+    _topOfContainer = topOfContainer;
+    _bottomOfContainer = bottomOfContainer;
+}
 
 - (void)_updateConfigurationOfItemAtIndex:(NSUInteger)index {
     // Get the button item from the content container view.

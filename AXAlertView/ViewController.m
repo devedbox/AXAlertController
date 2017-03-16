@@ -10,6 +10,11 @@
 #import "AXAlertView.h"
 #import <AXAnimationChain/UIView+AnimationChain.h>
 
+#ifdef AXUsingAutolayout
+#undef AXUsingAutolayout
+#define AXUsingAutolayout 0
+#endif
+
 @interface ViewController ()
 /// Alert view.
 @property(strong, nonatomic) AXAlertView *alertView;
@@ -109,14 +114,14 @@
     cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
     cancelConfig.preferedHeight = 50;
     cancelConfig.cornerRadius = .0;
-    cancelConfig.tintColor = [UIColor blueColor];
+    cancelConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     confirmConfig.backgroundColor = [UIColor blackColor];
     confirmConfig.preferedHeight = 50;
     confirmConfig.cornerRadius = .0;
-    confirmConfig.tintColor = [UIColor blueColor];
-//    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+    confirmConfig.tintColor = [UIColor whiteColor];
+    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
     [alertView showInView:self.view animated:YES];
     
@@ -135,6 +140,7 @@
     }
     [alertView show:YES];
     
+    */
     /*
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Heheda" message:@"Hahaha" preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
