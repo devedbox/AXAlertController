@@ -10,8 +10,8 @@
 #import <AXAnimationChain/AXAnimationChain.h>
 #import <objc/runtime.h>
 
-#ifndef AXUsingAutolayout
-#define AXUsingAutolayout 1
+#ifndef AXAlertViewUsingAutolayout
+#define AXAlertViewUsingAutolayout 1
 #endif
 
 @interface AXAlertView () <UIScrollViewDelegate>
@@ -32,6 +32,22 @@
     NSLayoutConstraint *__weak _topOfContainer; // Top contraint of the container view to self.
     NSLayoutConstraint *__weak _bottomOfContainer;// Bottom contraint of the container view to self.
     
+    NSLayoutConstraint *__weak _leadingOfTitleLabel;// Leading contraint of the title label to container view.
+    NSLayoutConstraint *__weak _trailingOfTitleLabel;// Trailing contraint of the title label to container view.
+    NSLayoutConstraint *__weak _topOfTitleLabel;// Top contraint of the title label to container view.
+    NSLayoutConstraint *__weak _bottomOfTitleAndTopOfContent;// Bottom contraint of title label and top contraint of content view to the container view.
+    NSLayoutConstraint *__weak _leadingOfContent;// Leading contraint of the content view to the container view.
+    NSLayoutConstraint *__weak _trailingOfContent;// Trailing contraint of the content view to the container view.
+    NSLayoutConstraint *__weak _bottomOfContent;// Bottom contraint of the content view to the container view.
+    
+    NSLayoutConstraint *__weak _leadingOfCustom;// Leading contraint of custom view to the content view.
+    NSLayoutConstraint *__weak _trailingOfCustom;// Trailing contraint of custom view to the content view.
+    NSLayoutConstraint *__weak _topOfCustom;// Top contraint of custom view to the content view.
+    NSLayoutConstraint *__weak _bottomOfCustomAndTopOfStack;// Bottom contraint of custom view and top contraint of stack view to the content view.
+    NSLayoutConstraint *__weak _topOfStackView;// Top contraint of stack view to the content view.
+    NSLayoutConstraint *__weak _leadingOfStackView;// Leading contraint of stack view to the content view.
+    NSLayoutConstraint *__weak _trailingOfStackView;// Trailing contraint of stack view to the content view.
+    NSLayoutConstraint *__weak _bottomOfStackView;// Bottom contraint of stack view to the content view.
 }
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
@@ -111,10 +127,11 @@
     [self.containerView addSubview:self.contentContainerView];
     [self.containerView addSubview:self.titleLabel];
     
-#if AXUsingAutolayout
+#if AXAlertViewUsingAutolayout
     // Add contraints to self of container view.
     [self _addContraintsOfContainerToSelf];
-    
+    // Add contraints to self of the views.
+    [self _addContraintsOfTitleLabelAndContentViewToContainerView];
 #endif
     
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
@@ -155,6 +172,7 @@
 - (void)layoutSubviews {
     // Call SUPER.
     [super layoutSubviews];
+#if !AXAlertViewUsingAutolayout
     // Get the current frame of SELF.
     CGRect currentFrame = self.frame;
     // Initialize a CGSize struct of custom view and title label using the current frame and prefered magin and the insets.
@@ -271,6 +289,7 @@
     
     [self setNeedsDisplay];
     [self configureActions];
+#endif
 }
 #pragma mark - Public method
 - (void)setActions:(AXAlertViewAction *)actions, ... {
@@ -360,7 +379,9 @@
     CGContextAddPath(context, outterPath);
     CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
     CGContextFillPath(context);
-    CGPathRef innerPath = CGPathCreateWithRoundedRect(self.containerView.frame, _cornerRadius, _cornerRadius, nil);
+    CGRect rectOfContainerView = self.containerView.frame;
+    if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
+    CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
     CGContextAddPath(context, innerPath);
     CGContextSetBlendMode(context, kCGBlendModeClear);
     CGContextFillPath(context);
@@ -377,7 +398,11 @@
     _titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _titleLabel.numberOfLines = 1;
     _titleLabel.textAlignment = NSTextAlignmentCenter;
+#if AXAlertViewUsingAutolayout
+    _titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
+#else
     _titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+#endif
     return _titleLabel;
 }
 
@@ -388,7 +413,11 @@
     _containerView.backgroundColor = [UIColor whiteColor];
     _containerView.layer.cornerRadius = _cornerRadius;
     _containerView.layer.masksToBounds = YES;
+#if AXAlertViewUsingAutolayout
+    _containerView.translatesAutoresizingMaskIntoConstraints = NO;
+#else
     _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+#endif
     return _containerView;
 }
 
@@ -396,11 +425,15 @@
     if (_contentContainerView) return _contentContainerView;
     _contentContainerView = [[UIScrollView alloc] initWithFrame:CGRectZero];
     _contentContainerView.backgroundColor = [UIColor clearColor];
-    _contentContainerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     _contentContainerView.showsVerticalScrollIndicator = NO;
     _contentContainerView.showsHorizontalScrollIndicator = NO;
     _contentContainerView.alwaysBounceVertical = YES;
     _contentContainerView.delegate = self;
+#if AXAlertViewUsingAutolayout
+    _contentContainerView.translatesAutoresizingMaskIntoConstraints = NO;
+#else
+    _contentContainerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+#endif
     return _contentContainerView;
 }
 
@@ -408,13 +441,18 @@
     if (_effectView) return _effectView;
     _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
     _effectView.frame = self.bounds;
+#if AXAlertViewUsingAutolayout
+    _effectView.translatesAutoresizingMaskIntoConstraints = NO;
+#else
     _effectView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+#endif
     return _effectView;
 }
 
 - (UIStackView *)stackView {
     if (_stackView) return _stackView;
     _stackView = [UIStackView new];
+    _stackView.translatesAutoresizingMaskIntoConstraints = NO;
     return _stackView;
 }
 
@@ -436,7 +474,7 @@
 - (void)setCornerRadius:(CGFloat)cornerRadius {
     _cornerRadius = cornerRadius;
     _containerView.layer.cornerRadius = _cornerRadius;
-    _containerView.layer.masksToBounds = YES;
+    _containerView.layer.masksToBounds = _cornerRadius!=0?YES:NO;
 }
 
 - (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forItemAtIndex:(NSUInteger)index {
@@ -551,6 +589,8 @@
 
 - (void)setPreferedHeight:(CGFloat)preferedHeight {
     _preferedHeight = preferedHeight;
+    _heightOfContainer.constant = _preferedHeight;
+    [self setNeedsUpdateConstraints];
     [self setNeedsLayout];
     [self configureActions];
     [self configureCustomView];
@@ -693,19 +733,228 @@
 #pragma mark - Private
 
 - (void)_addContraintsOfContainerToSelf {
-    NSLayoutConstraint *leadingOfContainer = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:_containerView attribute:NSLayoutAttributeLeading multiplier:1.0 constant:_preferedMargin];
-    NSLayoutConstraint *trailingOfContainer = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:_containerView attribute:NSLayoutAttributeTrailing multiplier:1.0 constant:_preferedMargin];
-    NSLayoutConstraint *heightOfContainer = [NSLayoutConstraint constraintWithItem:_containerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:_preferedHeight];
-    NSLayoutConstraint *topOfContainer = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:_containerView attribute:NSLayoutAttributeTop multiplier:1.0 constant:_preferedMargin];
-    NSLayoutConstraint *bottomOfContainer = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationGreaterThanOrEqual toItem:_containerView attribute:NSLayoutAttributeBottom multiplier:1.0 constant:_preferedMargin];
-    [self addConstraints:@[leadingOfContainer, trailingOfContainer, heightOfContainer, topOfContainer, bottomOfContainer]];
+    NSLayoutConstraint *leadingOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeLeading
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeLeading
+                                multiplier:1.0
+                                  constant:-_preferedMargin];
+    NSLayoutConstraint *trailingOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeTrailing
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeTrailing
+                                multiplier:1.0
+                                  constant:_preferedMargin];
+    NSLayoutConstraint *heightOfContainer =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeHeight
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:nil
+                                 attribute:NSLayoutAttributeNotAnAttribute
+                                multiplier:1.0
+                                  constant:/*_preferedHeight*/200];
+    NSLayoutConstraint *centerYOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeCenterY
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeCenterY
+                                multiplier:1.0
+                                  constant:0.0];
+    NSLayoutConstraint *topOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeTop
+                                 relatedBy:NSLayoutRelationLessThanOrEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeTop
+                                multiplier:1.0
+                                  constant:-_preferedMargin];
+    NSLayoutConstraint *bottomOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationGreaterThanOrEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeBottom
+                                multiplier:1.0
+                                  constant:_preferedMargin];
+    [self addConstraints:@[leadingOfContainer, trailingOfContainer, heightOfContainer, centerYOfContainer, topOfContainer, bottomOfContainer]];
     
-    // Add reference to the contraints.
+    // Add references to the contraints.
     _leadingOfContainer = leadingOfContainer;
     _trailingOfContainer = trailingOfContainer;
     _heightOfContainer = heightOfContainer;
     _topOfContainer = topOfContainer;
     _bottomOfContainer = bottomOfContainer;
+}
+
+- (void)_addContraintsOfTitleLabelAndContentViewToContainerView {
+    NSLayoutConstraint *leadingOfTitleLabel =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeLeading
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_titleLabel
+                                 attribute:NSLayoutAttributeLeading
+                                multiplier:1.0
+                                  constant:-_contentInset.left-_titleInset.left];
+    NSLayoutConstraint *trailingOfTitleLabel =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeTrailing
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_titleLabel
+                                 attribute:NSLayoutAttributeTrailing
+                                multiplier:1.0
+                                  constant:_contentInset.right+_titleInset.right];
+    NSLayoutConstraint *topOfTitleLabel =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeTop
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_titleLabel
+                                 attribute:NSLayoutAttributeTop
+                                multiplier:1.0
+                                  constant:-_contentInset.top-_titleInset.top];
+    
+    NSLayoutConstraint *bottomOfTitleLabelAndTopOfContentView =
+    [NSLayoutConstraint constraintWithItem:_titleLabel
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_contentContainerView
+                                 attribute:NSLayoutAttributeTop
+                                multiplier:1.0
+                                  constant:-_titleInset.bottom-_padding];
+    NSLayoutConstraint *leadingOfContentView =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeLeading
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_contentContainerView
+                                 attribute:NSLayoutAttributeLeading
+                                multiplier:1.0
+                                  constant:-_contentInset.left];
+    NSLayoutConstraint *trailingOfContentView =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeTrailing
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_contentContainerView
+                                 attribute:NSLayoutAttributeTrailing
+                                multiplier:1.0
+                                  constant:_contentInset.right];
+    NSLayoutConstraint *bottomOfContentView =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_contentContainerView
+                                 attribute:NSLayoutAttributeBottom
+                                multiplier:1.0
+                                  constant:_contentInset.bottom];
+    
+    [_containerView addConstraints:@[leadingOfTitleLabel, trailingOfTitleLabel, topOfTitleLabel, bottomOfTitleLabelAndTopOfContentView, leadingOfContentView, trailingOfContentView, bottomOfContentView]];
+    
+    // Add references to the contraints.
+    _leadingOfTitleLabel = leadingOfTitleLabel;
+    _trailingOfTitleLabel = trailingOfTitleLabel;
+    _topOfTitleLabel = topOfTitleLabel;
+    _bottomOfTitleAndTopOfContent = bottomOfTitleLabelAndTopOfContentView;
+    _leadingOfContent = leadingOfContentView;
+    _trailingOfContent = trailingOfContentView;
+    _bottomOfContent = bottomOfContentView;
+}
+
+- (void)_addContraintsOfCustomViewAndStackViewToContentView {
+    NSLayoutConstraint *bottomOfCustomAndTopOfStackView;
+    
+    if (_customView) {
+        NSLayoutConstraint *leadingOfCustomView =
+        [NSLayoutConstraint constraintWithItem:_contentContainerView
+                                     attribute:NSLayoutAttributeLeading
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_customView
+                                     attribute:NSLayoutAttributeLeading
+                                    multiplier:1.0
+                                      constant:-_customViewInset.left];
+        NSLayoutConstraint *trailingOfCustomView =
+        [NSLayoutConstraint constraintWithItem:_contentContainerView
+                                     attribute:NSLayoutAttributeTrailing
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_customView
+                                     attribute:NSLayoutAttributeTrailing
+                                    multiplier:1.0
+                                      constant:_customViewInset.right];
+        NSLayoutConstraint *topOfCustomView =
+        [NSLayoutConstraint constraintWithItem:_contentContainerView
+                                     attribute:NSLayoutAttributeTop
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_customView
+                                     attribute:NSLayoutAttributeTop
+                                    multiplier:1.0
+                                      constant:-_customViewInset.top];
+        bottomOfCustomAndTopOfStackView =
+        [NSLayoutConstraint constraintWithItem:_customView
+                                     attribute:NSLayoutAttributeBottom
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_stackView
+                                     attribute:NSLayoutAttributeTop
+                                    multiplier:1.0
+                                      constant:-_customViewInset.bottom];
+        
+        // Add contraints to content view.
+        [_contentContainerView addConstraints:@[leadingOfCustomView, trailingOfCustomView, topOfCustomView, bottomOfCustomAndTopOfStackView]];
+        
+        // Add references to the contraints.
+        _leadingOfCustom = leadingOfCustomView;
+        _trailingOfCustom = trailingOfCustomView;
+        _topOfCustom = topOfCustomView;
+        _bottomOfCustomAndTopOfStack = bottomOfCustomAndTopOfStackView;
+    } if (!bottomOfCustomAndTopOfStackView) {
+        NSLayoutConstraint *topOfStackView =
+        [NSLayoutConstraint constraintWithItem:_contentContainerView
+                                     attribute:NSLayoutAttributeTop
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_stackView
+                                     attribute:NSLayoutAttributeTop
+                                    multiplier:1.0
+                                      constant:-_padding];
+        // Add contraint to content view.
+        [_contentContainerView addConstraint:topOfStackView];
+        // Add reference to the contraint.
+        _topOfStackView = topOfStackView;
+    }
+    NSLayoutConstraint *leadingOfStackView =
+    [NSLayoutConstraint constraintWithItem:_contentContainerView
+                                 attribute:NSLayoutAttributeLeading
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_stackView
+                                 attribute:NSLayoutAttributeLeading
+                                multiplier:1.0
+                                  constant:.0];
+    NSLayoutConstraint *trailingOfStackView =
+    [NSLayoutConstraint constraintWithItem:_contentContainerView
+                                 attribute:NSLayoutAttributeTrailing
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_stackView
+                                 attribute:NSLayoutAttributeTrailing
+                                multiplier:1.0
+                                  constant:.0];
+    NSLayoutConstraint *bottomOfStackView =
+    [NSLayoutConstraint constraintWithItem:_contentContainerView
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_stackView
+                                 attribute:NSLayoutAttributeTrailing
+                                multiplier:1.0
+                                  constant:.0];
+    // Add contraints to the content view.
+    [_contentContainerView addConstraints:@[leadingOfStackView, trailingOfStackView, bottomOfStackView]];
+    // Add references to the contraints.
+    _leadingOfStackView = leadingOfStackView;
+    _trailingOfStackView = trailingOfStackView;
+    _bottomOfStackView = bottomOfStackView;
+}
+
+- (void)_addContraintsOfEffectViewToContainerView {
+    
 }
 
 - (void)_updateConfigurationOfItemAtIndex:(NSUInteger)index {
