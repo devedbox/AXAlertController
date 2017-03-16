@@ -487,8 +487,16 @@
 }
 
 - (void)setCustomView:(UIView *)customView {
-    _customView = customView;
-    [self configureCustomView];
+    if (customView == nil) {
+        [_customView removeFromSuperview];
+        _customView = nil;
+        [_stackView removeFromSuperview];
+        
+        [self _addContraintsOfCustomViewAndStackViewToContentView];
+    } else {
+        _customView = customView;
+        [self configureCustomView];
+    }
 }
 
 - (void)setTitleColor:(UIColor *)titleColor {
@@ -970,7 +978,12 @@
     if (!self.customView) {
         return;
     }
+    _customView.translatesAutoresizingMaskIntoConstraints = NO;
     [_contentContainerView addSubview:_customView];
+    
+    [_stackView removeFromSuperview];
+    [self _addContraintsOfCustomViewAndStackViewToContentView];
+    
     [self setNeedsLayout];
 }
 
