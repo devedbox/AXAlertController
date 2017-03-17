@@ -10,10 +10,8 @@
 #import "AXAlertView.h"
 #import <AXAnimationChain/UIView+AnimationChain.h>
 
-#ifdef AXUsingAutolayout
-#undef AXUsingAutolayout
-#define AXUsingAutolayout 0
-#endif
+#undef AXAlertViewUsingAutolayout
+#define AXAlertViewUsingAutolayout 0
 
 @interface ViewController ()
 /// Alert view.

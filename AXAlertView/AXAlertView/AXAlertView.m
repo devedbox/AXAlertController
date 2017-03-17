@@ -48,6 +48,8 @@
     NSLayoutConstraint *__weak _leadingOfStackView;// Leading contraint of stack view to the content view.
     NSLayoutConstraint *__weak _trailingOfStackView;// Trailing contraint of stack view to the content view.
     NSLayoutConstraint *__weak _bottomOfStackView;// Bottom contraint of stack view to the content view.
+    
+    NSLayoutConstraint *__weak _heightOfContentView;// Height contraint of the content view.
 }
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
@@ -57,6 +59,8 @@
 @property(strong, nonatomic) UIScrollView *contentContainerView;
 /// Blur effect view.
 @property(strong, nonatomic) UIVisualEffectView *effectView;
+/// Effect flexible stack view.
+@property(strong, nonatomic) UIStackView *effectFlexibleView;
 /// Stack view.
 @property(strong, nonatomic) UIStackView *stackView;
 @end
@@ -133,6 +137,7 @@
     [self _addContraintsOfContainerToSelf];
     // Add contraints to self of the views.
     [self _addContraintsOfTitleLabelAndContentViewToContainerView];
+    [_contentContainerView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:NULL];
 #endif
     
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
@@ -144,8 +149,30 @@
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+    [_contentContainerView removeObserver:self forKeyPath:@"contentSize"];
 }
 #pragma mark - Override
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"contentSize"]) {
+        CGSize contentSize = [change[NSKeyValueChangeNewKey] CGSizeValue];
+        CGFloat height = contentSize.height;
+        CGFloat flag = CGRectGetHeight(self.frame)-_preferedMargin*2-CGRectGetMaxY(_titleLabel.frame)-_padding;
+        height = MIN(height, flag);
+        if (!_heightOfContentView) {
+            NSLayoutConstraint *heightOfContent = [NSLayoutConstraint constraintWithItem:_contentContainerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:height];
+            [_contentContainerView addConstraint:heightOfContent];
+            _heightOfContentView = heightOfContent;
+        } else {
+            _heightOfContentView.constant = height;
+            [_containerView setNeedsUpdateConstraints];
+        }
+        
+        [self setNeedsDisplay];
+    } else {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
+}
+
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
     if (_processing) return self;
     return [super hitTest:point withEvent:event];
@@ -450,6 +477,13 @@
     return _effectView;
 }
 
+- (UIStackView *)effectFlexibleView {
+    if (_effectFlexibleView) return _effectFlexibleView;
+    _effectFlexibleView = [UIStackView new];
+    _effectFlexibleView.translatesAutoresizingMaskIntoConstraints = NO;
+    return _effectFlexibleView;
+}
+
 - (UIStackView *)stackView {
     if (_stackView) return _stackView;
     _stackView = [UIStackView new];
@@ -514,16 +548,22 @@
     _translucent = translucent;
     
     if (_translucent) {
+        [self.containerView insertSubview:self.effectFlexibleView atIndex:0];
         [self.containerView insertSubview:self.effectView atIndex:0];
         if (_translucentStyle == AXAlertViewTranslucentDark) {
             _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
         } else {
             _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight];
         }
+#if AXAlertViewUsingAutolayout
+        [self _addContraintsOfEffectViewToContainerView];
+#else
         _effectView.frame = _containerView.bounds;
+#endif
         _containerView.backgroundColor = [UIColor clearColor];
     } else {
         [_effectView removeFromSuperview];
+        [_effectFlexibleView removeFromSuperview];
         _containerView.backgroundColor = _backgroundColor?:[UIColor whiteColor];
     }
     
@@ -563,6 +603,9 @@
 
 - (void)setActionItemMargin:(CGFloat)actionItemMargin {
     _actionItemMargin = actionItemMargin;
+    _leadingOfStackView.constant = _actionItemMargin;
+    _trailingOfStackView.constant = _actionItemMargin;
+    [self setNeedsUpdateConstraints];
     [self setNeedsLayout];
     [self configureActions];
     [self configureCustomView];
@@ -765,7 +808,9 @@
                                     toItem:nil
                                  attribute:NSLayoutAttributeNotAnAttribute
                                 multiplier:1.0
-                                  constant:/*_preferedHeight*/200];
+                                  constant:_preferedHeight];
+    heightOfContainer.priority = UILayoutPriorityDefaultLow;
+    heightOfContainer.active = NO;
     NSLayoutConstraint *centerYOfContainer =
     [NSLayoutConstraint constraintWithItem:self
                                  attribute:NSLayoutAttributeCenterY
@@ -791,6 +836,8 @@
                                 multiplier:1.0
                                   constant:_preferedMargin];
     [self addConstraints:@[leadingOfContainer, trailingOfContainer, heightOfContainer, centerYOfContainer, topOfContainer, bottomOfContainer]];
+    
+    [_containerView setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisVertical];
     
     // Add references to the contraints.
     _leadingOfContainer = leadingOfContainer;
@@ -937,7 +984,7 @@
                                     toItem:_stackView
                                  attribute:NSLayoutAttributeLeading
                                 multiplier:1.0
-                                  constant:.0];
+                                  constant:-_actionItemMargin];
     NSLayoutConstraint *trailingOfStackView =
     [NSLayoutConstraint constraintWithItem:_contentContainerView
                                  attribute:NSLayoutAttributeTrailing
@@ -945,7 +992,7 @@
                                     toItem:_stackView
                                  attribute:NSLayoutAttributeTrailing
                                 multiplier:1.0
-                                  constant:.0];
+                                  constant:_actionItemMargin];
     NSLayoutConstraint *bottomOfStackView =
     [NSLayoutConstraint constraintWithItem:_contentContainerView
                                  attribute:NSLayoutAttributeBottom
@@ -960,10 +1007,75 @@
     _leadingOfStackView = leadingOfStackView;
     _trailingOfStackView = trailingOfStackView;
     _bottomOfStackView = bottomOfStackView;
+    
+    [_contentContainerView setContentHuggingPriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
+    [_contentContainerView setContentCompressionResistancePriority:UILayoutPriorityDefaultHigh forAxis:UILayoutConstraintAxisVertical];
 }
 
 - (void)_addContraintsOfEffectViewToContainerView {
-    
+    NSLayoutConstraint *leadingOfEffectView =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeLeading
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_effectView
+                                 attribute:NSLayoutAttributeLeading
+                                multiplier:1.0
+                                  constant:.0];
+    NSLayoutConstraint *trailingOfEffectView =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeTrailing
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_effectView
+                                 attribute:NSLayoutAttributeTrailing
+                                multiplier:1.0
+                                  constant:.0];
+    NSLayoutConstraint *topOfEffectView =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeTop
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_effectView
+                                 attribute:NSLayoutAttributeTop
+                                multiplier:1.0 constant:0.0];
+    NSLayoutConstraint *bottomOfEffectAndTopOfStack =
+    [NSLayoutConstraint constraintWithItem:_effectView
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_effectFlexibleView
+                                 attribute:NSLayoutAttributeTop
+                                multiplier:1.0
+                                  constant:0.0];
+    NSLayoutConstraint *leadingOfStack =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeLeading
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_effectFlexibleView
+                                 attribute:NSLayoutAttributeLeading
+                                multiplier:1.0
+                                  constant:.0];
+    NSLayoutConstraint *trailingOfStack =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeTrailing
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_effectFlexibleView
+                                 attribute:NSLayoutAttributeTrailing
+                                multiplier:1.0 constant:0.0];
+    NSLayoutConstraint *bottomOfStack =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_effectFlexibleView
+                                 attribute:NSLayoutAttributeBottom
+                                multiplier:1.0 constant:0.0];
+    NSLayoutConstraint *heightOfStack =
+    [NSLayoutConstraint constraintWithItem:_effectFlexibleView
+                                 attribute:NSLayoutAttributeHeight
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_stackView
+                                 attribute:NSLayoutAttributeHeight
+                                multiplier:1.0 constant:0.0];
+    [_effectFlexibleView removeConstraints:_effectFlexibleView.constraints];
+    [_containerView addConstraint:heightOfStack];
+    [_containerView addConstraints:@[leadingOfEffectView, trailingOfEffectView, topOfEffectView, bottomOfEffectAndTopOfStack, leadingOfStack, trailingOfStack, bottomOfStack]];
 }
 
 - (void)_updateConfigurationOfItemAtIndex:(NSUInteger)index {
@@ -996,11 +1108,21 @@
     _actionButtons = [self buttonsWithActions:_actionItems];
     if (_actionButtons.count == 0) return;
     if (_actionButtons.count > _horizontalLimits) {
+#if AXAlertViewUsingAutolayout
+        _stackView.axis = UILayoutConstraintAxisVertical;
+        _stackView.distribution = UIStackViewDistributionFill;
+        _stackView.spacing = _padding;
+#endif
         for (NSInteger i = 0; i < _actionButtons.count ; i++) {
             UIButton *button = _actionButtons[i];
             button.tag = i+1;
             [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
             AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+#if AXAlertViewUsingAutolayout
+            [button setTranslatesAutoresizingMaskIntoConstraints:NO];
+            [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+            [_stackView addArrangedSubview:button];
+#else
             CGFloat beginContext = .0;
             if (i == 0) {
                 beginContext = CGRectGetMaxY(_customView.frame) + _padding;
@@ -1010,16 +1132,29 @@
             }
             [button setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
             [self.contentContainerView addSubview:button];
+#endif
         }
     } else {
+#if AXAlertViewUsingAutolayout
+        _stackView.axis = UILayoutConstraintAxisHorizontal;
+        _stackView.distribution = UIStackViewDistributionFillProportionally;
+        _stackView.spacing = _actionItemPadding;
+#else
         CGFloat buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-_actionItemPadding*(_actionButtons.count-1))/_actionButtons.count;
+#endif
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
             UIButton *button = _actionButtons[i];
             button.tag = i+1;
             AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
             [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
+#if AXAlertViewUsingAutolayout
+            [button setTranslatesAutoresizingMaskIntoConstraints:NO];
+            [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+            [_stackView addArrangedSubview:button];
+#else
             [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
             [self.contentContainerView addSubview:button];
+#endif
         }
     }
 }
