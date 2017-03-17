@@ -144,7 +144,7 @@ static void test() {
         confirmConfig.cornerRadius = .0;
         confirmConfig.tintColor = [UIColor blackColor];
         confirmConfig.translucent = NO;
-//        confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+        confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
         confirmConfig.translucentStyle = AXAlertViewTranslucentLight;
         [alertView setActionConfiguration:confirmConfig forItemAtIndex:i];
     }

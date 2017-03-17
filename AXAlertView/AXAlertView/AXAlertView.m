@@ -18,6 +18,7 @@
 {
     NSMutableArray<AXAlertViewAction *> *_actionItems;
     NSArray<__kindof UIButton *> *_actionButtons;
+    NSArray<__kindof UIImageView *> *_actionSeparators;
     NSMutableDictionary<NSNumber*,AXAlertViewActionConfiguration*> *_actionConfig;
     
     // Transition view of translucent.
@@ -297,8 +298,8 @@
                 } else {
                     heightOfContainer += _actionItemPadding;
                 }
-                heightOfContainer += config.preferedHeight;
-                heightOfItems += config.preferedHeight;
+                heightOfContainer += 0.5+ config.preferedHeight;
+                heightOfItems += 0.5+ config.preferedHeight;
             }
         }
     } else {
@@ -321,7 +322,7 @@
     CGRect rect_container = _containerView.frame;
     rect_container.origin.x = _preferedMargin;
     
-    if (heightOfContainer > CGRectGetHeight(currentFrame)-_preferedMargin*2) { // Too large to cut.
+    if (heightOfContainer > CGRectGetHeight(currentFrame)-_preferedMargin*2) { // Too large to show.
         rect_container.origin.y = _preferedMargin;
         rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-_preferedMargin*2, CGRectGetHeight(currentFrame)-_preferedMargin*2);
         _containerView.frame = rect_container;
@@ -1150,11 +1151,13 @@
 }
 
 - (void)configureActions {
-    for (NSInteger i = 0; i < _actionButtons.count; i ++) {
-        [_actionButtons[i] removeFromSuperview];
-    }
+    // Remove all the older views.
+    [_actionButtons makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [_actionSeparators makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    
     _actionButtons = [self buttonsWithActions:_actionItems];
     if (_actionButtons.count == 0) return;
+    NSMutableArray *separators = [@[] mutableCopy];
     if (_actionButtons.count > _horizontalLimits) {
 #if AXAlertViewUsingAutolayout
         _stackView.axis = UILayoutConstraintAxisVertical;
@@ -1184,15 +1187,23 @@
 #else
             CGFloat beginContext = .0;
             if (i == 0) {
-                beginContext = CGRectGetMaxY(_customView.frame) + _padding;
+                beginContext = CGRectGetMaxY(_customView.frame) + _customViewInset.bottom + _padding;
             } else {
                 UIButton *lastItem = _actionButtons[i-1];
                 beginContext = CGRectGetMaxY(lastItem.frame) + _actionItemPadding;
             }
+            UIImageView *separator = [UIImageView new];
+            separator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1];
+            separator.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+            [separator setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, 0.5)];
+            [separators addObject:separator];
+            beginContext += 0.5;
             [button setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
+            [self.contentContainerView addSubview:separator];
             [self.contentContainerView addSubview:button];
 #endif
         }
+        _actionSeparators = [separators copy];
     } else {
 #if AXAlertViewUsingAutolayout
         _stackView.axis = UILayoutConstraintAxisHorizontal;
