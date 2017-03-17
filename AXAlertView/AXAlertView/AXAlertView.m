@@ -11,7 +11,7 @@
 #import <objc/runtime.h>
 
 #ifndef AXAlertViewUsingAutolayout
-#define AXAlertViewUsingAutolayout 1
+#define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_9_0)
 #endif
 
 @interface AXAlertView () <UIScrollViewDelegate>
@@ -1158,9 +1158,11 @@
     if (_actionButtons.count > _horizontalLimits) {
 #if AXAlertViewUsingAutolayout
         _stackView.axis = UILayoutConstraintAxisVertical;
-        _stackView.distribution = UIStackViewDistributionFillEqually;
+        _stackView.distribution = UIStackViewDistributionFill;
         _stackView.alignment = UIStackViewAlignmentFill;
         _stackView.spacing = _padding;
+        
+        [_stackView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
 #endif
         for (NSInteger i = 0; i < _actionButtons.count ; i++) {
             UIButton *button = _actionButtons[i];
@@ -1171,6 +1173,13 @@
 #if AXAlertViewUsingAutolayout
             [button setTranslatesAutoresizingMaskIntoConstraints:NO];
             [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+            
+            UIImageView *separator = [UIImageView new];
+            separator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1];
+            separator.translatesAutoresizingMaskIntoConstraints = NO;
+            [separator addConstraint:[NSLayoutConstraint constraintWithItem:separator attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:0.5]];
+            [_stackView addArrangedSubview:separator];
+            
             [_stackView addArrangedSubview:button];
 #else
             CGFloat beginContext = .0;
