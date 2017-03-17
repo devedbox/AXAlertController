@@ -1178,7 +1178,7 @@
             [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
             
             UIImageView *separator = [UIImageView new];
-            separator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.1];
+            separator.backgroundColor = config.separatorColor?:_actionConfiguration.separatorColor?:[UIColor colorWithWhite:0 alpha:0.1];
             separator.translatesAutoresizingMaskIntoConstraints = NO;
             [separator addConstraint:[NSLayoutConstraint constraintWithItem:separator attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:0.5]];
             [_stackView addArrangedSubview:separator];
@@ -1254,10 +1254,15 @@
     }
     if (!config.translucent || !_translucent) {
         [*button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
-        [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.8] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
+        // Get the aplha component of the background color.
+        CGFloat alpha;
+        [backgroundColor getWhite:NULL alpha:&alpha];
+        [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.1*alpha] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
     } else {
         [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.0] size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
-        [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.3] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
+        CGFloat alpha;
+        [backgroundColor getWhite:NULL alpha:&alpha];
+        [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.3*alpha] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
     }
     /*
      [(*button) setBackgroundImage:[self rectangleImageWithColor:_translucent?[backgroundColor colorWithAlphaComponent:0.8]:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
@@ -1409,7 +1414,8 @@
     if (self = [super init]) {
         _font = [UIFont boldSystemFontOfSize:15];
         _tintColor = [UIColor colorWithRed:0.996 green:0.725 blue:0.145 alpha:1.00];
-        _backgroundColor = [UIColor whiteColor];
+        _backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
+        _separatorColor = [UIColor colorWithWhite:0 alpha:0.1];
         _cornerRadius = 4;
         _preferedHeight = 44.0;
         _translucent = YES;
@@ -1423,6 +1429,7 @@
     config.font = [self.font copy];
     config.tintColor = [self.tintColor copy];
     config.backgroundColor = [self.backgroundColor copy];
+    config.separatorColor = [self.separatorColor copy];
     config.cornerRadius = self.cornerRadius;
     config.preferedHeight = self.preferedHeight;
     config.translucent = self.translucent;

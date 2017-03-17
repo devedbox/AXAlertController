@@ -139,7 +139,7 @@ static void test() {
     for (int i = 0; i < 15; i++) {
         [alertView appendActions:[AXAlertViewAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] image:nil handler:NULL], nil];
         AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
-        confirmConfig.backgroundColor = [UIColor clearColor];
+        confirmConfig.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
         confirmConfig.preferedHeight = 50;
         confirmConfig.cornerRadius = .0;
         confirmConfig.tintColor = [UIColor blackColor];
