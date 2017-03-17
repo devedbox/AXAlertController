@@ -545,7 +545,12 @@
 
 - (void)setTitle:(NSString *)title {
     _titleLabel.text = title;
+#if AXAlertViewUsingAutolayout
+    [_contentContainerView setNeedsUpdateConstraints];
+#else
     [_titleLabel sizeToFit];
+    [self setNeedsLayout];
+#endif
 }
 
 - (void)setCornerRadius:(CGFloat)cornerRadius {
@@ -559,7 +564,7 @@
         _actionConfig = [@{} mutableCopy];
     }
     [_actionConfig setObject:configuration forKey:@(index)];
-    // Update the configuration of the button at indec.
+    // Update the configuration of the button at index.
     [self _updateConfigurationOfItemAtIndex:index];
 }
 
@@ -567,9 +572,11 @@
     if (customView == nil) {
         [_customView removeFromSuperview];
         _customView = nil;
+#if AXAlertViewUsingAutolayout
         [_stackView removeFromSuperview];
         
         [self _addContraintsOfCustomViewAndStackViewToContentView];
+#endif
     } else {
         _customView = customView;
         [self configureCustomView];
@@ -584,6 +591,7 @@
 - (void)setTitleFont:(UIFont *)titleFont {
     _titleFont = titleFont;
     _titleLabel.font = _titleFont;
+    [self setNeedsLayout];
 }
 
 - (void)setTranslucent:(BOOL)translucent {
@@ -621,23 +629,60 @@
 
 - (void)setContentInset:(UIEdgeInsets)contentInset {
     _contentInset = contentInset;
-    [self setNeedsLayout];
+#if AXAlertViewUsingAutolayout
+    _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
+    _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
+    _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
+    _leadingOfContent.constant = -_contentInset.left;
+    _trailingOfContent.constant = _contentInset.right;
+    _bottomOfContent.constant = _contentInset.bottom;
+    _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
+    
+    [self setNeedsUpdateConstraints];
+#endif
     [self configureActions];
     [self configureCustomView];
+    [self setNeedsLayout];
 }
 
 - (void)setCustomViewInset:(UIEdgeInsets)customViewInset {
     _customViewInset = customViewInset;
+#if AXAlertViewUsingAutolayout
+    _leadingOfCustom.constant = -_customViewInset.left;
+    _trailingOfCustom.constant = _customViewInset.right;
+    _topOfCustom.constant = -_customViewInset.top;
+    _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
+    
+    [self setNeedsUpdateConstraints];
+#endif
     [self configureCustomView];
+    [self configureActions];
+    [self setNeedsLayout];
 }
 
 - (void)setTitleInset:(UIEdgeInsets)titleInset {
     _titleInset = titleInset;
+#if AXAlertViewUsingAutolayout
+    _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
+    _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
+    _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
+    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding;
+    
+    [self setNeedsUpdateConstraints];
+#endif
     [self setNeedsLayout];
 }
 
 - (void)setPadding:(CGFloat)padding {
     _padding = padding;
+    
+#if AXAlertViewUsingAutolayout
+    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding;
+    _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
+    _topOfStackView.constant = -_padding;
+    
+    [self setNeedsUpdateConstraints];
+#endif
     [self setNeedsLayout];
     [self configureActions];
     [self configureCustomView];
@@ -645,9 +690,13 @@
 
 - (void)setActionItemMargin:(CGFloat)actionItemMargin {
     _actionItemMargin = actionItemMargin;
+#if AXAlertViewUsingAutolayout
     _leadingOfStackView.constant = _actionItemMargin;
     _trailingOfStackView.constant = _actionItemMargin;
+    _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
+    
     [self setNeedsUpdateConstraints];
+#endif
     [self setNeedsLayout];
     [self configureActions];
     [self configureCustomView];
@@ -683,8 +732,10 @@
 
 - (void)setPreferedHeight:(CGFloat)preferedHeight {
     _preferedHeight = preferedHeight;
+#if AXAlertViewUsingAutolayout
     _heightOfContainer.constant = _preferedHeight;
     [self setNeedsUpdateConstraints];
+#endif
     [self setNeedsLayout];
     [self configureActions];
     [self configureCustomView];
@@ -692,6 +743,16 @@
 
 - (void)setPreferedMargin:(CGFloat)preferedMargin {
     _preferedMargin = preferedMargin;
+#if AXAlertViewUsingAutolayout
+    _leadingOfContainer.constant = -_preferedMargin;
+    _trailingOfContainer.constant = _preferedMargin;
+    _topOfContainer.constant = -_preferedMargin;
+    _bottomOfContainer.constant = _preferedMargin;
+    
+    [_contentContainerView setContentSize:_contentContainerView.contentSize];
+    
+    [self setNeedsUpdateConstraints];
+#endif
     [self setNeedsLayout];
     [self configureActions];
     [self configureCustomView];
