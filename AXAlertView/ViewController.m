@@ -112,29 +112,29 @@ static void test() {
     alertView.titleLabel.textColor = [UIColor blackColor];
     
     
-//    [alertView setActions:[AXAlertViewAction actionWithTitle:@"取消" image:nil handler:NULL],[AXAlertViewAction actionWithTitle:@"确认" image:nil handler:^(AXAlertViewAction * _Nonnull __weak action) {
-//        /*
-//        if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"https://www.baidu.com"]]) {
-//            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.baidu.com"]];
-//        } 
-//         */
-//    }],nil];
-//    
-//    AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
-//    cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
-//    cancelConfig.preferedHeight = 50;
-//    cancelConfig.cornerRadius = .0;
-//    cancelConfig.tintColor = [UIColor blackColor];
-//    [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
-//    AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
-//    confirmConfig.backgroundColor = [UIColor blackColor];
-//    confirmConfig.preferedHeight = 50;
-//    confirmConfig.cornerRadius = .0;
-//    confirmConfig.tintColor = [UIColor whiteColor];
-//    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
-//    [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
-//    [alertView showInView:self.view animated:YES];
+    [alertView setActions:[AXAlertViewAction actionWithTitle:@"取消" image:nil handler:NULL],[AXAlertViewAction actionWithTitle:@"确认" image:nil handler:^(AXAlertViewAction * _Nonnull __weak action) {
+        /*
+        if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"https://www.baidu.com"]]) {
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.baidu.com"]];
+        } 
+         */
+    }],nil];
     
+    AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
+    cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
+    cancelConfig.preferedHeight = 50;
+    cancelConfig.cornerRadius = .0;
+    cancelConfig.tintColor = [UIColor blackColor];
+    [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
+    AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
+    confirmConfig.backgroundColor = [UIColor blackColor];
+    confirmConfig.preferedHeight = 50;
+    confirmConfig.cornerRadius = .0;
+    confirmConfig.tintColor = [UIColor whiteColor];
+    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+    [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
+    [alertView showInView:self.view animated:YES];
+    /*
     
     for (int i = 0; i < 15; i++) {
         [alertView appendActions:[AXAlertViewAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] image:nil handler:NULL], nil];

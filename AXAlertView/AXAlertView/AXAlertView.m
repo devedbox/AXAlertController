@@ -1400,6 +1400,18 @@
     }
 }
 
+- (void)setHighlighted:(BOOL)highlighted {
+    [super setHighlighted:highlighted];
+    
+    if (_translucent) {
+        for (UIView *view in _effectView.subviews) {
+            if ([view isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]) {
+                [view setAlpha:highlighted?0.7:1.0];
+            }
+        }
+    }
+}
+
 - (void)insertSubview:(UIView *)view atIndex:(NSInteger)index {
     [super insertSubview:view atIndex:index];
     if (_translucent) [super insertSubview:_effectView atIndex:0];
