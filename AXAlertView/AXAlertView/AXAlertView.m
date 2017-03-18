@@ -1320,10 +1320,12 @@
         [backgroundColor getWhite:NULL alpha:&alpha];
         [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.1*alpha] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
     } else {
+        /*
         [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.0] size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
         CGFloat alpha;
         [backgroundColor getWhite:NULL alpha:&alpha];
         [*button setBackgroundImage:[self rectangleImageWithColor:[backgroundColor colorWithAlphaComponent:0.3*alpha] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
+         */
     }
     /*
      [(*button) setBackgroundImage:[self rectangleImageWithColor:_translucent?[backgroundColor colorWithAlphaComponent:0.8]:[backgroundColor colorWithAlphaComponent:0.9] size:CGSizeMake(10, 10)] forState:UIControlStateHighlighted];
