@@ -122,16 +122,16 @@ static void test() {
     
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
-    cancelConfig.preferedHeight = 50;
+    cancelConfig.preferedHeight = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     confirmConfig.backgroundColor = [UIColor blackColor];
-    confirmConfig.preferedHeight = 50;
+    confirmConfig.preferedHeight = 44;
     confirmConfig.cornerRadius = .0;
-    confirmConfig.tintColor = [UIColor whiteColor];
-    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+    confirmConfig.tintColor = [UIColor blackColor];
+//    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
     [alertView showInView:self.view animated:YES];
     /*
@@ -150,10 +150,11 @@ static void test() {
     }
     [alertView show:YES];
     
-    
+    */
     /*
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Heheda" message:@"Hahaha" preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
     [self presentViewController:alert animated:YES completion:NULL];
      */
 //    test();

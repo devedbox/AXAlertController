@@ -14,6 +14,9 @@
 #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_9_0)
 #endif
 
+@interface _AXVisualEffectSeparatorView : UIVisualEffectView
+@end
+
 @interface AXAlertView () <UIScrollViewDelegate>
 {
     NSMutableArray<AXAlertViewAction *> *_actionItems;
@@ -23,6 +26,9 @@
     
     // Transition view of translucent.
     UIView *__weak _translucentTransitionView;
+    // Single seprator view.
+    _AXVisualEffectSeparatorView *__weak _singleSeparator;
+    NSArray<_AXVisualEffectSeparatorView *> *_verticalSeparators;
     
     BOOL _processing;
     UIColor * _backgroundColor;
@@ -312,7 +318,7 @@
             }
         }
         heightOfContainer += _padding;
-        heightOfContainer += maxHeightOfItem;
+        heightOfContainer += 0.5+ heightOfItems;
     }
     heightOfContainer += _contentInset.bottom;
     
@@ -357,8 +363,8 @@
     _contentContainerView.contentSize = CGSizeMake(CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right), heightOfContainer-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_contentInset.bottom);
     _customView.frame = CGRectMake(_customViewInset.left, _customViewInset.top, sizeOfCustomView.width, sizeOfCustomView.height-(_customViewInset.top+_customViewInset.bottom));
     
-    [self setNeedsDisplay];
     [self configureActions];
+    [self setNeedsDisplay];
 #endif
 }
 #pragma mark - Public method
@@ -444,17 +450,17 @@
     // Drawing code
     [super drawRect:rect];
     
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
-    CGContextAddPath(context, outterPath);
-    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
-    CGContextFillPath(context);
-    CGRect rectOfContainerView = self.containerView.frame;
-    if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
-    CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
-    CGContextAddPath(context, innerPath);
-    CGContextSetBlendMode(context, kCGBlendModeClear);
-    CGContextFillPath(context);
+//    CGContextRef context = UIGraphicsGetCurrentContext();
+//    CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
+//    CGContextAddPath(context, outterPath);
+//    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
+//    CGContextFillPath(context);
+//    CGRect rectOfContainerView = self.containerView.frame;
+//    if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
+//    CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
+//    CGContextAddPath(context, innerPath);
+//    CGContextSetBlendMode(context, kCGBlendModeClear);
+//    CGContextFillPath(context);
 }
 #pragma mark - Getters
 - (UIColor *)backgroundColor {
@@ -598,7 +604,9 @@
     _translucent = translucent;
     
     if (_translucent) {
+#if AXAlertViewUsingAutolayout
         [self.containerView insertSubview:self.effectFlexibleView atIndex:0];
+#endif
         [self.containerView insertSubview:self.effectView atIndex:0];
         if (_translucentStyle == AXAlertViewTranslucentDark) {
             _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
@@ -799,7 +807,7 @@
     _processing = YES;
     
     [self layoutSubviews];
-    
+    /*
 #if !TARGET_IPHONE_SIMULATOR
     if (_translucent) {
         // Get the current translucent transition view.
@@ -813,7 +821,7 @@
         _translucentTransitionView = snapshot;
     }
 #endif
-    
+    */
     if (_willShow != NULL && _willShow != nil) {
         _willShow(self, animated);
     }
@@ -1271,8 +1279,17 @@
         _stackView.distribution = UIStackViewDistributionFillEqually;
         _stackView.spacing = _actionItemPadding;
 #else
-        CGFloat buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-_actionItemPadding*(_actionButtons.count-1))/_actionButtons.count;
+        CGFloat buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-(_actionItemPadding)*(_actionButtons.count-1))/_actionButtons.count;
 #endif
+        [_singleSeparator removeFromSuperview];
+        [_verticalSeparators makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        _AXVisualEffectSeparatorView *separatorView = [[_AXVisualEffectSeparatorView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+        [separatorView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin];
+        [separatorView setFrame:CGRectMake(0, _contentContainerView.frame.origin.y + CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding-1, CGRectGetWidth(_containerView.frame), 2.5)];
+        [_containerView insertSubview:separatorView atIndex:0];
+        _singleSeparator = separatorView;
+        NSMutableArray *seperators = [@[] mutableCopy];
+        
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
             UIButton *button = _actionButtons[i];
             button.tag = i+1;
@@ -1283,10 +1300,17 @@
             [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
             [_stackView addArrangedSubview:button];
 #else
-            [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
+            [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i+(i==0?0.0:0.5), CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding+0.5, buttonWidth-(i==0?0.0:0.5), config.preferedHeight)];
             [self.contentContainerView addSubview:button];
+            if (i == 0) continue;
+            _AXVisualEffectSeparatorView *separatorView = [[_AXVisualEffectSeparatorView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+            [separatorView setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
+            [separatorView setFrame:CGRectMake(CGRectGetMinX(button.frame)-0.5+_contentContainerView.frame.origin.x-1, _contentContainerView.frame.origin.y + CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding+0.5, 2.5, config.preferedHeight)];
+            [_containerView insertSubview:separatorView atIndex:0];
+            [seperators addObject:separatorView];
 #endif
         }
+        _verticalSeparators = [seperators copy];
     }
 }
 
@@ -1449,11 +1473,23 @@
 
 - (UIVisualEffectView *)effectView {
     if (_effectView) return _effectView;
-    _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
+    _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
     _effectView.frame = self.bounds;
     _effectView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     _effectView.userInteractionEnabled = NO;
     return _effectView;
+}
+@end
+
+@implementation _AXVisualEffectSeparatorView
+- (void)didMoveToSuperview {
+    [super didMoveToSuperview];
+    for (UIView *view in self.subviews) {
+        if ([view isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]) {
+            [view setBackgroundColor:[UIColor colorWithWhite:0.97 alpha:0.8]];
+            [view setAlpha:0.5];
+        }
+    }
 }
 @end
 
