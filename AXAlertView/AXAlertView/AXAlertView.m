@@ -137,6 +137,8 @@
     _actionConfiguration.preferedHeight = 44.0;
     _actionConfiguration.translucent = YES;
     
+    _showsSeparators = YES;
+    
     super.backgroundColor = [UIColor clearColor];
     [self addSubview:self.containerView];
     [self.containerView addSubview:self.contentContainerView];
@@ -450,17 +452,17 @@
     // Drawing code
     [super drawRect:rect];
     
-//    CGContextRef context = UIGraphicsGetCurrentContext();
-//    CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
-//    CGContextAddPath(context, outterPath);
-//    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
-//    CGContextFillPath(context);
-//    CGRect rectOfContainerView = self.containerView.frame;
-//    if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
-//    CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
-//    CGContextAddPath(context, innerPath);
-//    CGContextSetBlendMode(context, kCGBlendModeClear);
-//    CGContextFillPath(context);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
+    CGContextAddPath(context, outterPath);
+    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
+    CGContextFillPath(context);
+    CGRect rectOfContainerView = self.containerView.frame;
+    if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
+    CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
+    CGContextAddPath(context, innerPath);
+    CGContextSetBlendMode(context, kCGBlendModeClear);
+    CGContextFillPath(context);
 }
 #pragma mark - Getters
 - (UIColor *)backgroundColor {
@@ -627,6 +629,11 @@
     
     [self configureActions];
     [self setNeedsLayout];
+}
+
+- (void)setShowsSeparators:(BOOL)showsSeparators {
+    _showsSeparators = showsSeparators;
+    [self configureActions];
 }
 
 - (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
@@ -1281,13 +1288,15 @@
 #else
         CGFloat buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-(_actionItemPadding)*(_actionButtons.count-1))/_actionButtons.count;
 #endif
-        [_singleSeparator removeFromSuperview];
-        [_verticalSeparators makeObjectsPerformSelector:@selector(removeFromSuperview)];
-        _AXVisualEffectSeparatorView *separatorView = [[_AXVisualEffectSeparatorView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-        [separatorView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin];
-        [separatorView setFrame:CGRectMake(0, _contentContainerView.frame.origin.y + CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding-1, CGRectGetWidth(_containerView.frame), 2.5)];
-        [_containerView insertSubview:separatorView atIndex:0];
-        _singleSeparator = separatorView;
+        if (_showsSeparators) {
+            [_singleSeparator removeFromSuperview];
+            [_verticalSeparators makeObjectsPerformSelector:@selector(removeFromSuperview)];
+            _AXVisualEffectSeparatorView *separatorView = [[_AXVisualEffectSeparatorView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+            [separatorView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin];
+            [separatorView setFrame:CGRectMake(0, _contentContainerView.frame.origin.y + CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding-1, CGRectGetWidth(_containerView.frame), 2.5)];
+            [_containerView insertSubview:separatorView atIndex:0];
+            _singleSeparator = separatorView;
+        }
         NSMutableArray *seperators = [@[] mutableCopy];
         
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
@@ -1303,11 +1312,13 @@
             [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i+(i==0?0.0:0.5), CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding+0.5, buttonWidth-(i==0?0.0:0.5), config.preferedHeight)];
             [self.contentContainerView addSubview:button];
             if (i == 0) continue;
-            _AXVisualEffectSeparatorView *separatorView = [[_AXVisualEffectSeparatorView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
-            [separatorView setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
-            [separatorView setFrame:CGRectMake(CGRectGetMinX(button.frame)-0.5+_contentContainerView.frame.origin.x-1, _contentContainerView.frame.origin.y + CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding+0.5, 2.5, config.preferedHeight)];
-            [_containerView insertSubview:separatorView atIndex:0];
-            [seperators addObject:separatorView];
+            if (_showsSeparators) {
+                _AXVisualEffectSeparatorView *separatorView = [[_AXVisualEffectSeparatorView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+                [separatorView setAutoresizingMask:UIViewAutoresizingFlexibleTopMargin];
+                [separatorView setFrame:CGRectMake(CGRectGetMinX(button.frame)-0.5+_contentContainerView.frame.origin.x-1, _contentContainerView.frame.origin.y + CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding+0.5, 2.5, config.preferedHeight)];
+                [_containerView insertSubview:separatorView atIndex:0];
+                [seperators addObject:separatorView];
+            }
 #endif
         }
         _verticalSeparators = [seperators copy];
@@ -1487,8 +1498,10 @@
     for (UIView *view in self.subviews) {
         if ([view isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]) {
             [view setBackgroundColor:[UIColor colorWithWhite:0.97 alpha:0.8]];
-            [view setAlpha:0.5];
-        }
+            [view setAlpha:0.7];
+        } /*else if ([view isMemberOfClass:NSClassFromString(@"_UIVisualEffectBackdropView")]) {
+            [view setHidden:YES];
+        } */
     }
 }
 @end

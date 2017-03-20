@@ -44,6 +44,8 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 @property(assign, nonatomic) BOOL translucent UI_APPEARANCE_SELECTOR;
 /// Hide alert view on touch. Defaults to NO.
 @property(assign, nonatomic) BOOL hidesOnTouch UI_APPEARANCE_SELECTOR;
+/// Show the separator view or not.
+@property(assign, nonatomic) BOOL showsSeparators UI_APPEARANCE_SELECTOR;
 /// Translucent style. Default is Light.
 @property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle UI_APPEARANCE_SELECTOR;
 /// Content inset. Defaults to (0, 0, 0, 0)

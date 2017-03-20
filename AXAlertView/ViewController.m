@@ -106,11 +106,12 @@ static void test() {
     
     alertView.customView = label;
     
-//    alertView.titleLabel.font = [UIFont systemFontOfSize:14];
+    alertView.titleLabel.font = [UIFont systemFontOfSize:14];
     
     alertView.titleLabel.font = [UIFont fontWithName:@"PingFangSC-Medium" size:18];
     alertView.titleLabel.textColor = [UIColor blackColor];
     
+//    alertView.showsSeparators = NO;
     
     [alertView setActions:[AXAlertViewAction actionWithTitle:@"取消" image:nil handler:NULL],[AXAlertViewAction actionWithTitle:@"确认" image:nil handler:^(AXAlertViewAction * _Nonnull __weak action) {
         /*
