@@ -78,6 +78,7 @@
 
 @interface _AXVisualEffectButton : UIButton {
     CAShapeLayer *_maskLayer;
+    CALayer *_opacityLayer;
     
     id _arg1;
     id _arg2;
@@ -1517,48 +1518,58 @@
     _arg1 = @(arg1); _arg2 = @(arg2);
     
     UIView * __block _filterView;
+    UIView * __block _backdropView;
     [self.effectView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         if ([obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]) {
             _filterView = obj;
-            *stop = YES;
+        } else if ([obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectBackdropView")]) {
+            _backdropView = obj;
         }
     }];
-    if (!_filterView) return;
+    if (!_filterView || !_backdropView) return;
     
     if (arg1 == 0.0 || arg2 < 0) {
-        _filterView.layer.mask = nil; _maskLayer = nil; return;
+        _filterView.layer.mask = nil; _maskLayer = nil; [_opacityLayer removeFromSuperlayer]; _opacityLayer = nil; return;
     }
+    
+    if (_opacityLayer != nil) {
+        [_opacityLayer removeFromSuperlayer];
+    }
+    
+    CALayer *layer = [CALayer layer];
+    layer.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.5].CGColor;
+    _opacityLayer = layer;
+    [_backdropView.layer addSublayer:_opacityLayer];
+    
+    CAShapeLayer *maskLayer = [CAShapeLayer layer];
+    _maskLayer = maskLayer;
     
     switch (arg2) {
         case 0: {// Top.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, arg1, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-arg1)];
-            CAShapeLayer *maskLayer = [CAShapeLayer layer];
-            maskLayer.path = path.CGPath;
-            _filterView.layer.mask = maskLayer;
-            _maskLayer = maskLayer;
+            _maskLayer.path = path.CGPath;
+            _filterView.layer.mask = _maskLayer;
+            _opacityLayer.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame), arg1);
         } break;
         case 1: {// Left.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(arg1, 0, CGRectGetWidth(self.frame)-arg1, CGRectGetHeight(self.frame))];
-            CAShapeLayer *maskLayer = [CAShapeLayer layer];
-            maskLayer.path = path.CGPath;
-            _filterView.layer.mask = maskLayer;
-            _maskLayer = maskLayer;
+            _maskLayer.path = path.CGPath;
+            _filterView.layer.mask = _maskLayer;
+            _opacityLayer.frame = CGRectMake(0, 0, arg1, CGRectGetHeight(self.frame));
         } break;
         case 2: {// Bottom.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-arg1)];
-            CAShapeLayer *maskLayer = [CAShapeLayer layer];
-            maskLayer.path = path.CGPath;
-            _filterView.layer.mask = maskLayer;
-            _maskLayer = maskLayer;
+            _maskLayer.path = path.CGPath;
+            _filterView.layer.mask = _maskLayer;
+            _opacityLayer.frame = CGRectMake(0, CGRectGetHeight(self.frame)-arg1, CGRectGetWidth(self.frame), arg1);
         } break;
         case 3: {// Right.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame)-arg1, CGRectGetHeight(self.frame))];
-            CAShapeLayer *maskLayer = [CAShapeLayer layer];
-            maskLayer.path = path.CGPath;
-            _filterView.layer.mask = maskLayer;
-            _maskLayer = maskLayer;
+            _maskLayer.path = path.CGPath;
+            _filterView.layer.mask = _maskLayer;
+            _opacityLayer.frame = CGRectMake(CGRectGetWidth(self.frame)-arg1, 0, arg1, CGRectGetHeight(self.frame));
         } break;
-        default: _filterView.layer.mask = nil; _maskLayer = nil; return;
+        default: _filterView.layer.mask = nil; _maskLayer = nil; [_opacityLayer removeFromSuperlayer]; _opacityLayer = nil; return;
     }
 }
 @end
