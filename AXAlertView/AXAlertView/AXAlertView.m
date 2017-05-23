@@ -76,7 +76,7 @@
 @property(strong, nonatomic) UIStackView *stackView;
 @end
 
-@interface AXVisualEffectButton : UIButton
+@interface _AXVisualEffectButton : UIButton
 /// Translucent. Defailts to YES.
 @property(assign, nonatomic) BOOL translucent;
 /// Translucent style. Defaults to Light.
@@ -1203,7 +1203,7 @@
 
 - (void)_updateConfigurationOfItemAtIndex:(NSUInteger)index {
     // Get the button item from the content container view.
-    AXVisualEffectButton *buttonItem = [_contentContainerView viewWithTag:index+1];
+    _AXVisualEffectButton *buttonItem = [_contentContainerView viewWithTag:index+1];
     // Get the configuration of the configs.
     AXAlertViewActionConfiguration *config = _actionConfig[@(index)];
     // Setup button with configuration.
@@ -1325,10 +1325,10 @@
     }
 }
 
-- (NSArray<AXVisualEffectButton*> *_Nonnull)buttonsWithActions:(NSArray<AXAlertViewAction*> *_Nonnull)actions {
+- (NSArray<_AXVisualEffectButton*> *_Nonnull)buttonsWithActions:(NSArray<AXAlertViewAction*> *_Nonnull)actions {
     NSMutableArray *buttons = [@[] mutableCopy];
     for (NSInteger i = 0; i < actions.count; i++) {
-        AXVisualEffectButton *button = [AXVisualEffectButton buttonWithType:UIButtonTypeCustom];
+        _AXVisualEffectButton *button = [_AXVisualEffectButton buttonWithType:UIButtonTypeCustom];
         [button setTitle:[actions[i] title] forState:UIControlStateNormal];
         [button setImage:[actions[i] image] forState:UIControlStateNormal];
         
@@ -1340,7 +1340,7 @@
     return buttons;
 }
 
-- (void)_setupButtonItem:(AXVisualEffectButton **)button withConfiguration:(AXAlertViewActionConfiguration *)config {
+- (void)_setupButtonItem:(_AXVisualEffectButton **)button withConfiguration:(AXAlertViewActionConfiguration *)config {
     if (!config) {
         config = _actionConfiguration;
     }
@@ -1402,7 +1402,7 @@
 }
 @end
 
-@implementation AXVisualEffectButton
+@implementation _AXVisualEffectButton
 - (instancetype)init {
     if (self = [super init]) {
         [self initializer];
