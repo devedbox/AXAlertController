@@ -11,7 +11,8 @@
 #import <objc/runtime.h>
 
 #ifndef AXAlertViewUsingAutolayout
-#define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
+// #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
+#define AXAlertViewUsingAutolayout 0
 #endif
 
 @interface _AXVisualEffectSeparatorView : UIVisualEffectView
@@ -1318,7 +1319,7 @@
             [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
 #if AXAlertViewUsingAutolayout
             [button setTranslatesAutoresizingMaskIntoConstraints:NO];
-            [button _setExceptionAllowedWidth:0.5 direction:3];
+            if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:0.5 direction:3];
             [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
             [_stackView addArrangedSubview:button];
             
