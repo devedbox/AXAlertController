@@ -11,7 +11,7 @@
 #import <objc/runtime.h>
 
 #ifndef AXAlertViewUsingAutolayout
-#define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MIN_REQUIRED >= __IPHONE_9_0)
+#define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
 #endif
 
 @interface _AXVisualEffectSeparatorView : UIVisualEffectView
@@ -76,13 +76,24 @@
 @property(strong, nonatomic) UIStackView *stackView;
 @end
 
-@interface _AXVisualEffectButton : UIButton
+@interface _AXVisualEffectButton : UIButton {
+    CAShapeLayer *_maskLayer;
+    
+    id _arg1;
+    id _arg2;
+}
 /// Translucent. Defailts to YES.
 @property(assign, nonatomic) BOOL translucent;
 /// Translucent style. Defaults to Light.
 @property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle;
 /// Blur effect view.
 @property(strong, nonatomic) UIVisualEffectView *effectView;
+// Direction:
+// - 0: Lop.
+// - 1: Left.
+// - 2: Bottom.
+// - 3: Right.
+- (void)_setExceptionAllowedWidth:(CGFloat)arg1 direction:(int8_t)arg2;
 @end
 
 @implementation AXAlertView
@@ -1300,14 +1311,17 @@
         NSMutableArray *seperators = [@[] mutableCopy];
         
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
-            UIButton *button = _actionButtons[i];
+            _AXVisualEffectButton *button = _actionButtons[i];
             button.tag = i+1;
             AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
             [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
 #if AXAlertViewUsingAutolayout
             [button setTranslatesAutoresizingMaskIntoConstraints:NO];
+            [button _setExceptionAllowedWidth:0.5 direction:3];
             [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
             [_stackView addArrangedSubview:button];
+            
+            
 #else
             [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i+(i==0?0.0:0.5), CGRectGetMaxY(_customView.frame)+_customViewInset.bottom+_padding+0.5, buttonWidth-(i==0?0.0:0.5), config.preferedHeight)];
             [self.contentContainerView addSubview:button];
@@ -1429,6 +1443,14 @@
     _translucentStyle = AXAlertViewTranslucentLight;
 }
 
+- (void)layoutSublayersOfLayer:(CALayer *)layer {
+    [super layoutSublayersOfLayer:layer];
+    
+    if (_maskLayer != nil) {
+        [self _setExceptionAllowedWidth:[_arg1 floatValue] direction:[_arg2 integerValue]];
+    }
+}
+
 - (void)willMoveToSuperview:(UIView *)newSuperview {
     [super willMoveToSuperview:newSuperview];
     
@@ -1489,6 +1511,55 @@
     _effectView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     _effectView.userInteractionEnabled = NO;
     return _effectView;
+}
+
+- (void)_setExceptionAllowedWidth:(CGFloat)arg1 direction:(int8_t)arg2 {
+    _arg1 = @(arg1); _arg2 = @(arg2);
+    
+    UIView * __block _filterView;
+    [self.effectView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if ([obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]) {
+            _filterView = obj;
+            *stop = YES;
+        }
+    }];
+    if (!_filterView) return;
+    
+    if (arg1 == 0.0 || arg2 < 0) {
+        _filterView.layer.mask = nil; _maskLayer = nil; return;
+    }
+    
+    switch (arg2) {
+        case 0: {// Top.
+            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, arg1, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-arg1)];
+            CAShapeLayer *maskLayer = [CAShapeLayer layer];
+            maskLayer.path = path.CGPath;
+            _filterView.layer.mask = maskLayer;
+            _maskLayer = maskLayer;
+        } break;
+        case 1: {// Left.
+            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(arg1, 0, CGRectGetWidth(self.frame)-arg1, CGRectGetHeight(self.frame))];
+            CAShapeLayer *maskLayer = [CAShapeLayer layer];
+            maskLayer.path = path.CGPath;
+            _filterView.layer.mask = maskLayer;
+            _maskLayer = maskLayer;
+        } break;
+        case 2: {// Bottom.
+            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-arg1)];
+            CAShapeLayer *maskLayer = [CAShapeLayer layer];
+            maskLayer.path = path.CGPath;
+            _filterView.layer.mask = maskLayer;
+            _maskLayer = maskLayer;
+        } break;
+        case 3: {// Right.
+            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame)-arg1, CGRectGetHeight(self.frame))];
+            CAShapeLayer *maskLayer = [CAShapeLayer layer];
+            maskLayer.path = path.CGPath;
+            _filterView.layer.mask = maskLayer;
+            _maskLayer = maskLayer;
+        } break;
+        default: _filterView.layer.mask = nil; _maskLayer = nil; return;
+    }
 }
 @end
 
