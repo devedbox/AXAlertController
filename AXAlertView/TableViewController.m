@@ -74,6 +74,18 @@
     confirmConfig.cornerRadius = .0;
     confirmConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
-    [alertView showInView:self.view animated:YES];
+    [alertView showInView:self.navigationController.view animated:YES];
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    switch (indexPath.row) {
+        case 0: {
+            [self showNormal:nil];
+        } break;
+            
+        default:
+            break;
+    }
 }
 @end
