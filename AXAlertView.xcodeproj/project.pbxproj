@@ -17,6 +17,7 @@
 		01BB35B61CB35031002B5D1A /* AXAlertViewUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BB35B51CB35031002B5D1A /* AXAlertViewUITests.m */; };
 		01BB35C51CB35118002B5D1A /* AXAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BB35C41CB35118002B5D1A /* AXAlertView.m */; };
 		3DA8ED676693A24D990DA890 /* libPods-AXAlertView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */; };
+		DC1859DD1ED5241B0046F025 /* TableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DC1859DC1ED5241B0046F025 /* TableViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +59,8 @@
 		37D7438B4F614BD7E4BD7FDA /* Pods-AXAlertView.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertView.release.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView.release.xcconfig"; sourceTree = "<group>"; };
 		525EDD5E82AD48153196FAAB /* Pods-AXAlertView.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertView.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView.debug.xcconfig"; sourceTree = "<group>"; };
 		6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AXAlertView.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC1859DB1ED5241B0046F025 /* TableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TableViewController.h; sourceTree = "<group>"; };
+		DC1859DC1ED5241B0046F025 /* TableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TableViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +118,8 @@
 				01BB35941CB35031002B5D1A /* AppDelegate.m */,
 				01BB35961CB35031002B5D1A /* ViewController.h */,
 				01BB35971CB35031002B5D1A /* ViewController.m */,
+				DC1859DB1ED5241B0046F025 /* TableViewController.h */,
+				DC1859DC1ED5241B0046F025 /* TableViewController.m */,
 				01BB35991CB35031002B5D1A /* Main.storyboard */,
 				01BB35C61CB3511B002B5D1A /* AXAlertView */,
 				01BB359C1CB35031002B5D1A /* Assets.xcassets */,
@@ -362,6 +367,7 @@
 				01BB35C51CB35118002B5D1A /* AXAlertView.m in Sources */,
 				01BB35981CB35031002B5D1A /* ViewController.m in Sources */,
 				01BB35951CB35031002B5D1A /* AppDelegate.m in Sources */,
+				DC1859DD1ED5241B0046F025 /* TableViewController.m in Sources */,
 				01BB35921CB35031002B5D1A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
