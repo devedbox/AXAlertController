@@ -493,12 +493,17 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     CGContextAddPath(context, outterPath);
     CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
     CGContextFillPath(context);
+    
+    CGPathRelease(outterPath);
+    
     CGRect rectOfContainerView = self.containerView.frame;
     if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
     CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
     CGContextAddPath(context, innerPath);
     CGContextSetBlendMode(context, kCGBlendModeClear);
     CGContextFillPath(context);
+    
+    CGPathRelease(innerPath);
 }
 #pragma mark - Getters
 - (UIColor *)backgroundColor {
