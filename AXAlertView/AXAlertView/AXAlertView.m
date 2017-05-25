@@ -87,6 +87,8 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 @property(strong, nonatomic) UIStackView *effectFlexibleView;
 /// Stack view.
 @property(strong, nonatomic) UIStackView *stackView;
+
+@property(assign, nonatomic) BOOL _shouldExceptContentBackground;
 @end
 
 @interface _AXTranslucentButton : UIButton {
@@ -166,6 +168,8 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     _actionConfiguration.translucent = YES;
     
     _showsSeparators = YES;
+    
+    __shouldExceptContentBackground = /*YES*/NO;
     
     super.backgroundColor = [UIColor clearColor];
     [self addSubview:self.containerView];
@@ -495,6 +499,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     CGContextFillPath(context);
     
     CGPathRelease(outterPath);
+    if (!__shouldExceptContentBackground) return;
     
     CGRect rectOfContainerView = self.containerView.frame;
     if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
@@ -816,9 +821,14 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
 }
 
+- (void)set_shouldExceptContentBackground:(BOOL)_shouldExceptContentBackground {
+    __shouldExceptContentBackground = _shouldExceptContentBackground;
+    [self setNeedsDisplay];
+}
+
 #pragma mark - Actions
 - (void)handleDeviceOrientationDidChangeNotification:(NSNotification *)aNote {
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_handleDeviceOrientationDidChange) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
 }
 
 - (void)handleActionButtonDidClick:(UIButton *_Nonnull)sender {
@@ -942,6 +952,14 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:_cmd object:nil];
     [self setNeedsLayout];
     [self layoutIfNeeded];
+}
+
+- (void)_handleDeviceOrientationDidChange {
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:_cmd object:nil];
+    [self set_shouldExceptContentBackground:NO];
+    [self _layoutSubviews];
+    [self scrollViewDidScroll:_contentContainerView];
+    [self performSelector:@selector(set_shouldExceptContentBackground:) withObject:@(YES) afterDelay:0.25];
 }
 
 - (void)_addContraintsOfContainerToSelf {
