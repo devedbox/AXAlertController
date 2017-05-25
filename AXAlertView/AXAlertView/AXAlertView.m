@@ -1269,7 +1269,6 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     
     _actionButtons = [self buttonsWithActions:_actionItems];
     if (_actionButtons.count == 0) return;
-    NSMutableArray *separators = [@[] mutableCopy];
     if (_actionButtons.count > _horizontalLimits) {
 #if AXAlertViewUsingAutolayout
         _stackView.axis = UILayoutConstraintAxisVertical;
@@ -1331,7 +1330,6 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
                 [_singleSeparator removeFromSuperview];
             }
         }
-        NSMutableArray *seperators = [@[] mutableCopy];
         
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
             _AXTranslucentButton *button = _actionButtons[i];
