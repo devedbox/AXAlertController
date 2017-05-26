@@ -143,7 +143,7 @@
 
 - (void)showMoreItems:(id)sender {
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.navigationController.view.bounds];
-    alertView.customViewInset = UIEdgeInsetsMake(50, 20, 10, 20);
+    alertView.customViewInset = UIEdgeInsetsMake(20, 20, 10, 20);
     alertView.padding = 0;
     alertView.cornerRadius = 10.0;
     alertView.actionItemMargin = 0;
