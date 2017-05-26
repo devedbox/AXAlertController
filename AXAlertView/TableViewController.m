@@ -34,6 +34,12 @@
 }
 
 - (IBAction)showNormal:(id)sender {
+    /*
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
+    [self presentViewController:alert animated:YES completion:NULL]; */
+    
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.navigationController.view.bounds];
     alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
     alertView.padding = 0;
