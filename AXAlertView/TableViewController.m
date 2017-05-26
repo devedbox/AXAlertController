@@ -143,7 +143,7 @@
 
 - (void)showMoreItems:(id)sender {
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.navigationController.view.bounds];
-    alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
+    alertView.customViewInset = UIEdgeInsetsMake(50, 20, 10, 20);
     alertView.padding = 0;
     alertView.cornerRadius = 10.0;
     alertView.actionItemMargin = 0;
@@ -159,7 +159,7 @@
     alertView.customView = label;
     
     // alertView.showsSeparators = NO;
-    // alertView.translucent = NO;
+    alertView.translucent = NO;
     
     alertView.titleLabel.font = [UIFont systemFontOfSize:14];
     
@@ -172,8 +172,8 @@
      confirmConfig.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
      confirmConfig.preferedHeight = 50;
      confirmConfig.cornerRadius = .0;
-     confirmConfig.tintColor = [UIColor whiteColor];
-     // confirmConfig.tintColor = [UIColor blackColor];
+     // confirmConfig.tintColor = [UIColor whiteColor];
+     confirmConfig.tintColor = [UIColor blackColor];
      confirmConfig.translucent = YES;
      confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
      // confirmConfig.translucentStyle = AXAlertViewTranslucentLight;
