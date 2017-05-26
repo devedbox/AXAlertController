@@ -169,7 +169,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     
     _showsSeparators = YES;
     
-    __shouldExceptContentBackground = /*YES*/NO;
+    __shouldExceptContentBackground = YES;
     
     super.backgroundColor = [UIColor clearColor];
     [self addSubview:self.containerView];
@@ -956,10 +956,14 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 
 - (void)_handleDeviceOrientationDidChange {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:_cmd object:nil];
-    [self set_shouldExceptContentBackground:NO];
     [self _layoutSubviews];
     [self scrollViewDidScroll:_contentContainerView];
-    [self performSelector:@selector(set_shouldExceptContentBackground:) withObject:@(YES) afterDelay:0.25];
+    [self set_shouldExceptContentBackground:NO];
+    [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.25];
+}
+
+- (void)_enabled_shouldExceptContentBackground {
+    [self set_shouldExceptContentBackground:YES];
 }
 
 - (void)_addContraintsOfContainerToSelf {
