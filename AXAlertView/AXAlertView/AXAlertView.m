@@ -160,8 +160,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _titleInset = UIEdgeInsetsMake(10, 10, 10, 10);
     _customViewInset = UIEdgeInsetsMake(0, 10, 10, 10);
     _padding = 10;
-    _actionItemPadding = 5;
-    _actionItemMargin = 8;
+    _actionItemPadding = .0;
+    _actionItemMargin = .0;
     _horizontalLimits = 2;
     _dimBackground = YES;
     _opacity = 0.4;

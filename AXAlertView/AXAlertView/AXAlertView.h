@@ -44,7 +44,7 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 @property(assign, nonatomic) BOOL translucent UI_APPEARANCE_SELECTOR;
 /// Hide alert view on touch. Defaults to NO.
 @property(assign, nonatomic) BOOL hidesOnTouch UI_APPEARANCE_SELECTOR;
-/// Show the separator view or not.
+/// Show the separator view or not. Defaults to YES.
 @property(assign, nonatomic) BOOL showsSeparators UI_APPEARANCE_SELECTOR;
 /// Translucent style. Default is Light.
 @property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle UI_APPEARANCE_SELECTOR;
@@ -56,9 +56,9 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 @property(assign, nonatomic) UIEdgeInsets titleInset UI_APPEARANCE_SELECTOR;
 /// Content padding. Defaults to 10.
 @property(assign, nonatomic) CGFloat padding UI_APPEARANCE_SELECTOR;
-/// Action items padding. Defalt is 5.
+/// Action items padding. Defalt is 0.
 @property(assign, nonatomic) CGFloat actionItemPadding UI_APPEARANCE_SELECTOR;
-/// Action items margin. Default is 8.
+/// Action items margin. Default is 0.
 @property(assign, nonatomic) CGFloat actionItemMargin UI_APPEARANCE_SELECTOR;
 /// Horizontal action item limits. Defaults to 2.
 ///
