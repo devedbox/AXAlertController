@@ -74,6 +74,24 @@
                                         </tableViewCellContentView>
                                         <color key="backgroundColor" white="1" alpha="0.31755672089999998" colorSpace="calibratedWhite"/>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" textLabel="EG8-zB-V1F" style="IBUITableViewCellStyleDefault" id="4be-Ii-h0e">
+                                        <rect key="frame" x="0.0" y="167" width="375" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="4be-Ii-h0e" id="bXI-0Y-QFL">
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Show controller." textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="EG8-zB-V1F">
+                                                    <rect key="frame" x="15" y="0.0" width="345" height="43.5"/>
+                                                    <autoresizingMask key="autoresizingMask"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                        <color key="backgroundColor" white="1" alpha="0.31755672089999998" colorSpace="calibratedWhite"/>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                         </sections>

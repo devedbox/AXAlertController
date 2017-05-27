@@ -8,6 +8,7 @@
 
 #import "TableViewController.h"
 #import "AXAlertView.h"
+#import "AXAlertController.h"
 
 @interface TableViewController ()
 
@@ -34,11 +35,12 @@
 }
 
 - (IBAction)showNormal:(id)sender {
-    /*
+    
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
-    [self presentViewController:alert animated:YES completion:NULL]; */
+    [self presentViewController:alert animated:YES completion:NULL];
+    alert.modalPresentationStyle = UIModalPresentationPageSheet;
     
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.navigationController.view.bounds];
     alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
@@ -141,9 +143,17 @@
         case 2: {
             [self showMoreItems:cell];
         } break;
+        case 3: {
+            [self showController:cell];
+        } break;
         default:
             break;
     }
+}
+
+- (void)showController:(id)sender {
+    AXAlertController *alert = [[AXAlertController alloc] init];
+    [self presentViewController:alert animated:YES completion:NULL];
 }
 
 - (void)showMoreItems:(id)sender {
