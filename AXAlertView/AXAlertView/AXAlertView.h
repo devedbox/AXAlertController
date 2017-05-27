@@ -130,7 +130,7 @@ typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *__weak _Nonnull actio
 /// Background color.
 @property(strong, nonatomic, nonnull)  UIColor *backgroundColor;
 /// Separator color.
-@property(strong, nonatomic, nullable) UIColor *separatorColor;
+@property(strong, nonatomic, nullable) UIColor *separatorColor NS_UNAVAILABLE;
 /// Corner radius.
 @property(assign, nonatomic) CGFloat cornerRadius;
 /// Prefered height. Only used for default configuration.
