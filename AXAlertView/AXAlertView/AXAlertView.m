@@ -1814,7 +1814,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     config.font = [self.font copy];
     config.tintColor = [self.tintColor copy];
     config.backgroundColor = [self.backgroundColor copy];
-    config.separatorColor = [self.separatorColor copy];
+    // config.separatorColor = [self.separatorColor copy];
     config.cornerRadius = self.cornerRadius;
     config.preferedHeight = self.preferedHeight;
     config.translucent = self.translucent;
