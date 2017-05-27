@@ -762,7 +762,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setActionItemMargin:(CGFloat)actionItemMargin {
     _actionItemMargin = actionItemMargin;
 #if AXAlertViewUsingAutolayout
-    _leadingOfStackView.constant = _actionItemMargin;
+    _leadingOfStackView.constant = -_actionItemMargin;
     _trailingOfStackView.constant = _actionItemMargin;
     _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
 #endif
