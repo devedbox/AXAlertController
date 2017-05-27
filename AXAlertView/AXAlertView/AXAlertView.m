@@ -1361,7 +1361,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                     [button _setExceptionSeparatorLayerWidth:0.5 direction:0];
                 }
             }
-        }
+        } [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
     } else {
 #if AXAlertViewUsingAutolayout
         _stackView.axis = UILayoutConstraintAxisHorizontal;
