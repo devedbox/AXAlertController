@@ -105,21 +105,25 @@
     
     [alertView setActions:[AXAlertViewAction actionWithTitle:@"取消" image:nil handler:NULL],[AXAlertViewAction actionWithTitle:@"确认" image:nil handler:NULL],nil];
     // alertView.showsSeparators = NO;
+    // alertView.translucent = NO;
     
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
-    cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
+    cancelConfig.backgroundColor = [UIColor whiteColor];
     cancelConfig.preferedHeight = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
-    confirmConfig.backgroundColor = [UIColor blackColor];
+    confirmConfig.backgroundColor = [UIColor whiteColor];
     confirmConfig.preferedHeight = 44;
     confirmConfig.cornerRadius = .0;
     confirmConfig.tintColor = [UIColor blackColor];
-    // confirmConfig.tintColor = [UIColor whiteColor];
-    // confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
+    
+    [alertView setPreferedMargin:40];
+    [alertView setPreferedHeight:14];
+    [alertView setActionItemMargin:0];
+    
     [alertView showInView:self.navigationController.view animated:YES];
 }
 
@@ -159,7 +163,7 @@
     alertView.customView = label;
     
     // alertView.showsSeparators = NO;
-    alertView.translucent = NO;
+    // alertView.translucent = NO;
     
     alertView.titleLabel.font = [UIFont systemFontOfSize:14];
     
@@ -172,8 +176,8 @@
      confirmConfig.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
      confirmConfig.preferedHeight = 50;
      confirmConfig.cornerRadius = .0;
-     // confirmConfig.tintColor = [UIColor whiteColor];
-     confirmConfig.tintColor = [UIColor blackColor];
+     confirmConfig.tintColor = [UIColor whiteColor];
+     // confirmConfig.tintColor = [UIColor blackColor];
      confirmConfig.translucent = YES;
      confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
      // confirmConfig.translucentStyle = AXAlertViewTranslucentLight;
