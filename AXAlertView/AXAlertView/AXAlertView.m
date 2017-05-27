@@ -12,7 +12,7 @@
 
 #ifndef AXAlertViewUsingAutolayout
 // #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-#define AXAlertViewUsingAutolayout 0
+#define AXAlertViewUsingAutolayout 1
 #endif
 #ifndef AXAlertViewCustomViewHooks2
 #define AXAlertViewCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
@@ -24,6 +24,7 @@
 AXAlertViewCustomViewHooks(_AXAlertContentHeaderView)
 AXAlertViewCustomViewHooks(_AXAlertContentFooterView)
 AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
+AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
 
 @interface AXAlertView () <UIScrollViewDelegate>
 {
@@ -81,14 +82,17 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 @property(strong, nonatomic) UIView *containerView;
 /// Content container view.
 @property(strong, nonatomic) UIScrollView *contentContainerView;
+/// Effect flexilbe view.
+@property(strong, nonatomic) _AXAlertContentFlexibleView *effectFlexibleView;
 /// Blur effect view.
 @property(strong, nonatomic) UIVisualEffectView *effectView;
-/// Effect flexible stack view.
-@property(strong, nonatomic) UIStackView *effectFlexibleView;
+/// Effect flexible view.
+@property(strong, nonatomic) _AXAlertContentFlexibleView *stackFlexibleView;
 /// Stack view.
 @property(strong, nonatomic) UIStackView *stackView;
 
 @property(assign, nonatomic) BOOL _shouldExceptContentBackground;
+@property(readonly, nonatomic) BOOL _showedOnView;
 @end
 
 @interface _AXTranslucentButton : UIButton {
@@ -99,6 +103,8 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     
     id _arg1;
     id _arg2;
+@public
+    uint8_t _type;
 }
 /// Translucent. Defailts to YES.
 @property(assign, nonatomic) BOOL translucent;
@@ -114,6 +120,9 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 - (void)_setExceptionAllowedWidth:(CGFloat)arg1 direction:(int8_t)arg2;
 - (void)_setExceptionSeparatorLayerWidth:(CGFloat)arg1 direction:(int8_t)arg2;
 @end
+
+static CGFloat UIEdgeInsetsGetHeight(UIEdgeInsets insets) { return insets.top + insets.bottom; }
+static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + insets.right; }
 
 @implementation AXAlertView
 
@@ -148,8 +157,8 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     _translucent = YES;
     _hidesOnTouch = NO;
     _contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-    _titleInset = UIEdgeInsetsMake(10, 10, 0, 10);
-    _customViewInset = UIEdgeInsetsMake(0, 10, 0, 10);
+    _titleInset = UIEdgeInsetsMake(10, 10, 10, 10);
+    _customViewInset = UIEdgeInsetsMake(0, 10, 10, 10);
     _padding = 10;
     _actionItemPadding = 5;
     _actionItemMargin = 8;
@@ -182,8 +191,11 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     [self _addContraintsOfContainerToSelf];
     // Add contraints to self of the views.
     [self _addContraintsOfTitleLabelAndContentViewToContainerView];
-    [_contentContainerView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:NULL];
+    // Add contraints to custom and stack view.
+    [self _addContraintsOfCustomViewAndStackViewToContentView];
 #endif
+    
+    [_contentContainerView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:NULL];
     
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
@@ -194,60 +206,57 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
-#if AXAlertViewUsingAutolayout
     [_contentContainerView removeObserver:self forKeyPath:@"contentSize"];
-#endif
 }
 #pragma mark - Override
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
     if ([keyPath isEqualToString:@"contentSize"]) {
         CGSize contentSize = [change[NSKeyValueChangeNewKey] CGSizeValue];
-        CGFloat height = contentSize.height;
-        CGFloat flag = CGRectGetHeight(self.frame)-_preferedMargin*2-CGRectGetMaxY(_titleLabel.frame)-_padding;
-        height = MIN(height, flag);
+        CGFloat height;
+        CGFloat flag;
+        [self _getHeightOfContentView:&height flag:&flag withContentSize:contentSize];
+        
         _contentContainerView.scrollEnabled = height>=flag?YES:NO;
-        
-        if (height >= flag) {
-            _equalHeightOfEffectFlexibleAndStack.active = NO;
-            _heightOfEffectFlexibleView.active = !_equalHeightOfEffectFlexibleAndStack.active;
-            
-            NSLayoutConstraint *heightOfStack =
-            [NSLayoutConstraint constraintWithItem:_effectFlexibleView
-                                         attribute:NSLayoutAttributeHeight
-                                         relatedBy:NSLayoutRelationEqual
-                                            toItem:nil attribute:NSLayoutAttributeNotAnAttribute
-                                        multiplier:1.0 constant:0.0];
-            [_effectFlexibleView removeConstraints:_effectFlexibleView.constraints];
-            [_effectFlexibleView addConstraint:heightOfStack];
-            _heightOfEffectFlexibleView = heightOfStack;
-        } else {
-            _equalHeightOfEffectFlexibleAndStack.active = YES;
-            _heightOfEffectFlexibleView.active = !_equalHeightOfEffectFlexibleAndStack.active;
-            
-            NSLayoutConstraint *equalOfStack =
-            [NSLayoutConstraint constraintWithItem:_effectFlexibleView
-                                         attribute:NSLayoutAttributeHeight
-                                         relatedBy:NSLayoutRelationEqual
-                                            toItem:_stackView
-                                         attribute:NSLayoutAttributeHeight
-                                        multiplier:1.0 constant:0.0];
-            [_effectFlexibleView removeConstraints:_effectFlexibleView.constraints];
-            if (_equalHeightOfEffectFlexibleAndStack) [_containerView removeConstraint:_equalHeightOfEffectFlexibleAndStack];
-            [_containerView addConstraint:equalOfStack];
-            _equalHeightOfEffectFlexibleAndStack = equalOfStack;
+        if (height>=flag && _translucent) {
+            [self _setupContentHookedView];
+            [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
         }
         
-        [_effectFlexibleView setNeedsUpdateConstraints];
-        [_containerView setNeedsUpdateConstraints];
-        
-        if (!_heightOfContentView) {
-            NSLayoutConstraint *heightOfContent = [NSLayoutConstraint constraintWithItem:_contentContainerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:height];
-            [_contentContainerView addConstraint:heightOfContent];
-            _heightOfContentView = heightOfContent;
-        } else {
-            _heightOfContentView.constant = height;
-            [_containerView setNeedsUpdateConstraints];
+#if AXAlertViewUsingAutolayout
+        if (_translucent) {
+            if (height >= flag) {
+                _equalHeightOfEffectFlexibleAndStack.active = NO;
+                _heightOfEffectFlexibleView.active = !_equalHeightOfEffectFlexibleAndStack.active;
+                
+                NSLayoutConstraint *heightOfStack =
+                [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
+                                             attribute:NSLayoutAttributeHeight
+                                             relatedBy:NSLayoutRelationEqual
+                                                toItem:nil attribute:NSLayoutAttributeNotAnAttribute
+                                            multiplier:1.0 constant:0.0];
+                [_stackFlexibleView removeConstraints:_stackFlexibleView.constraints];
+                [_stackFlexibleView addConstraint:heightOfStack];
+                _heightOfEffectFlexibleView = heightOfStack;
+            } else {
+                _equalHeightOfEffectFlexibleAndStack.active = YES;
+                _heightOfEffectFlexibleView.active = !_equalHeightOfEffectFlexibleAndStack.active;
+                
+                NSLayoutConstraint *equalOfStack =
+                [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
+                                             attribute:NSLayoutAttributeHeight
+                                             relatedBy:NSLayoutRelationEqual
+                                                toItem:_stackView
+                                             attribute:NSLayoutAttributeHeight
+                                            multiplier:1.0 constant:0.0];
+                [_stackFlexibleView removeConstraints:_stackFlexibleView.constraints];
+                if (_equalHeightOfEffectFlexibleAndStack) [_containerView removeConstraint:_equalHeightOfEffectFlexibleAndStack];
+                [_containerView addConstraint:equalOfStack];
+                _equalHeightOfEffectFlexibleAndStack = equalOfStack;
+            }
         }
+        
+        [self _updateHeightConstraintsOfContentViewWithHeight:height];
+#endif
         
         [self setNeedsDisplay];
     } else {
@@ -271,13 +280,6 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
         // Ensure remove the translucent transition view from super view.
         [_translucentTransitionView removeFromSuperview];
     }
-}
-
-- (void)didMoveToSuperview {
-    [super didMoveToSuperview];
-    
-    [self setNeedsLayout];
-    [self scrollViewDidScroll:_contentContainerView];
 }
 
 - (void)layoutSubviews {
@@ -419,7 +421,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     }
     va_end(args);
     // Delays to configure action items at layouting subviews.
-    // [self configureActions];
+    if (self._showedOnView) [self _layoutSubviews];
 }
 
 - (void)appendActions:(AXAlertViewAction *)actions, ... {
@@ -435,7 +437,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     }
     va_end(args);
     // Delays to configure action items at layouting subviews.
-    // [self configureActions];
+    if (self._showedOnView) [self _layoutSubviews];
 }
 
 - (void)show:(BOOL)animated {
@@ -511,6 +513,10 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     CGPathRelease(innerPath);
 }
 #pragma mark - Getters
+- (BOOL)_showedOnView {
+    return (!_processing && self.superview!=nil);
+}
+
 - (UIColor *)backgroundColor {
     return _containerView.backgroundColor;
 }
@@ -561,6 +567,14 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     return _contentContainerView;
 }
 
+- (_AXAlertContentFlexibleView *)effectFlexibleView {
+    if (_effectFlexibleView) return _effectFlexibleView;
+    _effectFlexibleView = [_AXAlertContentFlexibleView new];
+    _effectFlexibleView.backgroundColor = [UIColor clearColor];
+    _effectFlexibleView.translatesAutoresizingMaskIntoConstraints = NO;
+    return _effectFlexibleView;
+}
+
 - (UIVisualEffectView *)effectView {
     if (_effectView) return _effectView;
     _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
@@ -573,11 +587,12 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     return _effectView;
 }
 
-- (UIStackView *)effectFlexibleView {
-    if (_effectFlexibleView) return _effectFlexibleView;
-    _effectFlexibleView = [UIStackView new];
-    _effectFlexibleView.translatesAutoresizingMaskIntoConstraints = NO;
-    return _effectFlexibleView;
+- (_AXAlertContentFlexibleView *)stackFlexibleView {
+    if (_stackFlexibleView) return _stackFlexibleView;
+    _stackFlexibleView = [_AXAlertContentFlexibleView new];
+    _stackFlexibleView.backgroundColor = [UIColor clearColor];
+    _stackFlexibleView.translatesAutoresizingMaskIntoConstraints = NO;
+    return _stackFlexibleView;
 }
 
 - (UIStackView *)stackView {
@@ -600,10 +615,11 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 - (void)setTitle:(NSString *)title {
     _titleLabel.text = title;
 #if AXAlertViewUsingAutolayout
-    [_contentContainerView setNeedsUpdateConstraints];
+    // [_contentContainerView setNeedsUpdateConstraints];
+    // [_contentContainerView updateConstraintsIfNeeded];
 #else
     [_titleLabel sizeToFit];
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 #endif
 }
 
@@ -645,7 +661,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 - (void)setTitleFont:(UIFont *)titleFont {
     _titleFont = titleFont;
     _titleLabel.font = _titleFont;
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)setTranslucent:(BOOL)translucent {
@@ -654,6 +670,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     if (_translucent) {
 #if AXAlertViewUsingAutolayout
         [self.containerView insertSubview:self.effectFlexibleView atIndex:0];
+        [self.containerView insertSubview:self.stackFlexibleView atIndex:0];
 #endif
         [self.containerView insertSubview:self.effectView atIndex:0];
         if (_translucentStyle == AXAlertViewTranslucentDark) {
@@ -665,22 +682,23 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
         [self _addContraintsOfEffectViewToContainerView];
 #else
         _effectView.frame = _containerView.bounds;
+        
+        [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+        // Set up hooked view if needed.
+        if (_contentContainerView.scrollEnabled) [self _setupContentHookedView];
 #endif
         _containerView.backgroundColor = [UIColor clearColor];
     } else {
-        [_effectView removeFromSuperview];
         [_effectFlexibleView removeFromSuperview];
+        [_effectView removeFromSuperview];
+        [_stackFlexibleView removeFromSuperview];
         _containerView.backgroundColor = _backgroundColor?:[UIColor whiteColor];
     }
-    
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
-    // Set up hooked view if needed.
-    if (_contentContainerView.scrollEnabled) [self _setupContentHookedView];
 }
 
 - (void)setShowsSeparators:(BOOL)showsSeparators {
     _showsSeparators = showsSeparators;
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
@@ -701,11 +719,9 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     _trailingOfContent.constant = _contentInset.right;
     _bottomOfContent.constant = _contentInset.bottom;
     _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
-    
-    [self setNeedsUpdateConstraints];
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
     [self configureCustomView];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)setCustomViewInset:(UIEdgeInsets)customViewInset {
@@ -713,13 +729,11 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 #if AXAlertViewUsingAutolayout
     _leadingOfCustom.constant = -_customViewInset.left;
     _trailingOfCustom.constant = _customViewInset.right;
-    _topOfCustom.constant = -_customViewInset.top;
+    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
     _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
-    
-    [self setNeedsUpdateConstraints];
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
     [self configureCustomView];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)setTitleInset:(UIEdgeInsets)titleInset {
@@ -728,25 +742,21 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
     _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
     _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
-    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding;
-    
-    [self setNeedsUpdateConstraints];
+    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)setPadding:(CGFloat)padding {
     _padding = padding;
     
 #if AXAlertViewUsingAutolayout
-    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding;
+    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
     _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
-    _topOfStackView.constant = -_padding;
-    
-    [self setNeedsUpdateConstraints];
+    _topOfStackView.constant = -_padding-_customViewInset.top;
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
     [self configureCustomView];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)setActionItemMargin:(CGFloat)actionItemMargin {
@@ -755,23 +765,21 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     _leadingOfStackView.constant = _actionItemMargin;
     _trailingOfStackView.constant = _actionItemMargin;
     _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
-    
-    [self setNeedsUpdateConstraints];
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
     [self configureCustomView];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)setActionItemPadding:(CGFloat)actionItemPadding {
     _actionItemPadding = actionItemPadding;
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
     [self configureCustomView];
 }
 
 - (void)setHorizontalLimits:(NSInteger)horizontalLimits {
     _horizontalLimits = horizontalLimits;
     // Delays to configure action items at layouting subviews.
-    // [self configureActions];
+    if (self._showedOnView) [self _layoutSubviews];
 }
 
 - (void)setDimBackground:(BOOL)dimBackground {
@@ -794,9 +802,8 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     _preferedHeight = preferedHeight;
 #if AXAlertViewUsingAutolayout
     _heightOfContainer.constant = _preferedHeight;
-    [self setNeedsUpdateConstraints];
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
     [self configureCustomView];
 }
 
@@ -807,18 +814,14 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     _trailingOfContainer.constant = _preferedMargin;
     _topOfContainer.constant = -_preferedMargin;
     _bottomOfContainer.constant = _preferedMargin;
-    
-    [_contentContainerView setContentSize:_contentContainerView.contentSize];
-    
-    [self setNeedsUpdateConstraints];
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
     [self configureCustomView];
 }
 
 - (void)setActionConfiguration:(AXAlertViewActionConfiguration *)actionConfiguration {
     _actionConfiguration = actionConfiguration;
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)set_shouldExceptContentBackground:(BOOL)_shouldExceptContentBackground {
@@ -828,7 +831,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 
 #pragma mark - Actions
 - (void)handleDeviceOrientationDidChangeNotification:(NSNotification *)aNote {
-    [self performSelector:@selector(_handleDeviceOrientationDidChange) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_handleDeviceOrientationDidChange) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
 }
 
 - (void)handleActionButtonDidClick:(UIButton *_Nonnull)sender {
@@ -860,7 +863,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     
     _processing = YES;
     
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:YES];
+    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
     /*
 #if !TARGET_IPHONE_SIMULATOR
     if (_translucent) {
@@ -957,7 +960,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 - (void)_handleDeviceOrientationDidChange {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:_cmd object:nil];
     [self _layoutSubviews];
-    [self scrollViewDidScroll:_contentContainerView];
+    [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
     [self set_shouldExceptContentBackground:NO];
     [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.25];
 }
@@ -1004,7 +1007,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     NSLayoutConstraint *topOfContainer =
     [NSLayoutConstraint constraintWithItem:self
                                  attribute:NSLayoutAttributeTop
-                                 relatedBy:NSLayoutRelationLessThanOrEqual
+                                 relatedBy:NSLayoutRelationGreaterThanOrEqual
                                     toItem:_containerView
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0
@@ -1017,7 +1020,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
                                  attribute:NSLayoutAttributeBottom
                                 multiplier:1.0
                                   constant:_preferedMargin];
-    [self addConstraints:@[leadingOfContainer, trailingOfContainer, heightOfContainer, centerYOfContainer, topOfContainer, bottomOfContainer]];
+    [self addConstraints:@[leadingOfContainer, trailingOfContainer/*, heightOfContainer*/, centerYOfContainer, /* topOfContainer, bottomOfContainer*/]];
     
     [_containerView setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisVertical];
     
@@ -1062,7 +1065,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
                                     toItem:_contentContainerView
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0
-                                  constant:-_titleInset.bottom-_padding];
+                                  constant:-_titleInset.bottom-_padding-_customViewInset.top];
     NSLayoutConstraint *leadingOfContentView =
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeLeading
@@ -1129,7 +1132,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
                                         toItem:_customView
                                      attribute:NSLayoutAttributeTop
                                     multiplier:1.0
-                                      constant:-_customViewInset.top];
+                                      constant:0];
         bottomOfCustomAndTopOfStackView =
         [NSLayoutConstraint constraintWithItem:_customView
                                      attribute:NSLayoutAttributeBottom
@@ -1155,7 +1158,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
                                         toItem:_stackView
                                      attribute:NSLayoutAttributeTop
                                     multiplier:1.0
-                                      constant:-_padding];
+                                      constant:-_padding-_customViewInset.bottom];
         // Add contraint to content view.
         [_contentContainerView addConstraint:topOfStackView];
         // Add reference to the contraint.
@@ -1192,7 +1195,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
                                     toItem:_stackView
                                  attribute:NSLayoutAttributeWidth
                                 multiplier:1.0
-                                  constant:_contentInset.left+_contentInset.right+_actionItemMargin*2];
+                                  constant:UIEdgeInsetsGetWidth(_contentInset)+_actionItemMargin*2];
     // Add contraints to the content view.
     [_contentContainerView addConstraints:@[leadingOfStackView, trailingOfStackView, bottomOfStackView]];
     // Add references to the contraints.
@@ -1212,7 +1215,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeLeading
                                  relatedBy:NSLayoutRelationEqual
-                                    toItem:_effectView
+                                    toItem:_effectFlexibleView
                                  attribute:NSLayoutAttributeLeading
                                 multiplier:1.0
                                   constant:.0];
@@ -1220,7 +1223,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeTrailing
                                  relatedBy:NSLayoutRelationEqual
-                                    toItem:_effectView
+                                    toItem:_effectFlexibleView
                                  attribute:NSLayoutAttributeTrailing
                                 multiplier:1.0
                                   constant:.0];
@@ -1228,14 +1231,14 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeTop
                                  relatedBy:NSLayoutRelationEqual
-                                    toItem:_effectView
+                                    toItem:_effectFlexibleView
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0 constant:0.0];
     NSLayoutConstraint *bottomOfEffectAndTopOfStack =
-    [NSLayoutConstraint constraintWithItem:_effectView
+    [NSLayoutConstraint constraintWithItem:_effectFlexibleView
                                  attribute:NSLayoutAttributeBottom
                                  relatedBy:NSLayoutRelationEqual
-                                    toItem:_effectFlexibleView
+                                    toItem:_stackFlexibleView
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0
                                   constant:0.0];
@@ -1243,7 +1246,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeLeading
                                  relatedBy:NSLayoutRelationEqual
-                                    toItem:_effectFlexibleView
+                                    toItem:_stackFlexibleView
                                  attribute:NSLayoutAttributeLeading
                                 multiplier:1.0
                                   constant:.0];
@@ -1251,18 +1254,20 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeTrailing
                                  relatedBy:NSLayoutRelationEqual
-                                    toItem:_effectFlexibleView
+                                    toItem:_stackFlexibleView
                                  attribute:NSLayoutAttributeTrailing
                                 multiplier:1.0 constant:0.0];
     NSLayoutConstraint *bottomOfStack =
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeBottom
                                  relatedBy:NSLayoutRelationEqual
-                                    toItem:_effectFlexibleView
+                                    toItem:_stackFlexibleView
                                  attribute:NSLayoutAttributeBottom
                                 multiplier:1.0 constant:0.0];
     
     [_containerView addConstraints:@[leadingOfEffectView, trailingOfEffectView, topOfEffectView, bottomOfEffectAndTopOfStack, leadingOfStack, trailingOfStack, bottomOfStack]];
+    [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
+    [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
 }
 
 - (void)_updateConfigurationOfItemAtIndex:(NSUInteger)index {
@@ -1278,6 +1283,9 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     if (!self.customView) {
         return;
     }
+#if AXAlertViewUsingAutolayout
+    if (_customView && _customView.superview == self) [_customView removeFromSuperview];
+#endif
     [_contentContainerView addSubview:_customView];
 #if AXAlertViewUsingAutolayout
     _customView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -1318,12 +1326,6 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
             [button setTranslatesAutoresizingMaskIntoConstraints:NO];
             [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
             
-            UIImageView *separator = [UIImageView new];
-            separator.backgroundColor = config.separatorColor?:_actionConfiguration.separatorColor?:[UIColor colorWithWhite:0 alpha:0.1];
-            separator.translatesAutoresizingMaskIntoConstraints = NO;
-            [separator addConstraint:[NSLayoutConstraint constraintWithItem:separator attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:0.5]];
-            [_stackView addArrangedSubview:separator];
-            
             [_stackView addArrangedSubview:button];
 #else
             CGFloat beginContext = .0;
@@ -1335,12 +1337,13 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
             }
             [button setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
             [self.contentContainerView addSubview:button];
+#endif
             if (_showsSeparators) {
                 if (_translucent) [button _setExceptionAllowedWidth:0.5 direction:0]; else {
+                    button->_type = -1;
                     [button _setExceptionSeparatorLayerWidth:0.5 direction:0];
                 }
             }
-#endif
         }
     } else {
 #if AXAlertViewUsingAutolayout
@@ -1365,20 +1368,20 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
             [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
 #if AXAlertViewUsingAutolayout
             [button setTranslatesAutoresizingMaskIntoConstraints:NO];
-            if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:0.5 direction:3];
             [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
             [_stackView addArrangedSubview:button];
-            
-            
 #else
             [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
             [self.contentContainerView addSubview:button];
+#endif
             if (_translucent) {
                 if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:0.5 direction:3];
             } else {
-                if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionSeparatorLayerWidth:0.5 direction:3];
+                if (i < _actionButtons.count-1 && _showsSeparators) {
+                    button->_type = -1;
+                    [button _setExceptionSeparatorLayerWidth:0.5 direction:3];
+                }
             }
-#endif
         }
     }
 }
@@ -1453,7 +1456,11 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     }
     CGFloat height = 0.0;
 #if AXAlertViewUsingAutolayout
-    height = CGRectGetMinX(self.stackView.frame);
+    if (_actionItems.count > _horizontalLimits) {
+        height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
+    } else {
+        height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
+    }
 #else
     height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)/*+_customViewInset.top */+ _customViewInset.bottom;
     if (_actionItems.count > _horizontalLimits) {
@@ -1480,6 +1487,13 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 
 - (void)_setupExceptionSeparatorLayerWidth:(CGFloat)arg1 {
     CGFloat height = 0.0;
+#if AXAlertViewUsingAutolayout
+    if (_actionItems.count > _horizontalLimits) {
+        height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
+    } else {
+        height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
+    }
+#else
     height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)+ _customViewInset.bottom;
     if (_actionItems.count > _horizontalLimits) {
         height -= CGRectGetHeight(_customView.frame);
@@ -1487,6 +1501,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
             height -= _customViewInset.bottom;
         }
     }
+#endif
     [_singleSeparator removeFromSuperview];
     _AXAlertContentSeparatorView *separator = [_AXAlertContentSeparatorView new];
     [separator setBackgroundColor:[UIColor colorWithWhite:0 alpha:0.3]];
@@ -1516,6 +1531,58 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     }
 }
 
+- (void)_updateHeightConstraintsOfContentView {
+    CGFloat height;
+    [self _getHeightOfContentView:&height flag:NULL];
+    
+    [self _updateHeightConstraintsOfContentViewWithHeight:height];
+}
+
+- (void)_updateHeightConstraintsOfContentViewWithHeight:(CGFloat)height {
+    if (_heightOfContentView) {
+        _heightOfContentView.constant = height;
+        [_contentContainerView setNeedsUpdateConstraints];
+        [_contentContainerView updateConstraintsIfNeeded];
+    } else {
+        NSLayoutConstraint *heightOfContent = [NSLayoutConstraint constraintWithItem:_contentContainerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:height];
+        [_contentContainerView addConstraint:heightOfContent];
+        _heightOfContentView = heightOfContent;
+    }
+}
+
+- (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag {
+    [self _getHeightOfContentView:height flag:flag withContentSize:_contentContainerView.contentSize];
+}
+
+- (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag withContentSize:(CGSize)contentSize {
+    CGFloat _height = contentSize.height;
+    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-_preferedMargin*2-(CGRectGetHeight(_titleLabel.bounds)+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
+    
+    CGFloat _flag = _maxAllowed;
+    _height = MIN(_height, _flag);
+    if (height != NULL) *height = _height;
+    if (flag != NULL) *flag = _flag;
+}
+
+- (void)_updateFramesOfHookedVeiwsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
+    
+    if (contentOffset.y >= scrollView.contentSize.height-CGRectGetHeight(scrollView.frame)) { // Handle the footer view.
+        _contentFooterView.hidden = NO;
+        
+        CGFloat height = contentOffset.y+CGRectGetHeight(scrollView.frame) - scrollView.contentSize.height;
+        [_contentFooterView setFrame:CGRectMake(0, scrollView.contentSize.height, CGRectGetWidth(scrollView.frame), height)];
+    } else if (contentOffset.y <= CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding) {
+        _contentHeaderView.hidden = NO;
+        
+        CGFloat height = -contentOffset.y+CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding;
+        [_contentHeaderView setFrame:CGRectMake(0, contentOffset.y, CGRectGetWidth(scrollView.frame), height)];
+        [scrollView sendSubviewToBack:_contentHeaderView];
+    } else {
+        _contentHeaderView.hidden = YES;
+        _contentFooterView.hidden = YES;
+    }
+}
+
 #pragma mark - UIScrollViewDelegate.
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == _containerView) {
@@ -1525,23 +1592,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     }
     // Handle content hooked views.
     if (_translucent) {
-        CGPoint contentOffset = scrollView.contentOffset;
-        
-        if (contentOffset.y >= scrollView.contentSize.height-CGRectGetHeight(scrollView.frame)) { // Handle the footer view.
-            _contentFooterView.hidden = NO;
-            
-            CGFloat height = contentOffset.y+CGRectGetHeight(scrollView.frame) - scrollView.contentSize.height;
-            [_contentFooterView setFrame:CGRectMake(0, scrollView.contentSize.height, CGRectGetWidth(scrollView.frame), height)];
-        } else if (contentOffset.y <= CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding) {
-            _contentHeaderView.hidden = NO;
-            
-            CGFloat height = -contentOffset.y+CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding;
-            [_contentHeaderView setFrame:CGRectMake(0, contentOffset.y, CGRectGetWidth(scrollView.frame), height)];
-            [scrollView sendSubviewToBack:_contentHeaderView];
-        } else {
-            _contentHeaderView.hidden = YES;
-            _contentFooterView.hidden = YES;
-        }
+        [self _updateFramesOfHookedVeiwsWithContentOffset:scrollView.contentOffset ofScrollView:scrollView];
     }
 }
 @end
@@ -1573,6 +1624,14 @@ AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
     self.backgroundColor = [UIColor clearColor];
     _translucent = YES;
     _translucentStyle = AXAlertViewTranslucentLight;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    if (_type == 0) [self _setExceptionAllowedWidth:[_arg1 floatValue] direction:[_arg2 integerValue]]; else {
+        [self _setExceptionSeparatorLayerWidth:[_arg1 floatValue] direction:[_arg2 integerValue]];
+    }
 }
 
 - (UIImageView *)masksView {
