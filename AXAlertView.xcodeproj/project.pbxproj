@@ -18,6 +18,7 @@
 		01BB35C51CB35118002B5D1A /* AXAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = 01BB35C41CB35118002B5D1A /* AXAlertView.m */; };
 		3DA8ED676693A24D990DA890 /* libPods-AXAlertView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */; };
 		DC1859DD1ED5241B0046F025 /* TableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DC1859DC1ED5241B0046F025 /* TableViewController.m */; };
+		DCF3A3AB1ED94E900042F833 /* AXAlertController.m in Sources */ = {isa = PBXBuildFile; fileRef = DCF3A3AA1ED94E900042F833 /* AXAlertController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +62,8 @@
 		6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AXAlertView.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC1859DB1ED5241B0046F025 /* TableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TableViewController.h; sourceTree = "<group>"; };
 		DC1859DC1ED5241B0046F025 /* TableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TableViewController.m; sourceTree = "<group>"; };
+		DCF3A3A91ED94E900042F833 /* AXAlertController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AXAlertController.h; path = AXAlertView/AXAlertController.h; sourceTree = "<group>"; };
+		DCF3A3AA1ED94E900042F833 /* AXAlertController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AXAlertController.m; path = AXAlertView/AXAlertController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -161,6 +164,8 @@
 			children = (
 				01BB35C31CB35118002B5D1A /* AXAlertView.h */,
 				01BB35C41CB35118002B5D1A /* AXAlertView.m */,
+				DCF3A3A91ED94E900042F833 /* AXAlertController.h */,
+				DCF3A3AA1ED94E900042F833 /* AXAlertController.m */,
 			);
 			name = AXAlertView;
 			sourceTree = "<group>";
@@ -369,6 +374,7 @@
 				01BB35951CB35031002B5D1A /* AppDelegate.m in Sources */,
 				DC1859DD1ED5241B0046F025 /* TableViewController.m in Sources */,
 				01BB35921CB35031002B5D1A /* main.m in Sources */,
+				DCF3A3AB1ED94E900042F833 /* AXAlertController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
