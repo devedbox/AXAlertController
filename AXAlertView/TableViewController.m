@@ -123,6 +123,7 @@
     [alertView setPreferedMargin:40];
     [alertView setPreferedHeight:14];
     [alertView setActionItemMargin:0];
+    [alertView setActionItemPadding:0];
     
     [alertView showInView:self.navigationController.view animated:YES];
 }
