@@ -24,12 +24,10 @@
 //  SOFTWARE.
 
 #import "AXAlertView.h"
-#import <AXAnimationChain/AXAnimationChain.h>
-#import <objc/runtime.h>
 
 #ifndef AXAlertViewUsingAutolayout
 // #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-#define AXAlertViewUsingAutolayout 1
+#define AXAlertViewUsingAutolayout 0
 #endif
 #ifndef AXAlertViewCustomViewHooks2
 #define AXAlertViewCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
@@ -465,7 +463,16 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (_processing) return;
     [view addSubview:self];
     [self viewWillShow:self animated:animated];
-    
+    _containerView.transform = CGAffineTransformMakeScale(1.2, 1.2);
+    __weak typeof(self) wself = self;
+    [UIView animateWithDuration:0.5 delay:0.01 usingSpringWithDamping:0.9 initialSpringVelocity:0.9 options:7|UIViewAnimationOptionCurveEaseOut animations:^{
+        _containerView.transform = CGAffineTransformIdentity;
+    } completion:^(BOOL finished) {
+        if (finished) {
+            [wself viewDidShow:wself animated:animated];
+        }
+    }];
+    /*
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     
     if (animated) {
@@ -476,10 +483,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     } else {
         [self _showComplete:self.chainAnimator];
     }
-}
-
-- (void)_showComplete:(AXChainAnimator *)sender {
-    [self viewDidShow:self animated:[objc_getAssociatedObject(self.containerView.chainAnimator, _cmd) boolValue]];
+     */
 }
 
 - (void)showInView:(UIView *)view animated:(BOOL)animated completion:(AXAlertViewShowsBlock)didShow
@@ -491,12 +495,18 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)hide:(BOOL)animated {
     if (_processing) return;
     [self viewWillHide:self animated:animated];
+    __weak typeof(self) wself = self;
+    [UIView animateWithDuration:0.25 delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
+        self.alpha = 0.0;
+    } completion:^(BOOL finished) {
+        if (finished) {
+            [wself viewDidHide:wself animated:animated];
+        }
+    }];
+    /*
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_hideComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     self.chainAnimator.basic.property(@"opacity").fromValue(@(1.0)).toValue(@(.0)).duration(animated?0.25:.0).target(self).complete(@selector(_hideComplete:)).animate();
-}
-
-- (void)_hideComplete:(AXChainAnimator *)sender {
-    [self viewDidHide:self animated:[objc_getAssociatedObject(self.containerView.chainAnimator, _cmd) boolValue]];
+     */
 }
 
 - (void)hide:(BOOL)animated completion:(AXAlertViewShowsBlock)didHide
