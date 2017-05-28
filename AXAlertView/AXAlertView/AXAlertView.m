@@ -27,7 +27,7 @@
 
 #ifndef AXAlertViewUsingAutolayout
 // #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-#define AXAlertViewUsingAutolayout 0
+#define AXAlertViewUsingAutolayout 1
 #endif
 #ifndef AXAlertViewCustomViewHooks2
 #define AXAlertViewCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
@@ -35,11 +35,16 @@
 #ifndef AXAlertViewCustomViewHooks
 #define AXAlertViewCustomViewHooks(_CustomView) AXAlertViewCustomViewHooks2(_CustomView, UIView)
 #endif
+#ifndef AXObserverRemovingViewHooks
+#define AXObserverRemovingViewHooks(_CustomView, CocoaView, KeyPaths) @interface _CustomView : UIScrollView { @public id __weak _observer; } @end\
+@implementation _CustomView - (void)dealloc { for (NSString *keyPath in KeyPaths) { if (_observer != nil) [self removeObserver:_observer forKeyPath:keyPath]; } } @end
+#endif
 
 AXAlertViewCustomViewHooks(_AXAlertContentHeaderView)
 AXAlertViewCustomViewHooks(_AXAlertContentFooterView)
 AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
+AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSize"])
 
 @interface AXAlertView () <UIScrollViewDelegate>
 {
@@ -96,7 +101,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
 /// Container view.
 @property(strong, nonatomic) UIView *containerView;
 /// Content container view.
-@property(strong, nonatomic) UIScrollView *contentContainerView;
+@property(strong, nonatomic) _AXAlertViewScrollView *contentContainerView;
 /// Effect flexilbe view.
 @property(strong, nonatomic) _AXAlertContentFlexibleView *effectFlexibleView;
 /// Blur effect view.
@@ -232,9 +237,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _getHeightOfContentView:&height flag:&flag withContentSize:contentSize];
         
         _contentContainerView.scrollEnabled = height>=flag?YES:NO;
-        if (height>=flag && _translucent) {
-            [self _setupContentHookedView];
-            [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+        if (_translucent) {
+            if (height>=flag ) {
+                [self _setupContentHookedView];
+                [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+            } else {
+                [_contentHeaderView removeFromSuperview];
+                [_contentFooterView removeFromSuperview];
+            }
         }
         
 #if AXAlertViewUsingAutolayout
@@ -456,40 +466,37 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)show:(BOOL)animated {
-    [self showInView:[[UIApplication sharedApplication] keyWindow] animated:animated completion:NULL];
-}
-
-- (void)showInView:(UIView *)view animated:(BOOL)animated {
     if (_processing) return;
-    [view addSubview:self];
     [self viewWillShow:self animated:animated];
     _containerView.transform = CGAffineTransformMakeScale(1.2, 1.2);
     __weak typeof(self) wself = self;
-    [UIView animateWithDuration:0.5 delay:0.01 usingSpringWithDamping:0.9 initialSpringVelocity:0.9 options:7|UIViewAnimationOptionCurveEaseOut animations:^{
+    if (animated) [UIView animateWithDuration:0.35 delay:0.05 usingSpringWithDamping:0.9 initialSpringVelocity:0.9 options:7|UIViewAnimationOptionCurveEaseOut animations:^{
         _containerView.transform = CGAffineTransformIdentity;
     } completion:^(BOOL finished) {
         if (finished) {
             [wself viewDidShow:wself animated:animated];
         }
-    }];
-    /*
-    objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    
-    if (animated) {
-        [CATransaction begin];
-        [self.containerView.chainAnimator.basic.property(@"transform.scale").duration(0.01).toValue(@1.2).nextToSpring.property(@"transform.scale").duration(0.5).fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(100).damping(20) easeOut].target(self).complete(@selector(_showComplete:)).animate();
-        [CATransaction flush];
-        [CATransaction commit];
-    } else {
-        [self _showComplete:self.chainAnimator];
+    }]; else {
+        [self viewDidShow:self animated:NO];
     }
+    /*
+     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+     
+     if (animated) {
+     [CATransaction begin];
+     [self.containerView.chainAnimator.basic.property(@"transform.scale").duration(0.01).toValue(@1.2).nextToSpring.property(@"transform.scale").duration(0.5).fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(100).damping(20) easeOut].target(self).complete(@selector(_showComplete:)).animate();
+     [CATransaction flush];
+     [CATransaction commit];
+     } else {
+     [self _showComplete:self.chainAnimator];
+     }
      */
 }
 
-- (void)showInView:(UIView *)view animated:(BOOL)animated completion:(AXAlertViewShowsBlock)didShow
+- (void)show:(BOOL)animated completion:(AXAlertViewShowsBlock)didShow
 {
     _didShow = [didShow copy];
-    [self showInView:view animated:animated];
+    [self show:animated];
 }
 
 - (void)hide:(BOOL)animated {
@@ -578,9 +585,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     return _containerView;
 }
 
-- (UIScrollView *)contentContainerView {
+- (_AXAlertViewScrollView *)contentContainerView {
     if (_contentContainerView) return _contentContainerView;
-    _contentContainerView = [[UIScrollView alloc] initWithFrame:CGRectZero];
+    _contentContainerView = [[_AXAlertViewScrollView alloc] initWithFrame:CGRectZero];
+    _contentContainerView->_observer = self;
     _contentContainerView.backgroundColor = [UIColor clearColor];
     _contentContainerView.showsVerticalScrollIndicator = NO;
     _contentContainerView.showsHorizontalScrollIndicator = NO;
@@ -709,11 +717,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _addContraintsOfEffectViewToContainerView];
 #else
         _effectView.frame = _containerView.bounds;
-        
-        [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
         // Set up hooked view if needed.
         if (_contentContainerView.scrollEnabled) [self _setupContentHookedView];
 #endif
+        [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+        
         _containerView.backgroundColor = [UIColor clearColor];
     } else {
         [_effectFlexibleView removeFromSuperview];
@@ -987,7 +995,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_handleDeviceOrientationDidChange {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:_cmd object:nil];
     [self _layoutSubviews];
+#if !AXAlertViewUsingAutolayout
     [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+#endif
     [self set_shouldExceptContentBackground:NO];
     [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.25];
 }
@@ -1381,7 +1391,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         CGFloat buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-(_actionItemPadding)*(_actionButtons.count-1))/_actionButtons.count;
 #endif
         if (_translucent) {
-            [self _setExceptionAllowedWidth:_showsSeparators?0.5:0.0];
+            [self _setExceptionAllowedWidth:_showsSeparators?0.5:-0.1];
+            [_singleSeparator removeFromSuperview];
         } else {
             if (_showsSeparators) [self _setupExceptionSeparatorLayerWidth:0.5]; else {
                 [_singleSeparator removeFromSuperview];
