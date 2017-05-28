@@ -27,7 +27,7 @@
 
 #ifndef AXAlertViewUsingAutolayout
 // #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-#define AXAlertViewUsingAutolayout 1
+#define AXAlertViewUsingAutolayout 0
 #endif
 #ifndef AXAlertViewCustomViewHooks2
 #define AXAlertViewCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
@@ -816,7 +816,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setHorizontalLimits:(NSInteger)horizontalLimits {
     _horizontalLimits = horizontalLimits;
     // Delays to configure action items at layouting subviews.
-    if (self._showedOnView) [self _layoutSubviews];
+    [self _layoutSubviews];
 }
 
 - (void)setDimBackground:(BOOL)dimBackground {
@@ -1495,15 +1495,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [_effectOpacityLayer removeFromSuperlayer];
     }
     CGFloat height = 0.0;
+    CGFloat _height = 0.0;
+    CGFloat _flag = 0.0;
+    [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
+    
 #if AXAlertViewUsingAutolayout
-    if (_actionItems.count > _horizontalLimits) {
+    if (_actionItems.count > _horizontalLimits && _height >= _flag) {
         height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
     } else {
         height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
     }
 #else
     height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)/*+_customViewInset.top */+ _customViewInset.bottom;
-    if (_actionItems.count > _horizontalLimits) {
+    if (_actionItems.count > _horizontalLimits && _height >= _flag) {
         height -= CGRectGetHeight(_customView.frame);
         if (_customView) {
             height -= _customViewInset.bottom;
