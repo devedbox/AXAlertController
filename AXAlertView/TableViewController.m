@@ -8,6 +8,7 @@
 
 #import "TableViewController.h"
 #import "AXAlertView.h"
+#import "AXActionSheet.h"
 #import "AXAlertController.h"
 
 @interface TableViewController ()
@@ -147,11 +148,62 @@
             [self showMoreItems:cell];
         } break;
         case 3: {
+            [self showSheet:cell];
+        } break;
+        case 4: {
             [self showController:cell];
         } break;
         default:
             break;
     }
+}
+
+- (void)showSheet:(id)sender {
+    AXActionSheet *alertView = [[AXActionSheet alloc] initWithFrame:self.navigationController.view.bounds];
+    alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
+    alertView.padding = 0;
+    alertView.cornerRadius = 10.0;
+    alertView.actionItemMargin = 0;
+    alertView.actionItemPadding = 0;
+    alertView.titleLabel.numberOfLines = 0;
+    alertView.hidesOnTouch = YES;
+    alertView.preferedMargin = 52;
+    alertView.title = @"兑换申请已受理";
+    UILabel *label = [UILabel new];
+    label.font = [UIFont systemFontOfSize:14];
+    label.numberOfLines = 0;
+    label.text = @"您还有497个流量币可以兑换，继续兑换？";
+    
+    alertView.customView = label;
+    
+    alertView.titleLabel.font = [UIFont systemFontOfSize:14];
+    
+    alertView.titleLabel.font = [UIFont fontWithName:@"PingFangSC-Medium" size:18];
+    alertView.titleLabel.textColor = [UIColor blackColor];
+    
+    [alertView setActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL],[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL],nil];
+    // [alertView appendActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL], nil];
+    // [alertView appendActions:[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL], nil];
+    // alertView.showsSeparators = NO;
+    // alertView.translucent = NO;
+    
+    AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
+    cancelConfig.backgroundColor = [UIColor whiteColor];
+    cancelConfig.preferedHeight = 44;
+    cancelConfig.cornerRadius = .0;
+    cancelConfig.tintColor = [UIColor blackColor];
+    [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
+    AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
+    // confirmConfig.backgroundColor = [UIColor blackColor];
+    confirmConfig.backgroundColor = [UIColor whiteColor];
+    confirmConfig.preferedHeight = 44;
+    confirmConfig.cornerRadius = .0;
+    // confirmConfig.tintColor = [UIColor blackColor];
+    confirmConfig.tintColor = [UIColor whiteColor];
+    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+    [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
+    [self.navigationController.view addSubview:alertView];
+    [alertView show:YES];
 }
 
 - (void)showController:(id)sender {
