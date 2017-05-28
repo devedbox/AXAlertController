@@ -29,15 +29,42 @@
 #ifndef AXAlertViewHooks
 #define AXAlertViewHooks(_CustomView) @interface _CustomView : AXAlertView @end @implementation _CustomView @end
 #endif
+#ifndef AXAlertCustomSuperViewHooks
+#define AXAlertCustomSuperViewHooks(_CustomView) @protocol _AXAlertCustomSuperViewDelegate <NSObject>\
+- (void)viewWillMoveToSuperview:(UIView *)newSuperView;\
+- (void)viewDidMoveToSuperview;\
+@end @interface _CustomView : UIView\
+@property(weak, nonatomic) id<_AXAlertCustomSuperViewDelegate> delegate;\
+@end @implementation _CustomView\
+- (void)willMoveToSuperview:(UIView *)newSuperview { [super willMoveToSuperview:newSuperview]; [_delegate viewWillMoveToSuperview:newSuperview]; }\
+- (void)didMoveToSuperview { [super didMoveToSuperview]; [_delegate viewDidMoveToSuperview]; }\
+@end
+#endif
+#ifndef AXAlertCustomExceptionViewHooks
+#define AXAlertCustomExceptionViewHooks(_ExceptionView, View) @interface _ExceptionView : View@property(assign, nonatomic) CGRect exceptionFrame;@property(assign, nonatomic) CGFloat cornerRadius;@property(assign, nonatomic) CGFloat opacity;@end@implementation _ExceptionView - (void)drawRect:(CGRect)rect {[super drawRect:rect];CGContextRef context = UIGraphicsGetCurrentContext();CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);CGContextAddPath(context, outterPath);CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);CGContextFillPath(context);CGPathRelease(outterPath);CGRect rectOfContainerView =_exceptionFrame;if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);CGContextAddPath(context, innerPath);CGContextSetBlendMode(context, kCGBlendModeClear);CGContextFillPath(context);CGPathRelease(innerPath);}@end
+#endif
+#ifndef AXAlertControllerDelegateHooks
+#define AXAlertControllerDelegateHooks(_Delegate) @interface AXAlertController (_Delegate) <_Delegate> @end
+#endif
 
 AXAlertViewHooks(_AXAlertControllerContentView)
+AXAlertCustomSuperViewHooks(_AXAlertExceptionView)
+AXAlertCustomExceptionViewHooks(_AXAlertControllerView, _AXAlertExceptionView)
 
-@interface AXAlertController ()
+AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
+@interface AXAlertController () <AXAlertViewDelegate> {
+    BOOL _isBeingPresented;
+    BOOL _isViewDidAppear;
+}
 /// Content alert view.
 @property(strong, nonatomic) _AXAlertControllerContentView *alertContentView;
+/// Message label.
+@property(strong, nonatomic) UILabel *messageLabel;
+
+@property(readonly, nonatomic) _AXAlertControllerView *underlyingView;
 @end
 
-@implementation AXAlertController
+@implementation AXAlertController @dynamic title;
 #pragma mark - Life cycle.
 - (instancetype)init {
     if (self = [super init]) {
@@ -65,43 +92,119 @@ AXAlertViewHooks(_AXAlertControllerContentView)
     super.modalPresentationStyle = UIModalPresentationOverCurrentContext;
 }
 
++ (instancetype)alertControllerWithTitle:(NSString *)title message:(NSString *)message {
+    AXAlertController *alert = [[self alloc] init];
+    alert.alertContentView.title = title;
+    alert.alertContentView.customView = alert.messageLabel;
+    alert.messageLabel.text = message;
+    return alert;
+}
+
 #pragma mark - Overrides.
 - (void)loadView {
     [super loadView];
-    // [self.view addSubview:self.alertContentView];
+    _AXAlertControllerView *view = [[_AXAlertControllerView alloc] initWithFrame:self.view.bounds];
+    [view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    [view setDelegate:self];
+    [view setOpacity:0.4];
+    self.view = view;
+    self.view.backgroundColor = [UIColor clearColor];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.view.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    button.translatesAutoresizingMaskIntoConstraints = NO;
-    [button setTitle:@"Dismiss" forState:UIControlStateNormal];
-    [button addTarget:self action:@selector(_dismiss:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:button];
-    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:button attribute:NSLayoutAttributeCenterX multiplier:1.0 constant:0.0]];
-    [self.view addConstraint:[NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:button attribute:NSLayoutAttributeCenterY multiplier:1.0 constant:0.0]];
 }
 
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
-    _alertContentView.frame = self.view.bounds;
+    if (!_isViewDidAppear) {
+        UIView *containerView = self.view.superview ?: self.view;
+        [containerView addSubview:self.alertContentView];
+        [_alertContentView setNeedsLayout];
+        [_alertContentView layoutIfNeeded];
+        [self.underlyingView setExceptionFrame:[[_alertContentView valueForKeyPath:@"containerView.frame"] CGRectValue]];
+        [self.underlyingView setCornerRadius:_alertContentView.cornerRadius];
+        [self.underlyingView setNeedsDisplay];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    _isBeingPresented = [self isBeingPresented];
+    
+    if (!_isViewDidAppear) [self.alertContentView show:animated];
 }
+
+- (void)viewWillMoveToSuperview:(UIView *)newSuperView {}
+- (void)viewDidMoveToSuperview {}
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    [self.alertContentView showInView:self.view animated:YES];
+    _isViewDidAppear = YES;
+    // _alertContentView.translucent = YES;
+    if (_alertContentView.superview != self.view) {
+        [self.view addSubview:_alertContentView];
+    }
 }
 
-- (void)_dismiss:(id)sender {
-    [self dismissViewControllerAnimated:YES completion:NULL];
+#pragma mark - Public.
+- (void)addAction:(AXAlertAction *)action {
+    AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
+    config.backgroundColor = [UIColor whiteColor];
+    config.preferedHeight = 44;
+    config.cornerRadius = .0;
+    config.tintColor = [UIColor blackColor];
+    config.font = [UIFont systemFontOfSize:16];
+    [_alertContentView setActionConfiguration:config];
+    [_alertContentView appendActions:action, nil];
+}
+
+#pragma mark - Getters.
+- (NSArray<AXAlertAction *> *)actions { return _alertContentView.actionItems; }
+- (NSString *)title { return _alertContentView.title; }
+- (NSString *)message { return _messageLabel.text; }
+- (AXAlertView *)alertView { return _alertContentView; }
+- (_AXAlertControllerView *)underlyingView { return (_AXAlertControllerView *)self.view; }
+
+- (UILabel *)messageLabel {
+    if (_messageLabel) return _messageLabel;
+    _messageLabel = [UILabel new];
+    _messageLabel.font = [UIFont systemFontOfSize:13];
+    _messageLabel.numberOfLines = 0;
+    _messageLabel.textAlignment = NSTextAlignmentCenter;
+    return _messageLabel;
+}
+
+- (_AXAlertControllerContentView *)alertContentView {
+    if (_alertContentView) return  _alertContentView;
+    _alertContentView = [[_AXAlertControllerContentView alloc] initWithFrame:self.view.bounds];
+    [_alertContentView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    _alertContentView.opacity = 0.0;
+    _alertContentView.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
+    _alertContentView.delegate = self;
+    _alertContentView.customViewInset = UIEdgeInsetsMake(5, 15, 20, 15);
+    _alertContentView.padding = 0;
+    _alertContentView.cornerRadius = 12.0;
+    _alertContentView.actionItemMargin = 0;
+    _alertContentView.actionItemPadding = 0;
+    _alertContentView.titleLabel.numberOfLines = 0;
+    _alertContentView.preferedMargin = 52;
+    _alertContentView.titleLabel.font = [UIFont boldSystemFontOfSize:17];
+    _alertContentView.titleLabel.textColor = [UIColor blackColor];
+    
+    return _alertContentView;
+}
+
+#pragma mark - Setters.
+- (void)setTitle:(NSString *)title {
+    [_alertContentView setTitle:title];
+}
+
+- (void)setMessage:(NSString *)message {
+    [_messageLabel setText:message];
 }
 
 - (void)setModalTransitionStyle:(UIModalTransitionStyle)modalTransitionStyle {
@@ -112,60 +215,15 @@ AXAlertViewHooks(_AXAlertControllerContentView)
     [super setModalPresentationStyle:UIModalPresentationOverCurrentContext];
 }
 
-#pragma mark - Getters.
-- (AXAlertView *)alertView { return _alertContentView; }
+#pragma mark - AXAlertViewDelegate.
+- (void)alertViewWillHide:(AXAlertView *)alertView {
+    [self _dismiss:alertView];
+}
 
-- (_AXAlertControllerContentView *)alertContentView {
-    if (_alertContentView) return  _alertContentView;
-    _alertContentView = [[_AXAlertControllerContentView alloc] init];
-    // _alertContentView.translatesAutoresizingMaskIntoConstraints = NO;
-    
-    _alertContentView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
-    _alertContentView.padding = 0;
-    _alertContentView.cornerRadius = 10.0;
-    _alertContentView.actionItemMargin = 0;
-    _alertContentView.actionItemPadding = 0;
-    _alertContentView.titleLabel.numberOfLines = 0;
-    _alertContentView.hidesOnTouch = YES;
-    _alertContentView.title = @"兑换申请已受理";
-    UILabel *label = [UILabel new];
-    label.font = [UIFont systemFontOfSize:14];
-    label.numberOfLines = 0;
-    label.text = @"您还有497个流量币可以兑换，继续兑换？";
-    
-    _alertContentView.customView = label;
-    
-    _alertContentView.titleLabel.font = [UIFont systemFontOfSize:14];
-    
-    _alertContentView.titleLabel.font = [UIFont fontWithName:@"PingFangSC-Medium" size:18];
-    _alertContentView.titleLabel.textColor = [UIColor blackColor];
-    
-    [_alertContentView setActions:[AXAlertViewAction actionWithTitle:@"取消" image:nil handler:NULL],[AXAlertViewAction actionWithTitle:@"确认" image:nil handler:^(AXAlertViewAction * _Nonnull __weak action) {
-        /*
-         if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"https://www.baidu.com"]]) {
-         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.baidu.com"]];
-         }
-         */
-    }],nil];
-    // alertView.showsSeparators = NO;
-    // alertView.translucent = NO;
-    
-    AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
-    cancelConfig.backgroundColor = [UIColor whiteColor];
-    cancelConfig.preferedHeight = 44;
-    cancelConfig.cornerRadius = .0;
-    cancelConfig.tintColor = [UIColor blackColor];
-    [_alertContentView setActionConfiguration:cancelConfig forItemAtIndex:0];
-    AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
-    // confirmConfig.backgroundColor = [UIColor blackColor];
-    confirmConfig.backgroundColor = [UIColor whiteColor];
-    confirmConfig.preferedHeight = 44;
-    confirmConfig.cornerRadius = .0;
-    // confirmConfig.tintColor = [UIColor blackColor];
-    confirmConfig.tintColor = [UIColor whiteColor];
-    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
-    [_alertContentView setActionConfiguration:confirmConfig forItemAtIndex:1];
-    
-    return _alertContentView;
+#pragma mark - Private.
+- (void)_dismiss:(id)sender {
+    if (_isBeingPresented) {
+        [self dismissViewControllerAnimated:YES completion:NULL];
+    }
 }
 @end

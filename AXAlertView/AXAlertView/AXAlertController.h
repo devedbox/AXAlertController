@@ -25,9 +25,21 @@
 
 #import <UIKit/UIKit.h>
 
+NS_ASSUME_NONNULL_BEGIN
 @class AXAlertView;
+@class AXAlertViewAction;
+typedef AXAlertViewAction AXAlertAction;
 
 @interface AXAlertController : UIViewController
 /// Alert view.
 @property(readonly, nonatomic) AXAlertView *alertView;
+
+@property (nullable, nonatomic, copy) NSString *title;
+@property (nullable, nonatomic, copy) NSString *message;
+
++ (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message;
+
+- (void)addAction:(AXAlertAction *)action;
+@property (nonatomic, readonly) NSArray<AXAlertAction *> *actions;
 @end
+NS_ASSUME_NONNULL_END
