@@ -111,8 +111,7 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 - (void)setActions:(AXAlertViewAction *_Nonnull)actions,...;
 - (void)appendActions:(AXAlertViewAction *_Nonnull)actions,...;
 - (void)show:(BOOL)animated;
-- (void)showInView:(UIView *_Nonnull)view animated:(BOOL)animated;
-- (void)showInView:(UIView *_Nonnull)view animated:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didShow;
+- (void)show:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didShow;
 - (void)hide:(BOOL)animated;
 - (void)hide:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didHide;
 
