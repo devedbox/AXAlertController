@@ -50,7 +50,11 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 typedef UIEdgeInsets AXEdgeMargins;
 
 /// UIAlertController
-@interface AXAlertView : UIView
+@interface AXAlertView : UIView {
+    @protected
+    /// Is animation processing.
+    BOOL _processing;
+}
 /// Delegate.
 @property(assign, nonatomic) id<AXAlertViewDelegate>delegate;
 /// Title label.
@@ -107,7 +111,8 @@ typedef UIEdgeInsets AXEdgeMargins;
 @property(copy, nonatomic, nullable) AXAlertViewShowsBlock didHide;
 /// Alert view did touch.
 @property(copy, nonatomic, nullable) AXAlertViewTouchBlock touch;
-
+/// Content view, shows the content of alert title and message and custom view.
+@property(readonly, nonatomic, nullable) UIView *contentView;
 /// Actions.
 @property(readonly, nonatomic, copy, nullable) NSArray<AXAlertViewAction *> *actionItems;
 

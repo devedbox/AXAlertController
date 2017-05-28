@@ -57,7 +57,6 @@ AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSiz
     // Single seprator view.
     _AXAlertContentSeparatorView *__weak _singleSeparator;
     
-    BOOL _processing;
     UIColor * _backgroundColor;
     // Contraints.
     NSLayoutConstraint *__weak _leadingOfContainer; // Leading contraint of the container view to self.
@@ -546,6 +545,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     CGPathRelease(innerPath);
 }
 #pragma mark - Getters
+- (UIView *)contentView { return _containerView; }
+
 - (NSArray<AXAlertViewAction *> *)actionItems { return [_actionItems copy]; }
 
 - (BOOL)_showedOnView {
