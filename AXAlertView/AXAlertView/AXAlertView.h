@@ -47,6 +47,8 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
     AXAlertViewTranslucentDark
 };
 
+typedef UIEdgeInsets AXEdgeMargins;
+
 /// UIAlertController
 @interface AXAlertView : UIView
 /// Delegate.
@@ -86,7 +88,7 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 /// Content prefered height. Default is 0.
 @property(assign, nonatomic) CGFloat preferedHeight UI_APPEARANCE_SELECTOR;
 /// Content prefered edge margin. Default is 40.
-@property(assign, nonatomic) CGFloat preferedMargin UI_APPEARANCE_SELECTOR;
+@property(assign, nonatomic) AXEdgeMargins preferedMargin UI_APPEARANCE_SELECTOR;
 /// Corner radius. Default is 6.
 @property(assign, nonatomic) CGFloat cornerRadius UI_APPEARANCE_SELECTOR;
 /// Custom view. Defaults to nil.

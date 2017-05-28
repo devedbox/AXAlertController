@@ -191,7 +191,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     _alertContentView.actionItemMargin = 0;
     _alertContentView.actionItemPadding = 0;
     _alertContentView.titleLabel.numberOfLines = 0;
-    _alertContentView.preferedMargin = 52;
+    _alertContentView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
     _alertContentView.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _alertContentView.titleLabel.textColor = [UIColor blackColor];
     

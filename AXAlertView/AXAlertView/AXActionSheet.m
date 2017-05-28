@@ -41,7 +41,7 @@
 - (void)initializer {
     [super initializer];
     super.horizontalLimits = 0;
-    super.preferedMargin = 0.0;
+    super.preferedMargin = UIEdgeInsetsZero;
 }
 
 - (void)dealloc {}
@@ -103,8 +103,8 @@
     [super setHorizontalLimits:0];
 }
 
-- (void)setPreferedMargin:(CGFloat)preferedMargin {
-    [super setPreferedMargin:.0];
+- (void)setPreferedMargin:(AXEdgeMargins)preferedMargin {
+    [super setPreferedMargin:UIEdgeInsetsZero];
 }
 @end
 

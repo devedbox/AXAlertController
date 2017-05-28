@@ -51,7 +51,7 @@
     alertView.actionItemPadding = 0;
     alertView.titleLabel.numberOfLines = 0;
     alertView.hidesOnTouch = YES;
-    alertView.preferedMargin = 52;
+    alertView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
     alertView.title = @"兑换申请已受理";
     UILabel *label = [UILabel new];
     label.font = [UIFont systemFontOfSize:14];
@@ -125,7 +125,7 @@
     confirmConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
     
-    [alertView setPreferedMargin:40];
+    [alertView setPreferedMargin:UIEdgeInsetsMake(40, 40, 40, 40)];
     [alertView setPreferedHeight:14];
     [alertView setActionItemMargin:0];
     [alertView setActionItemPadding:0];
@@ -167,7 +167,7 @@
     alertView.actionItemPadding = 0;
     alertView.titleLabel.numberOfLines = 0;
     alertView.hidesOnTouch = YES;
-    alertView.preferedMargin = 52;
+    alertView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
     alertView.title = @"兑换申请已受理";
     UILabel *label = [UILabel new];
     label.font = [UIFont systemFontOfSize:14];
