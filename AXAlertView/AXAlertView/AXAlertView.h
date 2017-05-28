@@ -84,11 +84,11 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 /// Opacity of the dimed background. Value between [0, 1]. Defaults to 0.4.
 @property(assign, nonatomic) CGFloat opacity UI_APPEARANCE_SELECTOR;
 /// Content prefered height. Default is 0.
-@property(assign, nonatomic) CGFloat preferedHeight;
+@property(assign, nonatomic) CGFloat preferedHeight UI_APPEARANCE_SELECTOR;
 /// Content prefered edge margin. Default is 40.
-@property(assign, nonatomic) CGFloat preferedMargin;
+@property(assign, nonatomic) CGFloat preferedMargin UI_APPEARANCE_SELECTOR;
 /// Corner radius. Default is 6.
-@property(assign, nonatomic) CGFloat cornerRadius;
+@property(assign, nonatomic) CGFloat cornerRadius UI_APPEARANCE_SELECTOR;
 /// Custom view. Defaults to nil.
 @property(strong, nonatomic, nullable) IBOutlet UIView *customView;
 /// Title of alert view. Defaults to nil.
