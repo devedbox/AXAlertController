@@ -41,7 +41,7 @@
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
     [self presentViewController:alert animated:YES completion:NULL];
     alert.modalPresentationStyle = UIModalPresentationPageSheet;
-    
+    return;
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.navigationController.view.bounds];
     alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
     alertView.padding = 0;
@@ -88,7 +88,8 @@
     confirmConfig.tintColor = [UIColor whiteColor];
     confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
-    [alertView showInView:self.navigationController.view animated:YES];
+    [self.navigationController.view addSubview:alertView];
+    [alertView show:YES];
 }
 
 - (IBAction)showNormalWithoutCustomView:(id)sender {
@@ -127,7 +128,8 @@
     [alertView setActionItemMargin:0];
     [alertView setActionItemPadding:0];
     
-    [alertView showInView:self.navigationController.view animated:YES];
+    [self.navigationController.view addSubview:alertView];
+    [alertView show:YES];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -194,6 +196,7 @@
      // confirmConfig.translucentStyle = AXAlertViewTranslucentLight;
      [alertView setActionConfiguration:confirmConfig forItemAtIndex:i];
      }
-     [alertView showInView:self.navigationController.view animated:YES];
+    [self.navigationController.view addSubview:alertView];
+    [alertView show:YES];
 }
 @end

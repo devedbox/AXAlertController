@@ -64,7 +64,7 @@ static void test() {
     textLabel.numberOfLines = 0;
     _alertView.customView = textLabel;
     [_alertView setActions:[AXAlertViewAction actionWithTitle:@"确定" handler:^(AXAlertViewAction *action) {
-        [_alertView showInView:self.view animated:YES];
+        [_alertView show:YES];
     }],[AXAlertViewAction actionWithTitle:@"取消" handler:NULL],nil];
     _alertView.horizontalLimits = 2;
     _alertView.preferedHeight = 200;
@@ -134,7 +134,8 @@ static void test() {
     confirmConfig.tintColor = [UIColor blackColor];
 //    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
-    [alertView showInView:self.view animated:YES];
+    [self.navigationController.view addSubview:alertView];
+    [alertView show:YES];
     /*
     
     for (int i = 0; i < 15; i++) {
