@@ -81,8 +81,6 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 ///
 /// @discusstion This is a limits of horizontal action item. If the count of actions is more than the limits count, the action will show vertically.
 @property(assign, nonatomic) NSInteger horizontalLimits UI_APPEARANCE_SELECTOR;
-/// Dim background. Default is YES.
-@property(assign, nonatomic) BOOL dimBackground __deprecated;
 /// Opacity of the dimed background. Value between [0, 1]. Defaults to 0.4.
 @property(assign, nonatomic) CGFloat opacity UI_APPEARANCE_SELECTOR;
 /// Content prefered height. Default is 0.

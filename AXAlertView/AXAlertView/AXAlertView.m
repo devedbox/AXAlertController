@@ -819,17 +819,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self _layoutSubviews];
 }
 
-- (void)setDimBackground:(BOOL)dimBackground {
-    _dimBackground = dimBackground;
-    /*
-    if (dimBackground) {
-        self.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
-    } else {
-        self.backgroundColor = [UIColor clearColor];
-    }
-     */
-}
-
 - (void)setOpacity:(CGFloat)opacity {
     _opacity = opacity;
     [self setNeedsDisplay];
