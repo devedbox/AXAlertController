@@ -41,7 +41,7 @@
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
     [self presentViewController:alert animated:YES completion:NULL];
     alert.modalPresentationStyle = UIModalPresentationPageSheet;
-    return;
+    
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.navigationController.view.bounds];
     alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
     alertView.padding = 0;
@@ -50,6 +50,7 @@
     alertView.actionItemPadding = 0;
     alertView.titleLabel.numberOfLines = 0;
     alertView.hidesOnTouch = YES;
+    alertView.preferedMargin = 52;
     alertView.title = @"兑换申请已受理";
     UILabel *label = [UILabel new];
     label.font = [UIFont systemFontOfSize:14];
@@ -154,7 +155,9 @@
 }
 
 - (void)showController:(id)sender {
-    AXAlertController *alert = [[AXAlertController alloc] init];
+    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..."];
+    [alert addAction:[AXAlertViewAction actionWithTitle:@"取消" handler:NULL]];
+    [alert addAction:[AXAlertViewAction actionWithTitle:@"确定" handler:NULL]];
     [self presentViewController:alert animated:YES completion:NULL];
 }
 

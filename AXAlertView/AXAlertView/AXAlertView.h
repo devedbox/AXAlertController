@@ -108,6 +108,9 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 /// Alert view did touch.
 @property(copy, nonatomic, nullable) AXAlertViewTouchBlock touch;
 
+/// Actions.
+@property(readonly, nonatomic, copy, nullable) NSArray<AXAlertViewAction *> *actionItems;
+
 - (void)setActions:(AXAlertViewAction *_Nonnull)actions,...;
 - (void)appendActions:(AXAlertViewAction *_Nonnull)actions,...;
 - (void)show:(BOOL)animated;

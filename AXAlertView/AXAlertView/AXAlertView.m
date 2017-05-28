@@ -446,7 +446,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     va_end(args);
     // Delays to configure action items at layouting subviews.
-    if (self._showedOnView) [self _layoutSubviews];
+    [self _layoutSubviews];
 }
 
 - (void)appendActions:(AXAlertViewAction *)actions, ... {
@@ -462,15 +462,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     va_end(args);
     // Delays to configure action items at layouting subviews.
-    if (self._showedOnView) [self _layoutSubviews];
+    [self _layoutSubviews];
 }
 
 - (void)show:(BOOL)animated {
     if (_processing) return;
     [self viewWillShow:self animated:animated];
-    _containerView.transform = CGAffineTransformMakeScale(1.2, 1.2);
+    _containerView.transform = CGAffineTransformMakeScale(1.15, 1.15);
     __weak typeof(self) wself = self;
-    if (animated) [UIView animateWithDuration:0.35 delay:0.05 usingSpringWithDamping:0.9 initialSpringVelocity:0.9 options:7|UIViewAnimationOptionCurveEaseOut animations:^{
+    if (animated) [UIView animateWithDuration:0.35 delay:0.05 usingSpringWithDamping:0.9 initialSpringVelocity:1.0 options:(0 << 16)|(3 << 24) animations:^{
         _containerView.transform = CGAffineTransformIdentity;
     } completion:^(BOOL finished) {
         if (finished) {
@@ -547,6 +547,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     CGPathRelease(innerPath);
 }
 #pragma mark - Getters
+- (NSArray<AXAlertViewAction *> *)actionItems { return [_actionItems copy]; }
+
 - (BOOL)_showedOnView {
     return (!_processing && self.superview!=nil);
 }
@@ -696,7 +698,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setTitleFont:(UIFont *)titleFont {
     _titleFont = titleFont;
     _titleLabel.font = _titleFont;
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
 }
 
 - (void)setTranslucent:(BOOL)translucent {
@@ -720,7 +722,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         // Set up hooked view if needed.
         if (_contentContainerView.scrollEnabled) [self _setupContentHookedView];
 #endif
-        [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+        [self _layoutSubviews];
         
         _containerView.backgroundColor = [UIColor clearColor];
     } else {
@@ -733,7 +735,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)setShowsSeparators:(BOOL)showsSeparators {
     _showsSeparators = showsSeparators;
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
 }
 
 - (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
@@ -756,7 +758,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
 #endif
     [self configureCustomView];
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
 }
 
 - (void)setCustomViewInset:(UIEdgeInsets)customViewInset {
@@ -768,7 +770,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
 #endif
     [self configureCustomView];
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
 }
 
 - (void)setTitleInset:(UIEdgeInsets)titleInset {
@@ -779,7 +781,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
     _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
 }
 
 - (void)setPadding:(CGFloat)padding {
@@ -791,7 +793,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _topOfStackView.constant = -_padding-_customViewInset.top;
 #endif
     [self configureCustomView];
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
 }
 
 - (void)setActionItemMargin:(CGFloat)actionItemMargin {
@@ -802,12 +804,12 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
 #endif
     [self configureCustomView];
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
 }
 
 - (void)setActionItemPadding:(CGFloat)actionItemPadding {
     _actionItemPadding = actionItemPadding;
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
     [self configureCustomView];
 }
 
@@ -838,7 +840,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 #if AXAlertViewUsingAutolayout
     _heightOfContainer.constant = _preferedHeight;
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
     [self configureCustomView];
 }
 
@@ -850,13 +852,13 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _topOfContainer.constant = -_preferedMargin;
     _bottomOfContainer.constant = _preferedMargin;
 #endif
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
     [self configureCustomView];
 }
 
 - (void)setActionConfiguration:(AXAlertViewActionConfiguration *)actionConfiguration {
     _actionConfiguration = actionConfiguration;
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
 }
 
 - (void)set_shouldExceptContentBackground:(BOOL)_shouldExceptContentBackground {
@@ -898,7 +900,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     _processing = YES;
     
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
+    [self _layoutSubviews];
     /*
 #if !TARGET_IPHONE_SIMULATOR
     if (_translucent) {
@@ -987,7 +989,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 #pragma mark - Private
 - (void)_layoutSubviews {
-    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:_cmd object:nil];
+    if (![self _showedOnView]) return;
     [self setNeedsLayout];
     [self layoutIfNeeded];
 }
