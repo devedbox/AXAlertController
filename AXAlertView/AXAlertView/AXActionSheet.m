@@ -25,15 +25,22 @@
 
 #import "AXActionSheet.h"
 
+#ifndef AXAlertViewUsingAutolayout
+// #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
+#define AXAlertViewUsingAutolayout 1
+#endif
+
 @interface AXAlertView (SubclassHooks)
 - (void)initializer;
+
++ (BOOL)usingAutolayout;
 @end
 
 @interface AXActionSheet () {
     NSMutableArray<AXActionSheetAction *> *_actions;
 }
 
-@property(readonly, nonatomic) UIView *_containerView;
+@property(strong, nonatomic) UIView *animatingView;
 @end
 
 @implementation AXActionSheet
@@ -41,7 +48,10 @@
 - (void)initializer {
     [super initializer];
     super.horizontalLimits = 0;
-    super.preferedMargin = UIEdgeInsetsZero;
+    super.preferedMargin = UIEdgeInsetsMake(64, 0, 0, 0);
+    super.cornerRadius = .0;
+    
+    self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin;
 }
 
 - (void)dealloc {}
@@ -50,9 +60,98 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    CGRect rect_container = self._containerView.frame;
+    CGRect rect_container = self.contentView.frame;
     rect_container.origin.y = CGRectGetHeight(self.frame) - CGRectGetHeight(rect_container);
-    self._containerView.frame = rect_container;
+    self.contentView.frame = rect_container;
+}
+
+- (void)viewWillShow:(AXAlertView *)alertView animated:(BOOL)animated {
+    [super viewWillShow:alertView animated:animated];
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
+    
+    [self _addupAnimatingViewWithHeight:-0.1];
+}
+
+- (void)show:(BOOL)animated {
+    if (self->_processing) return;
+    [self viewWillShow:self animated:animated];
+    __weak typeof(self) wself = self;
+    
+#if AXAlertViewUsingAutolayout
+    self.contentView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(self.contentView.frame));
+#else
+    CGRect frame = self.contentView.frame;
+    frame.origin.y = CGRectGetHeight(self.bounds);
+    self.contentView.frame = frame;
+#endif
+    CGRect rect = _animatingView.frame; rect.size.height = 0.0;
+    if (animated) [UIView animateWithDuration:0.45 delay:0.05 usingSpringWithDamping:1.0 initialSpringVelocity:1.0 options:7 animations:^{
+#if AXAlertViewUsingAutolayout
+        self.contentView.transform = CGAffineTransformIdentity;
+#else
+        [self setNeedsLayout];
+        [self layoutIfNeeded];
+#endif
+        [_animatingView setFrame:rect];
+    } completion:^(BOOL finished) {
+        if (finished) {
+            [wself viewDidShow:wself animated:animated];
+        }
+    }]; else {
+        [self viewDidShow:self animated:NO];
+    }
+}
+
+- (void)viewDidShow:(AXAlertView *)alertView animated:(BOOL)animated {
+    [super viewDidShow:alertView animated:animated];
+    
+    // [self.animatingView removeFromSuperview];
+}
+
+- (void)viewWillHide:(AXAlertView *)alertView animated:(BOOL)animated {
+    [super viewWillHide:alertView animated:animated];
+    
+    // [self _addupAnimatingViewWithHeight:.0];
+}
+
+- (void)hide:(BOOL)animated {
+    if (self->_processing) return;
+    [self viewWillHide:self animated:animated];
+    __weak typeof(self) wself = self;
+    
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
+    
+    CGRect frame = self.contentView.frame;
+#if AXAlertViewUsingAutolayout
+    self.contentView.transform = CGAffineTransformIdentity;
+#else
+    CGRect rect = frame;
+    rect.origin.y = CGRectGetHeight(self.bounds);
+#endif
+    if (animated) [UIView animateWithDuration:0.25 delay:0.0 options:7 animations:^{
+#if AXAlertViewUsingAutolayout
+        self.contentView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(frame));
+#else
+        self.contentView.frame = rect;
+#endif
+        self.alpha = 0.0;
+    } completion:^(BOOL finished) {
+        if (finished) {
+            [wself viewDidHide:self animated:animated];
+        }
+    }]; else {
+        [self viewDidHide:self animated:NO];
+    }
+}
+
+- (void)viewDidHide:(AXAlertView *)alertView animated:(BOOL)animated {
+    [super viewDidHide:alertView animated:animated];
+    
+    self.alpha = 1.0;
+    self.contentView.transform = CGAffineTransformIdentity;
+    [self.animatingView removeFromSuperview];
 }
 
 - (void)setActions:(AXActionSheetAction *)actions, ... {
@@ -96,15 +195,36 @@
 }
 
 #pragma mark - Getters.
-- (UIView *)_containerView { return [self valueForKeyPath:@"containerView"]; }
-
+- (UIView *)animatingView {
+    if (_animatingView) return _animatingView;
+    _animatingView = [UIView new];
+    return _animatingView;
+}
 #pragma mark - Setters.
 - (void)setHorizontalLimits:(NSInteger)horizontalLimits {
     [super setHorizontalLimits:0];
 }
 
 - (void)setPreferedMargin:(AXEdgeMargins)preferedMargin {
-    [super setPreferedMargin:UIEdgeInsetsZero];
+    [super setPreferedMargin:UIEdgeInsetsMake(64, 0, 0, 0)];
+}
+
+- (void)setCornerRadius:(CGFloat)cornerRadius {
+    [super setCornerRadius:.0];
+}
+
+#pragma mark - Private.
+- (void)_addupAnimatingViewWithHeight:(CGFloat)height {
+    [self.animatingView setFrame:self.contentView.frame];
+    [_animatingView setBackgroundColor:[UIColor colorWithWhite:0 alpha:self.opacity]];
+    [_animatingView.layer setCornerRadius:self.cornerRadius];
+    [_animatingView.layer setMasksToBounds:YES];
+    if (height >= 0) {
+        CGRect rect = _animatingView.frame;
+        rect.size.height = height;
+        _animatingView.frame = rect;
+    }
+    [self insertSubview:_animatingView belowSubview:self.contentView];
 }
 @end
 

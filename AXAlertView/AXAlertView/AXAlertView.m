@@ -468,7 +468,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self viewWillShow:self animated:animated];
     _containerView.transform = CGAffineTransformMakeScale(1.15, 1.15);
     __weak typeof(self) wself = self;
-    if (animated) [UIView animateWithDuration:0.35 delay:0.05 usingSpringWithDamping:0.9 initialSpringVelocity:1.0 options:(0 << 16)|(3 << 24) animations:^{
+    if (animated) [UIView animateWithDuration:0.45 delay:0.05 usingSpringWithDamping:1.0 initialSpringVelocity:1.0 options:(0 << 16)|(3 << 24) animations:^{
         _containerView.transform = CGAffineTransformIdentity;
     } completion:^(BOOL finished) {
         if (finished) {
@@ -501,13 +501,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (_processing) return;
     [self viewWillHide:self animated:animated];
     __weak typeof(self) wself = self;
-    [UIView animateWithDuration:0.25 delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
+    if (animated) [UIView animateWithDuration:0.25 delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
         self.alpha = 0.0;
     } completion:^(BOOL finished) {
         if (finished) {
             [wself viewDidHide:wself animated:animated];
         }
-    }];
+    }]; else {
+        [self viewDidHide:self animated:NO];
+    }
     /*
     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_hideComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
     self.chainAnimator.basic.property(@"opacity").fromValue(@(1.0)).toValue(@(.0)).duration(animated?0.25:.0).target(self).complete(@selector(_hideComplete:)).animate();
