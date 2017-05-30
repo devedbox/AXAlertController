@@ -45,12 +45,12 @@ AXAlertViewCustomViewHooks(_AXAlertContentFooterView)
 AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
 AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSize"])
+AXAlertViewCustomViewHooks2(_AXAlertContentPlacehodlerView, UIImageView)
 
 @interface AXAlertView () <UIScrollViewDelegate>
 {
     @private
     NSArray<__kindof UIButton *> *_actionButtons;
-    NSMutableDictionary<NSNumber*,AXAlertViewActionConfiguration*> *_actionConfig;
     
     // Transition view of translucent.
     UIView *__weak _translucentTransitionView;
@@ -1347,33 +1347,40 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             [self _setExceptionAllowedWidth:0.5];
         }
         for (NSInteger i = 0; i < _actionButtons.count ; i++) {
-            _AXTranslucentButton *button = _actionButtons[i];
-            button.tag = i+1;
-            [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
+            UIView *object = _actionButtons[i];
             AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
             
 #if AXAlertViewUsingAutolayout
-            [button setTranslatesAutoresizingMaskIntoConstraints:NO];
-            [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+            [object setTranslatesAutoresizingMaskIntoConstraints:NO];
+            [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
             
-            [_stackView addArrangedSubview:button];
+            [_stackView addArrangedSubview:object];
 #else
             CGFloat beginContext = .0;
             if (i == 0) {
                 beginContext = CGRectGetMaxY(_customView.frame) + _customViewInset.bottom + _padding;
             } else {
-                UIButton *lastItem = _actionButtons[i-1];
+                UIView *lastItem = _actionButtons[i-1];
                 beginContext = CGRectGetMaxY(lastItem.frame) + _actionItemPadding;
             }
-            [button setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
-            [self.contentContainerView addSubview:button];
+            [object setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
+            [self.contentContainerView addSubview:object];
 #endif
-            if (_showsSeparators) {
-                if (_translucent) [button _setExceptionAllowedWidth:config.separatorHeight direction:0]; else {
-                    button->_type = -1;
-                    [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:0];
+            
+            if (![object isMemberOfClass:[_AXAlertContentPlacehodlerView class]]) {
+                _AXTranslucentButton *button = (_AXTranslucentButton *)object;
+                button.tag = i+1;
+                [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
+                
+                
+                if (_showsSeparators) {
+                    if (_translucent) [button _setExceptionAllowedWidth:config.separatorHeight direction:0]; else {
+                        button->_type = -1;
+                        [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:0];
+                    }
                 }
             }
+            
         } [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
     } else {
 #if AXAlertViewUsingAutolayout
@@ -1393,24 +1400,30 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
         
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
-            _AXTranslucentButton *button = _actionButtons[i];
-            button.tag = i+1;
+            UIView *object = _actionButtons[i];
             AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
-            [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
+            
 #if AXAlertViewUsingAutolayout
-            [button setTranslatesAutoresizingMaskIntoConstraints:NO];
-            [button addConstraint:[NSLayoutConstraint constraintWithItem:button attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
-            [_stackView addArrangedSubview:button];
+            [object setTranslatesAutoresizingMaskIntoConstraints:NO];
+            [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+            [_stackView addArrangedSubview:object];
 #else
-            [button setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
-            [self.contentContainerView addSubview:button];
+            [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
+            [self.contentContainerView addSubview:object];
 #endif
-            if (_translucent) {
-                if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:config.separatorHeight direction:3];
-            } else {
-                if (i < _actionButtons.count-1 && _showsSeparators) {
-                    button->_type = -1;
-                    [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:3];
+            
+            if (![object isMemberOfClass:[_AXAlertContentPlacehodlerView class]]) {
+                _AXTranslucentButton *button = (_AXTranslucentButton *)object;
+                button.tag = i+1;
+                [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
+                
+                if (_translucent) {
+                    if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:config.separatorHeight direction:3];
+                } else {
+                    if (i < _actionButtons.count-1 && _showsSeparators) {
+                        button->_type = -1;
+                        [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:3];
+                    }
                 }
             }
         }
@@ -1420,14 +1433,21 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (NSArray<_AXTranslucentButton*> *_Nonnull)buttonsWithActions:(NSArray<AXAlertViewAction*> *_Nonnull)actions {
     NSMutableArray *buttons = [@[] mutableCopy];
     for (NSInteger i = 0; i < actions.count; i++) {
-        _AXTranslucentButton *button = [_AXTranslucentButton buttonWithType:UIButtonTypeCustom];
-        [button setTitle:[actions[i] title] forState:UIControlStateNormal];
-        [button setImage:[actions[i] image] forState:UIControlStateNormal];
-        
+        AXAlertViewAction *action = actions[i];
         AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:@(i)];
-        [self _setupButtonItem:&button withConfiguration:config];
         
-        [buttons addObject:button];
+        if ([action isMemberOfClass:[AXAlertViewPlaceholderAction class]]) {
+            _AXAlertContentPlacehodlerView *placeholder = [_AXAlertContentPlacehodlerView new];
+            placeholder.backgroundColor = (config?:_actionConfiguration).backgroundColor;
+            [buttons addObject:placeholder];
+        } else {
+            _AXTranslucentButton *button = [_AXTranslucentButton buttonWithType:UIButtonTypeCustom];
+            [button setTitle:[action title] forState:UIControlStateNormal];
+            [button setImage:[action image] forState:UIControlStateNormal];
+            
+            [self _setupButtonItem:&button withConfiguration:config];
+            [buttons addObject:button];
+        }
     }
     return buttons;
 }
@@ -1865,3 +1885,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     return config;
 }
 @end
+
+@implementation AXAlertViewPlaceholderAction @end
+@implementation AXAlertViewPlaceholderActionConfiguration @end

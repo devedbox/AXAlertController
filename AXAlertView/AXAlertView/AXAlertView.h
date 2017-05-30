@@ -56,6 +56,8 @@ typedef UIEdgeInsets AXEdgeMargins;
     BOOL _processing;
     /// Action items.
     NSMutableArray<AXAlertViewAction *> *_actionItems;
+    /// Configuration for action items.
+    NSMutableDictionary<NSNumber*,AXAlertViewActionConfiguration*> *_actionConfig;
 }
 /// Delegate.
 @property(assign, nonatomic) id<AXAlertViewDelegate>delegate;
@@ -118,8 +120,8 @@ typedef UIEdgeInsets AXEdgeMargins;
 /// Actions.
 @property(readonly, nonatomic, copy, nullable) NSArray<AXAlertViewAction *> *actionItems;
 
-- (void)setActions:(AXAlertViewAction *_Nonnull)actions,...;
-- (void)appendActions:(AXAlertViewAction *_Nonnull)actions,...;
+- (void)setActions:(__kindof AXAlertViewAction *_Nonnull)actions,...;
+- (void)appendActions:(__kindof AXAlertViewAction *_Nonnull)actions,...;
 - (void)show:(BOOL)animated;
 - (void)show:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didShow;
 - (void)hide:(BOOL)animated;
@@ -166,4 +168,7 @@ typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *__weak _Nonnull actio
 /// Translucent style. Defaults to Light.
 @property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle;
 @end
+
+@interface AXAlertViewPlaceholderAction : AXAlertViewAction @end
+@interface AXAlertViewPlaceholderActionConfiguration : AXAlertViewActionConfiguration @end
 NS_ASSUME_NONNULL_END
