@@ -104,7 +104,7 @@ typedef UIEdgeInsets AXEdgeMargins;
 /// Title of alert view. Defaults to nil.
 @property(nonatomic, nullable) NSString *title;
 /// Action item configuration. This is a default configuration of all action item.
-@property(strong, nonatomic, nonnull) AXAlertViewActionConfiguration *actionConfiguration;
+@property(strong, nonatomic, nonnull) AXAlertViewActionConfiguration *actionConfiguration UI_APPEARANCE_SELECTOR;
 /// Alert view will show block.
 @property(copy, nonatomic, nullable) AXAlertViewShowsBlock willShow;
 /// Alert view did show block.
@@ -127,7 +127,9 @@ typedef UIEdgeInsets AXEdgeMargins;
 - (void)hide:(BOOL)animated;
 - (void)hide:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didHide;
 
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration forItemAtIndex:(NSUInteger)index UI_APPEARANCE_SELECTOR;
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration forKey:(NSString *_Nonnull)key UI_APPEARANCE_SELECTOR;
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration forItemAtIndex:(NSUInteger)index;
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration forAction:(AXAlertViewAction *_Nonnull)action;
 
 - (void)viewWillShow:(AXAlertView *)alertView animated:(BOOL)animated __attribute((objc_requires_super));
 - (void)viewDidShow:(AXAlertView *)alertView animated:(BOOL)animated __attribute((objc_requires_super));
@@ -139,6 +141,8 @@ typedef UIEdgeInsets AXEdgeMargins;
 typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *__weak _Nonnull action);
 
 @interface AXAlertViewAction : NSObject
+/// Key for the configuration.
+@property(copy, nonatomic, nullable) NSString *identifier;
 /// Title
 @property(readonly, nonatomic, nonnull) NSString *title;
 /// Image.

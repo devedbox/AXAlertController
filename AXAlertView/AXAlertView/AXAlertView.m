@@ -27,7 +27,7 @@
 
 #ifndef AXAlertViewUsingAutolayout
 #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-// #define AXAlertViewUsingAutolayout 1
+// #define AXAlertViewUsingAutolayout 0
 #endif
 #ifndef AXAlertViewCustomViewHooks2
 #define AXAlertViewCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
@@ -39,13 +39,16 @@
 #define AXObserverRemovingViewHooks(_CustomView, CocoaView, KeyPaths) @interface _CustomView : UIScrollView { @public id __weak _observer; } @end\
 @implementation _CustomView - (void)dealloc { for (NSString *keyPath in KeyPaths) { if (_observer != nil) [self removeObserver:_observer forKeyPath:keyPath]; } } @end
 #endif
+#ifndef AXAlertPlaceholderViewHooks
+#define AXAlertPlaceholderViewHooks(_PlaceholderView) @interface _PlaceholderView : UIImageView @property(copy, nonatomic) NSString *identifier; @end @implementation _PlaceholderView @end
+#endif
 
 AXAlertViewCustomViewHooks(_AXAlertContentHeaderView)
 AXAlertViewCustomViewHooks(_AXAlertContentFooterView)
 AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
 AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSize"])
-AXAlertViewCustomViewHooks2(_AXAlertContentPlacehodlerView, UIImageView)
+AXAlertPlaceholderViewHooks(_AXAlertContentPlacehodlerView)
 
 @interface AXAlertView () <UIScrollViewDelegate>
 {
@@ -124,6 +127,7 @@ AXAlertViewCustomViewHooks2(_AXAlertContentPlacehodlerView, UIImageView)
     id _arg2;
 @public
     uint8_t _type;
+    AXAlertViewAction *__weak _action;
 }
 /// Translucent. Defailts to YES.
 @property(assign, nonatomic) BOOL translucent;
@@ -357,7 +361,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     if (_actionItems.count > _horizontalLimits) {
         for (int i = 0; i < _actionItems.count; i++) {
-            AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
+            AXAlertViewAction *action = _actionItems[i];
+            NSString *identifier = action.identifier;
+            AXAlertViewActionConfiguration *config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
             if (config) {
                 if (i == 0) {
                     heightOfContainer += _padding;
@@ -371,7 +377,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     } else {
         CGFloat maxHeightOfItem = .0;
         for (int i = 0; i < _actionItems.count; i++) {
-            AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
+            AXAlertViewAction *action = _actionItems[i];
+            NSString *identifier = action.identifier;
+            AXAlertViewActionConfiguration *config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
             if (config) {
                 maxHeightOfItem = MAX(maxHeightOfItem, config.preferedHeight);
                 heightOfItems = maxHeightOfItem;
@@ -668,13 +676,23 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _containerView.layer.masksToBounds = _cornerRadius!=0?YES:NO;
 }
 
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forItemAtIndex:(NSUInteger)index {
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forKey:(NSString *)key {
     if (!_actionConfig) {
         _actionConfig = [@{} mutableCopy];
     }
-    [_actionConfig setObject:configuration forKey:[NSString stringWithFormat:@"%@", @(index)]];
+    [_actionConfig setObject:configuration forKey:key];
     // Update the configuration of the button at index.
-    [self _updateConfigurationOfItemAtIndex:index];
+    [self _updateConfigurationOfItemForKey:key];
+}
+
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forItemAtIndex:(NSUInteger)index {
+    [self setActionConfiguration:configuration forKey:[NSString stringWithFormat:@"%@", @(index)]];
+}
+
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forAction:(AXAlertViewAction *)action {
+    if (action.identifier.length) {
+        [self setActionConfiguration:configuration forKey:action.identifier];
+    }
 }
 
 - (void)setCustomView:(UIView *)customView {
@@ -1309,6 +1327,23 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self _setupButtonItem:&buttonItem withConfiguration:config];
 }
 
+- (void)_updateConfigurationOfItemForKey:(NSString *)key {
+    // Get the button item from the content container view.
+    _AXTranslucentButton *buttonItem = [_contentContainerView.subviews filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(UIView * _Nullable evaluatedObject, NSDictionary<NSString *,id> * _Nullable bindings) {
+        if ([evaluatedObject isKindOfClass:[_AXTranslucentButton class]]) {
+            if ([((_AXTranslucentButton *)evaluatedObject)->_action.identifier isEqualToString:key]) {
+                return YES;
+            }
+        } return NO;
+    }]].lastObject;
+    if (buttonItem) {
+        // Get the configuration of the configs.
+        AXAlertViewActionConfiguration *config = _actionConfig[key];
+        // Setup button with configuration.
+        [self _setupButtonItem:&buttonItem withConfiguration:config];
+    }
+}
+
 - (void)configureCustomView {
     if (!self.customView) {
         return;
@@ -1348,7 +1383,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
         for (NSInteger i = 0; i < _actionButtons.count ; i++) {
             UIView *object = _actionButtons[i];
-            AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
+            AXAlertViewActionConfiguration *config; 
+            if ([object isKindOfClass:[_AXTranslucentButton class]]) {
+                NSString *identifier = ((_AXTranslucentButton *)object)->_action.identifier;
+                config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]];
+            } else if ([object respondsToSelector:@selector(identifier)]) {
+                NSString *identifier = [object performSelector:@selector(identifier)];
+                config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]];
+            } else {
+                config = _actionConfig[NSStringFromClass(object.class)];
+            }
+            config = config?:_actionConfiguration;
             
 #if AXAlertViewUsingAutolayout
             [object setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -1401,7 +1446,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
             UIView *object = _actionButtons[i];
-            AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
+            AXAlertViewActionConfiguration *config;
+            if ([object isKindOfClass:[_AXTranslucentButton class]]) {
+                NSString *identifier = ((_AXTranslucentButton *)object)->_action.identifier;
+                config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]];
+            } else if ([object respondsToSelector:@selector(identifier)]) {
+                NSString *identifier = [object performSelector:@selector(identifier)];
+                config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]];
+            } else {
+                config = _actionConfig[NSStringFromClass(object.class)];
+            }
+            config = config?:_actionConfiguration;
             
 #if AXAlertViewUsingAutolayout
             [object setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -1434,14 +1489,22 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     NSMutableArray *buttons = [@[] mutableCopy];
     for (NSInteger i = 0; i < actions.count; i++) {
         AXAlertViewAction *action = actions[i];
-        AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:[NSString stringWithFormat:@"%@", @(i)]];
+        AXAlertViewActionConfiguration *config;
+        if ([action isKindOfClass:[AXAlertViewAction class]]) {
+            config = _actionConfig[((AXAlertViewAction *)action).identifier?:[NSString stringWithFormat:@"%@", @(i)]];
+        } else {
+            config = _actionConfig[NSStringFromClass(action.class)];
+        }
+        config = config?:_actionConfiguration;
         
         if ([action isMemberOfClass:[AXAlertViewPlaceholderAction class]]) {
             _AXAlertContentPlacehodlerView *placeholder = [_AXAlertContentPlacehodlerView new];
-            placeholder.backgroundColor = (config?:_actionConfiguration).backgroundColor;
+            placeholder.backgroundColor = config.backgroundColor;
+            placeholder.identifier = action.identifier;
             [buttons addObject:placeholder];
         } else {
             _AXTranslucentButton *button = [_AXTranslucentButton buttonWithType:UIButtonTypeCustom];
+            button->_action = action;
             [button setTitle:[action title] forState:UIControlStateNormal];
             [button setImage:[action image] forState:UIControlStateNormal];
             
@@ -1456,7 +1519,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (!config) {
         config = _actionConfiguration;
     }
-    UIColor *backgroundColor = config.backgroundColor?config.backgroundColor:_actionConfiguration.backgroundColor;
+    UIColor *backgroundColor = config.backgroundColor;
     if (!backgroundColor) {
         backgroundColor = [self window].tintColor;
     }
@@ -1464,8 +1527,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [*button setBackgroundImage:[self rectangleImageWithColor:backgroundColor size:CGSizeMake(10, 10)] forState:UIControlStateNormal];
     }
     [*button setBackgroundColor:[UIColor clearColor]];
-    [(*button).titleLabel setFont:config.font?config.font:_actionConfiguration.font];
-    UIColor *tintColor = config.tintColor?config.tintColor:_actionConfiguration.tintColor;
+    [(*button).titleLabel setFont:config.font];
+    UIColor *tintColor = config.tintColor;
     if (!tintColor) {
         tintColor = [[self window] tintColor];
     }

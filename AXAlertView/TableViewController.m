@@ -184,6 +184,17 @@
     // [alertView setActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL],[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL],nil];
     [alertView appendActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL], nil];
     [alertView appendActions:[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL], nil];
+    for (int i = 0; i < 15; i++) {
+        [alertView appendActions:[AXActionSheetAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] image:nil handler:NULL], nil];
+        AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
+        confirmConfig.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
+        confirmConfig.preferedHeight = 50;
+        confirmConfig.cornerRadius = .0;
+        confirmConfig.tintColor = [UIColor blackColor];
+        confirmConfig.translucent = YES;
+        confirmConfig.translucentStyle = AXAlertViewTranslucentLight;
+        [alertView setActionConfiguration:confirmConfig forItemAtIndex:i];
+    }
     // alertView.showsSeparators = NO;
     // alertView.translucent = NO;
     
@@ -192,14 +203,14 @@
     confirmConfig.preferedHeight = 44;
     confirmConfig.cornerRadius = .0;
     confirmConfig.tintColor = [UIColor blackColor];
-    [alertView setActionConfiguration:confirmConfig forItemAtIndex:0];
+    [alertView setActionConfiguration:confirmConfig forItemAtIndex:15];
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor whiteColor];
     cancelConfig.preferedHeight = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
     cancelConfig.separatorHeight = 0.0;
-    [alertView setActionConfiguration:cancelConfig forItemAtIndex:1];
+    [alertView setActionConfiguration:cancelConfig forItemAtIndex:16];
     [self.navigationController.view addSubview:alertView];
     [alertView show:YES];
 }

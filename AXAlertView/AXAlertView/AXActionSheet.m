@@ -262,10 +262,6 @@
 - (void)_addupPlaceholderAction {
     if (_actionItems.count >= 2) {
         if ([_actionItems[_actionItems.count-2] isKindOfClass:[AXAlertViewPlaceholderAction class]]) {
-            NSString *key = [NSString stringWithFormat:@"%@", @(_actionItems.count-1)];
-            if (_actionConfig[key] != nil) {
-                [_actionConfig setObject:_actionConfig[key] forKey:[NSString stringWithFormat:@"%@", @(_actionItems.count-2)]];
-            }
             [_actionItems removeObjectAtIndex:_actionItems.count-2];
         }
     }
@@ -295,9 +291,10 @@
                 config.backgroundColor = [self.backgroundColor colorWithAlphaComponent:0.8];
             }
             
-            [_actionConfig setObject:config forKey:@(_actionItems.count-1)];
+            [_actionConfig setObject:config forKey:@"cancel_placeholder"];
             
             AXAlertViewPlaceholderAction *placeholder = [AXAlertViewPlaceholderAction new];
+            placeholder.identifier = @"cancel_placeholder";
             [_actionItems insertObject:placeholder atIndex:_actionItems.count-1];
         }
     }
