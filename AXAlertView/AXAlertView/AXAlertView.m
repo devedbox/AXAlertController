@@ -48,7 +48,6 @@ AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSiz
 
 @interface AXAlertView () <UIScrollViewDelegate>
 {
-    NSMutableArray<AXAlertViewAction *> *_actionItems;
     NSArray<__kindof UIButton *> *_actionButtons;
     NSMutableDictionary<NSNumber*,AXAlertViewActionConfiguration*> *_actionConfig;
     

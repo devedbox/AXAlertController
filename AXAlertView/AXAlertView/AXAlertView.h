@@ -54,6 +54,8 @@ typedef UIEdgeInsets AXEdgeMargins;
     @protected
     /// Is animation processing.
     BOOL _processing;
+    /// Action items.
+    NSMutableArray<AXAlertViewAction *> *_actionItems;
 }
 /// Delegate.
 @property(assign, nonatomic) id<AXAlertViewDelegate>delegate;
