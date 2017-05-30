@@ -262,8 +262,9 @@
 - (void)_addupPlaceholderAction {
     if (_actionItems.count >= 2) {
         if ([_actionItems[_actionItems.count-2] isKindOfClass:[AXAlertViewPlaceholderAction class]]) {
-            if (_actionConfig[@(_actionItems.count-1)] != nil) {
-                [_actionConfig setObject:_actionConfig[@(_actionItems.count-1)] forKey:@(_actionItems.count-2)];
+            NSString *key = [NSString stringWithFormat:@"%@", @(_actionItems.count-1)];
+            if (_actionConfig[key] != nil) {
+                [_actionConfig setObject:_actionConfig[key] forKey:[NSString stringWithFormat:@"%@", @(_actionItems.count-2)]];
             }
             [_actionItems removeObjectAtIndex:_actionItems.count-2];
         }
@@ -277,8 +278,9 @@
         }
     }] != NSNotFound) {
         if ([_actionItems.lastObject isKindOfClass:[AXActionSheetAction class]]) {
-            if (_actionConfig[@(_actionItems.count-1)] != nil) {
-                [_actionConfig setObject:_actionConfig[@(_actionItems.count-1)] forKey:@(_actionItems.count)];
+            NSString *key = [NSString stringWithFormat:@"%@", @(_actionItems.count-1)];
+            if (_actionConfig[key] != nil) {
+                [_actionConfig setObject:_actionConfig[key] forKey:[NSString stringWithFormat:@"%@", @(_actionItems.count)]];
             }
             
             AXAlertViewPlaceholderActionConfiguration *config = [AXAlertViewPlaceholderActionConfiguration new];

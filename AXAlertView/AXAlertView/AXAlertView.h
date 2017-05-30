@@ -57,7 +57,7 @@ typedef UIEdgeInsets AXEdgeMargins;
     /// Action items.
     NSMutableArray<AXAlertViewAction *> *_actionItems;
     /// Configuration for action items.
-    NSMutableDictionary<NSNumber*,AXAlertViewActionConfiguration*> *_actionConfig;
+    NSMutableDictionary<NSString*, AXAlertViewActionConfiguration*> *_actionConfig;
 }
 /// Delegate.
 @property(assign, nonatomic) id<AXAlertViewDelegate>delegate;

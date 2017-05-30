@@ -357,7 +357,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     if (_actionItems.count > _horizontalLimits) {
         for (int i = 0; i < _actionItems.count; i++) {
-            AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+            AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
             if (config) {
                 if (i == 0) {
                     heightOfContainer += _padding;
@@ -371,7 +371,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     } else {
         CGFloat maxHeightOfItem = .0;
         for (int i = 0; i < _actionItems.count; i++) {
-            AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+            AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
             if (config) {
                 maxHeightOfItem = MAX(maxHeightOfItem, config.preferedHeight);
                 heightOfItems = maxHeightOfItem;
@@ -672,7 +672,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (!_actionConfig) {
         _actionConfig = [@{} mutableCopy];
     }
-    [_actionConfig setObject:configuration forKey:@(index)];
+    [_actionConfig setObject:configuration forKey:[NSString stringWithFormat:@"%@", @(index)]];
     // Update the configuration of the button at index.
     [self _updateConfigurationOfItemAtIndex:index];
 }
@@ -1304,7 +1304,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     // Get the button item from the content container view.
     _AXTranslucentButton *buttonItem = [_contentContainerView viewWithTag:index+1];
     // Get the configuration of the configs.
-    AXAlertViewActionConfiguration *config = _actionConfig[@(index)];
+    AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(index)]];
     // Setup button with configuration.
     [self _setupButtonItem:&buttonItem withConfiguration:config];
 }
@@ -1348,7 +1348,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
         for (NSInteger i = 0; i < _actionButtons.count ; i++) {
             UIView *object = _actionButtons[i];
-            AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+            AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
             
 #if AXAlertViewUsingAutolayout
             [object setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -1401,7 +1401,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
             UIView *object = _actionButtons[i];
-            AXAlertViewActionConfiguration *config = _actionConfig[@(i)]?:_actionConfiguration;
+            AXAlertViewActionConfiguration *config = _actionConfig[[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
             
 #if AXAlertViewUsingAutolayout
             [object setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -1434,7 +1434,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     NSMutableArray *buttons = [@[] mutableCopy];
     for (NSInteger i = 0; i < actions.count; i++) {
         AXAlertViewAction *action = actions[i];
-        AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:@(i)];
+        AXAlertViewActionConfiguration *config = [_actionConfig objectForKey:[NSString stringWithFormat:@"%@", @(i)]];
         
         if ([action isMemberOfClass:[AXAlertViewPlaceholderAction class]]) {
             _AXAlertContentPlacehodlerView *placeholder = [_AXAlertContentPlacehodlerView new];
