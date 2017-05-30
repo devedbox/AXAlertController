@@ -33,8 +33,7 @@ typedef NS_ENUM(NSUInteger, AXActionSheetActionStyle) {
     AXActionSheetActionStyleCancel
 };
 
-@interface AXActionSheet : AXAlertView
-@end
+@interface AXActionSheet : AXAlertView @end
 
 @interface AXActionSheetAction : AXAlertViewAction
 /// Style of the action sheet.
