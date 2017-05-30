@@ -181,9 +181,9 @@
     alertView.titleLabel.font = [UIFont fontWithName:@"PingFangSC-Medium" size:18];
     alertView.titleLabel.textColor = [UIColor blackColor];
     
-    [alertView setActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL],[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL],nil];
-    // [alertView appendActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL], nil];
-    // [alertView appendActions:[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL], nil];
+    // [alertView setActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL],[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL],nil];
+    [alertView appendActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL], nil];
+    [alertView appendActions:[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL], nil];
     // alertView.showsSeparators = NO;
     // alertView.translucent = NO;
     
@@ -198,9 +198,9 @@
     confirmConfig.backgroundColor = [UIColor whiteColor];
     confirmConfig.preferedHeight = 44;
     confirmConfig.cornerRadius = .0;
-    // confirmConfig.tintColor = [UIColor blackColor];
-    confirmConfig.tintColor = [UIColor whiteColor];
-    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
+    confirmConfig.tintColor = [UIColor blackColor];
+    // confirmConfig.tintColor = [UIColor whiteColor];
+    // confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
     [self.navigationController.view addSubview:alertView];
     [alertView show:YES];
