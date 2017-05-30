@@ -34,8 +34,6 @@ typedef NS_ENUM(NSUInteger, AXActionSheetActionStyle) {
 };
 
 @interface AXActionSheet : AXAlertView
-- (void)setActions:(AXActionSheetAction *_Nonnull)actions,...;
-- (void)appendActions:(AXActionSheetAction *_Nonnull)actions,...;
 @end
 
 @interface AXActionSheetAction : AXAlertViewAction

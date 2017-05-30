@@ -165,7 +165,15 @@
     }
     va_end(args);
     // Resort the actions.
+    [_actionItems filterUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id  _Nullable evaluatedObject, NSDictionary<NSString *,id> * _Nullable bindings) {
+        if ([evaluatedObject isKindOfClass:[AXActionSheetAction class]]) {
+            return YES;
+        } else {
+            return NO;
+        }
+    }]];
     [_actionItems sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"style" ascending:YES]]];
+    [self _addupPlaceholderAction];
     // Delays to configure action items at layouting subviews.
     if (!_processing && self.superview != nil) {
         [self setNeedsLayout];
@@ -185,7 +193,15 @@
         [_actionItems addObject:action];
     }
     va_end(args);
+    [_actionItems filterUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id  _Nullable evaluatedObject, NSDictionary<NSString *,id> * _Nullable bindings) {
+        if ([evaluatedObject isKindOfClass:[AXActionSheetAction class]]) {
+            return YES;
+        } else {
+            return NO;
+        }
+    }]];
     [_actionItems sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"style" ascending:YES]]];
+    [self _addupPlaceholderAction];
     // Delays to configure action items at layouting subviews.
     if (!_processing && self.superview != nil) {
         [self setNeedsLayout];
@@ -193,6 +209,23 @@
     }
 }
 
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forItemAtIndex:(NSUInteger)index {
+    [super setActionConfiguration:configuration forItemAtIndex:index];
+    
+    [self _addupPlaceholderAction];
+}
+
+- (void)setTranslucent:(BOOL)translucent {
+    [super setTranslucent:translucent];
+    
+    [self _addupPlaceholderAction];
+}
+
+- (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
+    [super setTranslucentStyle:translucentStyle];
+    
+    [self _addupPlaceholderAction];
+}
 #pragma mark - Getters.
 - (UIView *)animatingView {
     if (_animatingView) return _animatingView;
@@ -224,6 +257,48 @@
         _animatingView.frame = rect;
     }
     [self insertSubview:_animatingView belowSubview:self.contentView];
+}
+
+- (void)_addupPlaceholderAction {
+    if (_actionItems.count >= 2) {
+        if ([_actionItems[_actionItems.count-2] isKindOfClass:[AXAlertViewPlaceholderAction class]]) {
+            if (_actionConfig[@(_actionItems.count-1)] != nil) {
+                [_actionConfig setObject:_actionConfig[@(_actionItems.count-1)] forKey:@(_actionItems.count-2)];
+            }
+            [_actionItems removeObjectAtIndex:_actionItems.count-2];
+        }
+    }
+    if ([_actionItems indexOfObjectPassingTest:^BOOL(AXAlertViewAction * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        if (((AXActionSheetAction *)obj).style == AXActionSheetActionStyleCancel) {
+            *stop = YES;
+            return YES;
+        } else {
+            return NO;
+        }
+    }] != NSNotFound) {
+        if ([_actionItems.lastObject isKindOfClass:[AXActionSheetAction class]]) {
+            if (_actionConfig[@(_actionItems.count-1)] != nil) {
+                [_actionConfig setObject:_actionConfig[@(_actionItems.count-1)] forKey:@(_actionItems.count)];
+            }
+            
+            AXAlertViewPlaceholderActionConfiguration *config = [AXAlertViewPlaceholderActionConfiguration new];
+            config.preferedHeight = 10;
+            if (self.translucent) {
+                if (self.translucentStyle == AXAlertViewTranslucentLight) {
+                    config.backgroundColor = [UIColor colorWithWhite:0.98 alpha:0.7];
+                } else {
+                    config.backgroundColor = [UIColor colorWithWhite:0.11 alpha:0.6];
+                }
+            } else {
+                config.backgroundColor = [self.backgroundColor colorWithAlphaComponent:0.8];
+            }
+            
+            [_actionConfig setObject:config forKey:@(_actionItems.count-1)];
+            
+            AXAlertViewPlaceholderAction *placeholder = [AXAlertViewPlaceholderAction new];
+            [_actionItems insertObject:placeholder atIndex:_actionItems.count-1];
+        }
+    }
 }
 @end
 
