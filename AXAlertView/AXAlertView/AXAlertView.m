@@ -1369,9 +1369,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             [self.contentContainerView addSubview:button];
 #endif
             if (_showsSeparators) {
-                if (_translucent) [button _setExceptionAllowedWidth:0.5 direction:0]; else {
+                if (_translucent) [button _setExceptionAllowedWidth:config.separatorHeight direction:0]; else {
                     button->_type = -1;
-                    [button _setExceptionSeparatorLayerWidth:0.5 direction:0];
+                    [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:0];
                 }
             }
         } [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
@@ -1406,11 +1406,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             [self.contentContainerView addSubview:button];
 #endif
             if (_translucent) {
-                if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:0.5 direction:3];
+                if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:config.separatorHeight direction:3];
             } else {
                 if (i < _actionButtons.count-1 && _showsSeparators) {
                     button->_type = -1;
-                    [button _setExceptionSeparatorLayerWidth:0.5 direction:3];
+                    [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:3];
                 }
             }
         }
@@ -1835,7 +1835,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _font = [UIFont boldSystemFontOfSize:15];
         _tintColor = [UIColor colorWithRed:0.996 green:0.725 blue:0.145 alpha:1.00];
         _backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
-        _separatorColor = [UIColor colorWithWhite:0 alpha:0.1];
+        _separatorHeight = 0.5;
         _cornerRadius = 4;
         _preferedHeight = 44.0;
         _translucent = YES;
@@ -1849,7 +1849,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     config.font = [self.font copy];
     config.tintColor = [self.tintColor copy];
     config.backgroundColor = [self.backgroundColor copy];
-    // config.separatorColor = [self.separatorColor copy];
+    config.separatorHeight = self.separatorHeight;
     config.cornerRadius = self.cornerRadius;
     config.preferedHeight = self.preferedHeight;
     config.translucent = self.translucent;
