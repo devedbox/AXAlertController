@@ -155,43 +155,42 @@
 }
 
 - (void)setActions:(AXActionSheetAction *)actions, ... {
-    NSAssert([actions isKindOfClass:[AXActionSheetAction class]], @"Action sheet should using `AXActionSheetAction` as actions.");
     va_list args;
     va_start(args, actions);
-    AXActionSheetAction *_last;
-    AXActionSheetAction *action;
-    if (actions.style == AXActionSheetActionStyleDefault) {
-        [super appendActions:actions, nil];
-    } else {
-        _last = actions;
-    }
-    
-    while ((action = va_arg(args, AXActionSheetAction *))) {
-        NSAssert([actions isKindOfClass:[AXActionSheetAction class]], @"Action sheet should using `AXActionSheetAction` as actions.");
-        if (action.style == AXActionSheetActionStyleDefault) {
-            [super appendActions:action, nil];
-        } else {
-            _last = action;
-        }
+    AXAlertViewAction *action;
+    _actionItems = [@[] mutableCopy];
+    [_actionItems addObject:actions];
+    while ((action = va_arg(args, AXAlertViewAction *))) {
+        [_actionItems addObject:action];
     }
     va_end(args);
-    if (_last) [super appendActions:_last, nil];
+    // Resort the actions.
+    [_actionItems sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"style" ascending:YES]]];
+    // Delays to configure action items at layouting subviews.
+    if (!_processing && self.superview != nil) {
+        [self setNeedsLayout];
+        [self layoutIfNeeded];
+    }
 }
 
 - (void)appendActions:(AXActionSheetAction *)actions, ... {
-    NSAssert([actions isKindOfClass:[AXActionSheetAction class]], @"Action sheet should using `AXActionSheetAction` as actions.");
     va_list args;
     va_start(args, actions);
-    AXActionSheetAction *action;
-    if (actions.style == AXActionSheetActionStyleDefault) {
-        [super appendActions:actions, nil];
+    AXAlertViewAction *action;
+    if (!_actionItems) {
+        _actionItems = [@[] mutableCopy];
     }
-    while ((action = va_arg(args, AXActionSheetAction *))) {
-        NSAssert([actions isKindOfClass:[AXActionSheetAction class]], @"Action sheet should using `AXActionSheetAction` as actions.");
-        [super appendActions:action, nil];
+    [_actionItems addObject:actions];
+    while ((action = va_arg(args, AXAlertViewAction *))) {
+        [_actionItems addObject:action];
     }
     va_end(args);
-    [self setActions:_actions?:@[]];
+    [_actionItems sortUsingDescriptors:@[[NSSortDescriptor sortDescriptorWithKey:@"style" ascending:YES]]];
+    // Delays to configure action items at layouting subviews.
+    if (!_processing && self.superview != nil) {
+        [self setNeedsLayout];
+        [self layoutIfNeeded];
+    }
 }
 
 #pragma mark - Getters.
