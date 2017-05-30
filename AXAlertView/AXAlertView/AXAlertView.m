@@ -1751,26 +1751,30 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _maskLayer.path = path.CGPath;
             _filterView.layer.mask = _maskLayer;
             _opacityLayer.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame), arg1);
+            [self setContentEdgeInsets:UIEdgeInsetsMake(arg1, 0, 0, 0)];
         } break;
         case 1: {// Left.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(arg1, 0, CGRectGetWidth(self.frame)-arg1, CGRectGetHeight(self.frame))];
             _maskLayer.path = path.CGPath;
             _filterView.layer.mask = _maskLayer;
             _opacityLayer.frame = CGRectMake(0, 0, arg1, CGRectGetHeight(self.frame));
+            [self setContentEdgeInsets:UIEdgeInsetsMake(0, arg1, 0, 0)];
         } break;
         case 2: {// Bottom.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-arg1)];
             _maskLayer.path = path.CGPath;
             _filterView.layer.mask = _maskLayer;
             _opacityLayer.frame = CGRectMake(0, CGRectGetHeight(self.frame)-arg1, CGRectGetWidth(self.frame), arg1);
+            [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, arg1, 0)];
         } break;
         case 3: {// Right.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame)-arg1, CGRectGetHeight(self.frame))];
             _maskLayer.path = path.CGPath;
             _filterView.layer.mask = _maskLayer;
             _opacityLayer.frame = CGRectMake(CGRectGetWidth(self.frame)-arg1, 0, arg1, CGRectGetHeight(self.frame));
+            [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, 0, arg1)];
         } break;
-        default: _filterView.layer.mask = nil; _maskLayer = nil; [_opacityLayer removeFromSuperlayer]; _opacityLayer = nil; return;
+        default: _filterView.layer.mask = nil; _maskLayer = nil; [_opacityLayer removeFromSuperlayer]; _opacityLayer = nil; [self setContentEdgeInsets:UIEdgeInsetsZero]; return;
     }
 }
 
@@ -1783,17 +1787,21 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     switch (arg2) {
         case 0: {// Top.
             [separatorView setFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), arg1)];
+            [self setContentEdgeInsets:UIEdgeInsetsMake(arg1, 0, 0, 0)];
         } break;
         case 1: {// Left.
             [separatorView setFrame:CGRectMake(0, 0, arg1, CGRectGetHeight(self.frame))];
+            [self setContentEdgeInsets:UIEdgeInsetsMake(0, arg1, 0, 0)];
         } break;
         case 2: {// Bottom.
             [separatorView setFrame:CGRectMake(0, CGRectGetHeight(self.frame)-arg1, CGRectGetWidth(self.frame), arg1)];
+            [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, arg1, 0)];
         } break;
         case 3: {// Right.
             [separatorView setFrame:CGRectMake(CGRectGetWidth(self.frame)-arg1, 0, arg1, CGRectGetHeight(self.frame))];
+            [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, 0, arg1)];
         } break;
-        default: [_singleSeparator removeFromSuperview]; return;
+        default: [_singleSeparator removeFromSuperview]; [self setContentEdgeInsets:UIEdgeInsetsZero]; return;
     }
     
     [_singleSeparator removeFromSuperview];
