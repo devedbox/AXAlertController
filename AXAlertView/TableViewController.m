@@ -187,21 +187,19 @@
     // alertView.showsSeparators = NO;
     // alertView.translucent = NO;
     
+    AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
+    confirmConfig.backgroundColor = [UIColor whiteColor];
+    confirmConfig.preferedHeight = 44;
+    confirmConfig.cornerRadius = .0;
+    confirmConfig.tintColor = [UIColor blackColor];
+    [alertView setActionConfiguration:confirmConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor whiteColor];
     cancelConfig.preferedHeight = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
-    [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
-    AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
-    // confirmConfig.backgroundColor = [UIColor blackColor];
-    confirmConfig.backgroundColor = [UIColor whiteColor];
-    confirmConfig.preferedHeight = 44;
-    confirmConfig.cornerRadius = .0;
-    confirmConfig.tintColor = [UIColor blackColor];
-    // confirmConfig.tintColor = [UIColor whiteColor];
-    // confirmConfig.translucentStyle = AXAlertViewTranslucentDark;
-    [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
+    cancelConfig.separatorHeight = 0.0;
+    [alertView setActionConfiguration:cancelConfig forItemAtIndex:1];
     [self.navigationController.view addSubview:alertView];
     [alertView show:YES];
 }
