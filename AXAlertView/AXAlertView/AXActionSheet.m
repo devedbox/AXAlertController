@@ -26,8 +26,8 @@
 #import "AXActionSheet.h"
 
 #ifndef AXAlertViewUsingAutolayout
-// #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-#define AXAlertViewUsingAutolayout 1
+#define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
+// #define AXAlertViewUsingAutolayout 1
 #endif
 
 @interface AXAlertView (SubclassHooks)

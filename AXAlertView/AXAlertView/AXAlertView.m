@@ -26,8 +26,8 @@
 #import "AXAlertView.h"
 
 #ifndef AXAlertViewUsingAutolayout
-// #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-#define AXAlertViewUsingAutolayout 1
+#define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
+// #define AXAlertViewUsingAutolayout 1
 #endif
 #ifndef AXAlertViewCustomViewHooks2
 #define AXAlertViewCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
