@@ -25,6 +25,7 @@
 
 #import "AXAlertView.h"
 
+NS_ASSUME_NONNULL_BEGIN
 @class AXActionSheetAction;
 
 typedef NS_ENUM(NSUInteger, AXActionSheetActionStyle) {
@@ -44,3 +45,4 @@ typedef NS_ENUM(NSUInteger, AXActionSheetActionStyle) {
 + (instancetype _Nonnull)actionWithTitle:(NSString *_Nonnull)title style:(AXActionSheetActionStyle)style handler:(AXAlertViewActionHandler _Nullable)handler;
 + (instancetype _Nonnull)actionWithTitle:(NSString *_Nonnull)title image:(UIImage *_Nullable)image style:(AXActionSheetActionStyle)style handler:(AXAlertViewActionHandler _Nullable)handler;
 @end
+NS_ASSUME_NONNULL_END
