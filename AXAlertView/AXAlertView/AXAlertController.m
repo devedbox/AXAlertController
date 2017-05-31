@@ -190,13 +190,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [super viewDidLayoutSubviews];
     
     if (!_isViewDidAppear) {
-        UIView *containerView = self.view.superview ?: self.view;
-        [containerView addSubview:self.contentView];
-        [self.contentView setNeedsLayout];
-        [self.contentView layoutIfNeeded];
-        [self.underlyingView setExceptionFrame:[[self.contentView valueForKeyPath:@"containerView.frame"] CGRectValue]];
-        [self.underlyingView setCornerRadius:self.contentView.cornerRadius];
-        [self.underlyingView setNeedsDisplay];
+        [self _addContentViewToContainer];
         if (_style == AXAlertControllerStyleActionSheet) {
             [self.contentView show:_animated];
         }
@@ -353,6 +347,12 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)alertViewWillHide:(AXAlertView *)alertView {
+    if (_style == AXAlertControllerStyleActionSheet) {
+        // [self _addContentViewToContainer];
+        UIView *transitionView = [_actionSheetContentView valueForKeyPath:@"transitionView"];
+        UIView *containerView = /*self.view.superview ?: self.view*/self.view.window;
+        [containerView addSubview:transitionView];
+    }
     [self _dismiss:alertView];
 }
 
@@ -364,4 +364,14 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)_setStyle:(uint64_t)arg { _style = arg; }
+
+- (void)_addContentViewToContainer {
+    UIView *containerView = self.view.superview ?: self.view;
+    [containerView addSubview:self.contentView];
+    [self.contentView setNeedsLayout];
+    [self.contentView layoutIfNeeded];
+    [self.underlyingView setExceptionFrame:[[self.contentView valueForKeyPath:@"containerView.frame"] CGRectValue]];
+    [self.underlyingView setCornerRadius:self.contentView.cornerRadius];
+    [self.underlyingView setNeedsDisplay];
+}
 @end
