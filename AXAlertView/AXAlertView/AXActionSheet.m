@@ -27,7 +27,7 @@
 
 #ifndef AXAlertViewUsingAutolayout
 #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-// #define AXAlertViewUsingAutolayout 1
+// #define AXAlertViewUsingAutolayout 0
 #endif
 
 @interface AXAlertView (SubclassHooks)
@@ -36,8 +36,8 @@
 + (BOOL)usingAutolayout;
 @end
 
-@interface AXActionSheet () <UIScrollViewDelegate> {
-    NSMutableArray<AXActionSheetAction *> *_actions;
+@interface AXActionSheet () {
+    UIView *__weak _transitionView;
 }
 
 @property(strong, nonatomic) UIView *animatingView;
@@ -113,6 +113,14 @@
     [super viewWillHide:alertView animated:animated];
     
     // [self _addupAnimatingViewWithHeight:.0];
+    // UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.contentView.frame];
+    // imageView.contentMode = UIViewContentModeScaleAspectFill;
+    // imageView.image = [self _renderedImageOfView:self.contentView.window];
+    UIView *transitionView = [self.window resizableSnapshotViewFromRect:[self.window convertRect:self.contentView.frame fromView:self] afterScreenUpdates:YES withCapInsets:UIEdgeInsetsZero];
+    [transitionView setFrame:self.contentView.frame];
+    self.contentView.hidden = YES;
+    [self addSubview:transitionView];
+    _transitionView = transitionView;
 }
 
 - (void)hide:(BOOL)animated {
@@ -125,16 +133,16 @@
     
     CGRect frame = self.contentView.frame;
 #if AXAlertViewUsingAutolayout
-    self.contentView.transform = CGAffineTransformIdentity;
+    _transitionView.transform = CGAffineTransformIdentity;
 #else
     CGRect rect = frame;
     rect.origin.y = CGRectGetHeight(self.bounds);
 #endif
     if (animated) [UIView animateWithDuration:0.25 delay:0.0 options:7 animations:^{
 #if AXAlertViewUsingAutolayout
-        self.contentView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(frame));
+        _transitionView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(frame));
 #else
-        self.contentView.frame = rect;
+        _transitionView.frame = rect;
 #endif
         self.alpha = 0.0;
     } completion:^(BOOL finished) {
@@ -149,9 +157,12 @@
 - (void)viewDidHide:(AXAlertView *)alertView animated:(BOOL)animated {
     [super viewDidHide:alertView animated:animated];
     
+    self.contentView.hidden = NO;
     self.alpha = 1.0;
     self.contentView.transform = CGAffineTransformIdentity;
     [self.animatingView removeFromSuperview];
+    [_transitionView removeFromSuperview];
+    _transitionView = nil;
 }
 
 - (void)setActions:(AXActionSheetAction *)actions, ... {
@@ -227,22 +238,6 @@
     [self _addupPlaceholderAction];
 }
 
-#pragma mark - UIScrollViewDelegate.
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if ([super respondsToSelector:@selector(scrollViewDidScroll:)]) {
-        [super performSelector:@selector(scrollViewDidScroll:) withObject:scrollView];
-    }
-    
-    AXAlertViewAction *action = _actionItems.lastObject;
-    if ([action isKindOfClass:[AXActionSheetAction class]]) {
-        AXActionSheetAction *_sheetAction = (AXActionSheetAction *)action;
-        if (_sheetAction.style == AXActionSheetActionStyleCancel) {
-            // Pin the cancel action.
-            // ...
-        }
-    }
-}
-
 #pragma mark - Getters.
 - (UIView *)animatingView {
     if (_animatingView) return _animatingView;
@@ -263,6 +258,14 @@
 }
 
 #pragma mark - Private.
+- (UIImage *)_renderedImageOfView:(UIView *)view {
+    UIGraphicsBeginImageContextWithOptions(view.bounds.size, NO, [UIScreen mainScreen].scale);
+    [view.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
+}
+
 - (void)_addupAnimatingViewWithHeight:(CGFloat)height {
     [self.animatingView setFrame:self.contentView.frame];
     [_animatingView setBackgroundColor:[UIColor colorWithWhite:0 alpha:self.opacity]];
