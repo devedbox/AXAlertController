@@ -36,7 +36,7 @@
 + (BOOL)usingAutolayout;
 @end
 
-@interface AXActionSheet () {
+@interface AXActionSheet () <UIScrollViewDelegate> {
     NSMutableArray<AXActionSheetAction *> *_actions;
 }
 
@@ -226,6 +226,23 @@
     
     [self _addupPlaceholderAction];
 }
+
+#pragma mark - UIScrollViewDelegate.
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if ([super respondsToSelector:@selector(scrollViewDidScroll:)]) {
+        [super performSelector:@selector(scrollViewDidScroll:) withObject:scrollView];
+    }
+    
+    AXAlertViewAction *action = _actionItems.lastObject;
+    if ([action isKindOfClass:[AXActionSheetAction class]]) {
+        AXActionSheetAction *_sheetAction = (AXActionSheetAction *)action;
+        if (_sheetAction.style == AXActionSheetActionStyleCancel) {
+            // Pin the cancel action.
+            // ...
+        }
+    }
+}
+
 #pragma mark - Getters.
 - (UIView *)animatingView {
     if (_animatingView) return _animatingView;
