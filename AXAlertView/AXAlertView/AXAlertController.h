@@ -41,22 +41,23 @@ typedef NS_ENUM(NSInteger, AXAlertActionStyle) {
 
 typedef void(^AXAlertActionHandler)(AXAlertAction *__weak _Nonnull action);
 @interface AXAlertAction : NSObject
+
 + (instancetype)actionWithTitle:(nullable NSString *)title handler:(nullable AXAlertActionHandler)handler;
 + (instancetype)actionWithTitle:(nullable NSString *)title style:(AXAlertActionStyle)style handler:(nullable AXAlertActionHandler)handler;
 + (instancetype)actionWithTitle:(nullable NSString *)title image:(nullable UIImage *)image style:(AXAlertActionStyle)style handler:(nullable AXAlertActionHandler)handler;
 
-@property (readonly, nonatomic, nullable) NSString *title;
-@property (readonly, nonatomic) AXAlertActionStyle style;
+@property(readonly, nonatomic, nullable) NSString *title;
+@property(readonly, nonatomic) AXAlertActionStyle style;
 @end
 
 @interface AXAlertController : UIViewController
 /// Alert view.
 @property(readonly, nonatomic) AXAlertView *alertView;
 
-@property (nullable, nonatomic, copy) NSString *title;
-@property (nullable, nonatomic, copy) NSString *message;
+@property(nullable, nonatomic, copy) NSString *title;
+@property(nullable, nonatomic, copy) NSString *message;
 
-@property (readonly, nonatomic) AXAlertControllerStyle preferredStyle;
+@property(readonly, nonatomic) AXAlertControllerStyle preferredStyle;
 
 + (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(AXAlertControllerStyle)preferredStyle;
 
