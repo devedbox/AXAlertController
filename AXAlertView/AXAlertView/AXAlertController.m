@@ -24,8 +24,6 @@
 //  SOFTWARE.
 
 #import "AXAlertController.h"
-#import "AXAlertView.h"
-#import "AXActionSheet.h"
 
 #ifndef AXAlertViewHooks
 #define AXAlertViewHooks(_CustomView) @interface _CustomView : AXAlertView @end @implementation _CustomView @end
@@ -119,17 +117,21 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (AXAlertActionStyle)style { return __style; }
 
 - (AXAlertViewAction *)alertViewAction {
-    return [AXAlertViewAction actionWithTitle:[__title copy] image:__image handler:^(AXAlertViewAction * _Nonnull __weak action) {
+    AXAlertViewAction *_a = [AXAlertViewAction actionWithTitle:[__title copy] image:__image handler:^(AXAlertViewAction * _Nonnull __weak action) {
         if (_handler != NULL) { __weak typeof(self) wself = self; _handler(wself); }
     }];
+    _a.identifier = self.identifier;
+    return _a;
 }
 
 - (AXActionSheetAction *)actionSheetAction {
-    return [AXActionSheetAction actionWithTitle:[__title copy] image:__image style:__style handler:^(AXAlertViewAction * _Nonnull __weak action) {
+    AXActionSheetAction *_a = [AXActionSheetAction actionWithTitle:[__title copy] image:__image style:__style handler:^(AXAlertViewAction * _Nonnull __weak action) {
         if (_handler != NULL) { __weak typeof(self) wself = self; _handler(wself); }
     }];
+    _a.identifier = self.identifier;
+    return _a;
 }
-@end
+@end @implementation AXAlertActionConfiguration @end
 
 @implementation AXAlertController @dynamic title;
 #pragma mark - Life cycle.
@@ -224,14 +226,14 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 #pragma mark - Public.
 - (void)addAction:(AXAlertAction *)action {
+    [self addAction:action configuration:nil];
+}
+
+- (void)addAction:(AXAlertAction *)action configuration:(AXAlertActionConfiguration *)config {
     if (!_actions) _actions = [NSMutableArray array];
     [_actions addObject:action];
     
-    AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
-    config.backgroundColor = [UIColor whiteColor];
-    config.preferedHeight = 44;
-    config.cornerRadius = .0;
-    config.tintColor = [UIColor blackColor];
+    if (config) [self.contentView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count)]];
     
     if (_style == AXAlertControllerStyleActionSheet) {
         AXActionSheetAction *_action = action.actionSheetAction;
@@ -247,11 +249,9 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         }
         [self.contentView appendActions:_action, nil];
     } else {
-        [self.contentView appendActions:action.alertViewAction, nil];
-        config.font = [UIFont systemFontOfSize:16];
+        AXAlertViewAction *_action = action.alertViewAction;
+        [self.contentView appendActions:_action, nil];
     }
-    
-    [self.contentView setActionConfiguration:config];
 }
 
 #pragma mark - Getters.
@@ -288,6 +288,13 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     _alertContentView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
     _alertContentView.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _alertContentView.titleLabel.textColor = [UIColor blackColor];
+    AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
+    config.backgroundColor = [UIColor whiteColor];
+    config.preferedHeight = 44;
+    config.cornerRadius = .0;
+    config.tintColor = [UIColor blackColor];
+    config.font = [UIFont systemFontOfSize:16];
+    [_alertContentView setActionConfiguration:config];
     
     return _alertContentView;
 }
@@ -309,6 +316,13 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     _actionSheetContentView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
     _actionSheetContentView.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _actionSheetContentView.titleLabel.textColor = [UIColor blackColor];
+    AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
+    config.backgroundColor = [UIColor whiteColor];
+    config.preferedHeight = 44;
+    config.cornerRadius = .0;
+    config.tintColor = [UIColor blackColor];
+    [_actionSheetContentView setActionConfiguration:config];
+    
     return _actionSheetContentView;
 }
 

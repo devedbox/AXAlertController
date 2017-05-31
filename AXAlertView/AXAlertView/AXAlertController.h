@@ -24,9 +24,10 @@
 //  SOFTWARE.
 
 #import <UIKit/UIKit.h>
-#import <UIKit/UIAlertController.h>
+#import "AXAlertView.h"
+#import "AXActionSheet.h"
+
 NS_ASSUME_NONNULL_BEGIN
-@class AXAlertView;
 @class AXAlertAction;
 
 typedef NS_ENUM(NSInteger, AXAlertControllerStyle) {
@@ -46,9 +47,11 @@ typedef void(^AXAlertActionHandler)(AXAlertAction *__weak _Nonnull action);
 + (instancetype)actionWithTitle:(nullable NSString *)title style:(AXAlertActionStyle)style handler:(nullable AXAlertActionHandler)handler;
 + (instancetype)actionWithTitle:(nullable NSString *)title image:(nullable UIImage *)image style:(AXAlertActionStyle)style handler:(nullable AXAlertActionHandler)handler;
 
+@property(copy, nonatomic, nullable) NSString *identifier;
 @property(readonly, nonatomic, nullable) NSString *title;
 @property(readonly, nonatomic) AXAlertActionStyle style;
 @end
+@interface AXAlertActionConfiguration : AXAlertViewActionConfiguration @end
 
 @interface AXAlertController : UIViewController
 /// Alert view.
@@ -62,6 +65,7 @@ typedef void(^AXAlertActionHandler)(AXAlertAction *__weak _Nonnull action);
 + (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message preferredStyle:(AXAlertControllerStyle)preferredStyle;
 
 - (void)addAction:(AXAlertAction *)action;
+- (void)addAction:(AXAlertAction *)action configuration:(nullable AXAlertActionConfiguration *)config;
 @property (nonatomic, readonly) NSArray<AXAlertAction *> *actions;
 @end
 NS_ASSUME_NONNULL_END
