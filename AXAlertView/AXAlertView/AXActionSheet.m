@@ -66,11 +66,12 @@
 }
 
 - (void)viewWillShow:(AXAlertView *)alertView animated:(BOOL)animated {
-    [super viewWillShow:alertView animated:animated];
     [self setNeedsLayout];
     [self layoutIfNeeded];
     
     [self _addupAnimatingViewWithHeight:-0.1];
+    
+    [super viewWillShow:alertView animated:animated];
 }
 
 - (void)show:(BOOL)animated {
@@ -110,8 +111,6 @@
 }
 
 - (void)viewWillHide:(AXAlertView *)alertView animated:(BOOL)animated {
-    [super viewWillHide:alertView animated:animated];
-    
     // [self _addupAnimatingViewWithHeight:.0];
     // UIImageView *imageView = [[UIImageView alloc] initWithFrame:self.contentView.frame];
     // imageView.contentMode = UIViewContentModeScaleAspectFill;
@@ -121,6 +120,8 @@
     self.contentView.hidden = YES;
     [self addSubview:transitionView];
     _transitionView = transitionView;
+    
+    [super viewWillHide:alertView animated:animated];
 }
 
 - (void)hide:(BOOL)animated {
@@ -144,6 +145,7 @@
 #else
         _transitionView.frame = rect;
 #endif
+        _animatingView.frame = frame;
         self.alpha = 0.0;
     } completion:^(BOOL finished) {
         if (finished) {
