@@ -159,66 +159,20 @@
 }
 
 - (void)showSheet:(id)sender {
-    AXActionSheet *alertView = [[AXActionSheet alloc] initWithFrame:self.navigationController.view.bounds];
-    alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
-    alertView.padding = 0;
-    alertView.cornerRadius = 10.0;
-    alertView.actionItemMargin = 0;
-    alertView.actionItemPadding = 0;
-    alertView.titleLabel.numberOfLines = 0;
-    alertView.hidesOnTouch = YES;
-    alertView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
-    alertView.title = @"兑换申请已受理";
-    UILabel *label = [UILabel new];
-    label.font = [UIFont systemFontOfSize:14];
-    label.numberOfLines = 0;
-    label.text = @"您还有497个流量币可以兑换，继续兑换？";
-    
-    alertView.customView = label;
-    
-    alertView.titleLabel.font = [UIFont systemFontOfSize:14];
-    
-    alertView.titleLabel.font = [UIFont fontWithName:@"PingFangSC-Medium" size:18];
-    alertView.titleLabel.textColor = [UIColor blackColor];
-    
-    // [alertView setActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL],[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL],nil];
-    [alertView appendActions:[AXActionSheetAction actionWithTitle:@"取消" image:nil style:1 handler:NULL], nil];
-    [alertView appendActions:[AXActionSheetAction actionWithTitle:@"确认" image:nil handler:NULL], nil];
+    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleActionSheet];
+    [alert addAction:[AXAlertAction actionWithTitle:@"取消" style:1 handler:NULL]];
+    [alert addAction:[AXAlertAction actionWithTitle:@"确认" handler:NULL]];
     for (int i = 0; i < 15; i++) {
-        [alertView appendActions:[AXActionSheetAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] image:nil handler:NULL], nil];
-        AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
-        confirmConfig.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
-        confirmConfig.preferedHeight = 50;
-        confirmConfig.cornerRadius = .0;
-        confirmConfig.tintColor = [UIColor blackColor];
-        confirmConfig.translucent = YES;
-        confirmConfig.translucentStyle = AXAlertViewTranslucentLight;
-        [alertView setActionConfiguration:confirmConfig forItemAtIndex:i];
+        [alert addAction:[AXAlertAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] handler:NULL]];
     }
-    // alertView.showsSeparators = NO;
-    // alertView.translucent = NO;
     
-    AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
-    confirmConfig.backgroundColor = [UIColor whiteColor];
-    confirmConfig.preferedHeight = 44;
-    confirmConfig.cornerRadius = .0;
-    confirmConfig.tintColor = [UIColor blackColor];
-    [alertView setActionConfiguration:confirmConfig forItemAtIndex:15];
-    AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
-    cancelConfig.backgroundColor = [UIColor whiteColor];
-    cancelConfig.preferedHeight = 44;
-    cancelConfig.cornerRadius = .0;
-    cancelConfig.tintColor = [UIColor blackColor];
-    cancelConfig.separatorHeight = 0.0;
-    [alertView setActionConfiguration:cancelConfig forItemAtIndex:16];
-    [self.navigationController.view addSubview:alertView];
-    [alertView show:YES];
+    [self presentViewController:alert animated:YES completion:NULL];
 }
 
 - (void)showController:(id)sender {
-    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..."];
-    [alert addAction:[AXAlertViewAction actionWithTitle:@"取消" handler:NULL]];
-    [alert addAction:[AXAlertViewAction actionWithTitle:@"确定" handler:NULL]];
+    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
+    [alert addAction:[AXAlertAction actionWithTitle:@"取消" style:AXAlertActionStyleDefault handler:NULL]];
+    [alert addAction:[AXAlertAction actionWithTitle:@"确定" style:AXAlertActionStyleDefault handler:NULL]];
     [self presentViewController:alert animated:YES completion:NULL];
 }
 
