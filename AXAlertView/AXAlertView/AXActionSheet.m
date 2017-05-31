@@ -40,6 +40,7 @@
     UIView *__weak _transitionView;
 }
 
+@property(readonly, nonatomic) UIView *transitionView;
 @property(strong, nonatomic) UIView *animatingView;
 @end
 
@@ -121,6 +122,9 @@
     [self addSubview:transitionView];
     _transitionView = transitionView;
     
+    [self setNeedsLayout];
+    [self layoutIfNeeded];
+    
     [super viewWillHide:alertView animated:animated];
 }
 
@@ -128,9 +132,6 @@
     if (self->_processing) return;
     [self viewWillHide:self animated:animated];
     __weak typeof(self) wself = self;
-    
-    [self setNeedsLayout];
-    [self layoutIfNeeded];
     
     CGRect frame = self.contentView.frame;
 #if AXAlertViewUsingAutolayout
@@ -241,6 +242,7 @@
 }
 
 #pragma mark - Getters.
+- (UIView *)transitionView { return _transitionView; }
 - (UIView *)animatingView {
     if (_animatingView) return _animatingView;
     _animatingView = [UIView new];
