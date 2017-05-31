@@ -146,7 +146,7 @@
         _transitionView.frame = rect;
 #endif
         _animatingView.frame = frame;
-        self.alpha = 0.0;
+        // self.alpha = 0.0;
     } completion:^(BOOL finished) {
         if (finished) {
             [wself viewDidHide:self animated:animated];
