@@ -222,8 +222,8 @@
     }
 }
 
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forItemAtIndex:(NSUInteger)index {
-    [super setActionConfiguration:configuration forItemAtIndex:index];
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forKey:(NSString *)key {
+    [super setActionConfiguration:configuration forKey:key];
     
     [self _addupPlaceholderAction];
 }
@@ -296,9 +296,10 @@
         }
     }] != NSNotFound) {
         if ([_actionItems.lastObject isKindOfClass:[AXActionSheetAction class]]) {
-            NSString *key = [NSString stringWithFormat:@"%@", @(_actionItems.count-1)];
+            NSString *ident = _actionItems.lastObject.identifier;
+            NSString *key = ident.length?ident:[NSString stringWithFormat:@"%@", @(_actionItems.count-1)];
             if (_actionConfig[key] != nil) {
-                [_actionConfig setObject:_actionConfig[key] forKey:[NSString stringWithFormat:@"%@", @(_actionItems.count)]];
+                [_actionConfig setObject:_actionConfig[key] forKey:ident.length?ident:[NSString stringWithFormat:@"%@", @(_actionItems.count)]];
             }
             
             AXAlertViewPlaceholderActionConfiguration *config = [AXAlertViewPlaceholderActionConfiguration new];
