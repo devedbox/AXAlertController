@@ -162,9 +162,9 @@
     AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleActionSheet];
     [alert addAction:[AXAlertAction actionWithTitle:@"取消" style:1 handler:NULL]];
     [alert addAction:[AXAlertAction actionWithTitle:@"确认" handler:NULL]];
-    for (int i = 0; i < 15; i++) {
-        [alert addAction:[AXAlertAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] handler:NULL]];
-    }
+    // for (int i = 0; i < 15; i++) {
+        // [alert addAction:[AXAlertAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] handler:NULL]];
+    // }
     
     [self presentViewController:alert animated:YES completion:NULL];
 }
