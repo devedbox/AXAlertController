@@ -142,7 +142,7 @@
             [self showNormal:cell];
         } break;
         case 1: {
-            [self showNormalWithoutCustomView:cell];
+            [self showController:cell];
         } break;
         case 2: {
             [self showMoreItems:cell];
@@ -151,7 +151,7 @@
             [self showSheet:cell];
         } break;
         case 4: {
-            [self showController:cell];
+            [self showNormalWithoutCustomView:cell];
         } break;
         default:
             break;
