@@ -60,6 +60,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     BOOL _isViewDidAppear;
     BOOL _animated;
     
+    BOOL _translucent;
+    
     AXAlertControllerStyle _style;
     NSMutableArray<AXAlertAction *> *_actions;
 }
@@ -269,6 +271,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (_AXAlertControllerAlertContentView *)alertContentView {
     if (_alertContentView) return  _alertContentView;
     _alertContentView = [[_AXAlertControllerAlertContentView alloc] initWithFrame:self.view.bounds];
+    [_alertContentView setBackgroundColor:[UIColor whiteColor]];
     [_alertContentView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
     _alertContentView.opacity = 0.0;
     _alertContentView.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
@@ -296,6 +299,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (_AXAlertControllerSheetContentView *)actionSheetContentView {
     if (_actionSheetContentView) return _actionSheetContentView;
     _actionSheetContentView = [[_AXAlertControllerSheetContentView alloc] initWithFrame:self.view.bounds];
+    [_actionSheetContentView setBackgroundColor:[UIColor whiteColor]];
     [_actionSheetContentView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
     _actionSheetContentView.opacity = 0.0;
     _actionSheetContentView.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
@@ -343,6 +347,15 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         UIView *view = [_actionSheetContentView valueForKeyPath:@"animatingView"];
         [view setBackgroundColor:[UIColor colorWithWhite:0 alpha:self.underlyingView.opacity]];
         [self.underlyingView addSubview:view];
+    } else {
+        _translucent = self.contentView.translucent;
+        self.contentView.translucent = NO;
+    }
+}
+
+- (void)alertViewDidShow:(AXAlertView *)alertView {
+    if (_style == AXAlertControllerStyleAlert) {
+        self.contentView.translucent = _translucent;
     }
 }
 
@@ -352,8 +365,17 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         UIView *transitionView = [_actionSheetContentView valueForKeyPath:@"transitionView"];
         UIView *containerView = /*self.view.superview ?: self.view*/self.view.window;
         [containerView addSubview:transitionView];
+    } else {
+        _translucent = self.contentView.translucent;
+        self.contentView.translucent = NO;
     }
     [self _dismiss:alertView];
+}
+
+- (void)alertViewDidHide:(AXAlertView *)alertView {
+    if (_style == AXAlertControllerStyleAlert) {
+        self.contentView.translucent = _translucent;
+    }
 }
 
 #pragma mark - Private.
@@ -367,6 +389,9 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 - (void)_addContentViewToContainer {
     UIView *containerView = self.view.superview ?: self.view;
+    if (_style == AXAlertControllerStyleAlert) {
+        containerView = self.view;
+    }
     [containerView addSubview:self.contentView];
     [self.contentView setNeedsLayout];
     [self.contentView layoutIfNeeded];
