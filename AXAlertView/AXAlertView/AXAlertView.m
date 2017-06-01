@@ -25,10 +25,10 @@
 
 #import "AXAlertView.h"
 
-#ifndef AXAlertViewUsingAutolayout
-#define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
+// #ifndef AXAlertViewUsingAutolayout
+// #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
 // #define AXAlertViewUsingAutolayout 0
-#endif
+// #endif
 #ifndef AXAlertViewCustomViewHooks2
 #define AXAlertViewCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
 #endif
@@ -206,16 +206,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self addSubview:self.containerView];
     [self.containerView addSubview:self.contentContainerView];
     [self.containerView addSubview:self.titleLabel];
-#if AXAlertViewUsingAutolayout
-    [self.contentContainerView addSubview:self.stackView];
     
-    // Add contraints to self of container view.
-    [self _addContraintsOfContainerToSelf];
-    // Add contraints to self of the views.
-    [self _addContraintsOfTitleLabelAndContentViewToContainerView];
-    // Add contraints to custom and stack view.
-    [self _addContraintsOfCustomViewAndStackViewToContentView];
-#endif
+    if ([[self class] usingAutolayout]) {
+        [self.contentContainerView addSubview:self.stackView];
+        
+        // Add contraints to self of container view.
+        [self _addContraintsOfContainerToSelf];
+        // Add contraints to self of the views.
+        [self _addContraintsOfTitleLabelAndContentViewToContainerView];
+        // Add contraints to custom and stack view.
+        [self _addContraintsOfCustomViewAndStackViewToContentView];
+    }
     
     [_contentContainerView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:NULL];
     
@@ -249,41 +250,41 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             }
         }
         
-#if AXAlertViewUsingAutolayout
-        if (_translucent) {
-            if (height >= flag) {
-                _equalHeightOfEffectFlexibleAndStack.active = NO;
-                _heightOfEffectFlexibleView.active = !_equalHeightOfEffectFlexibleAndStack.active;
-                
-                NSLayoutConstraint *heightOfStack =
-                [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
-                                             attribute:NSLayoutAttributeHeight
-                                             relatedBy:NSLayoutRelationEqual
-                                                toItem:nil attribute:NSLayoutAttributeNotAnAttribute
-                                            multiplier:1.0 constant:0.0];
-                [_stackFlexibleView removeConstraints:_stackFlexibleView.constraints];
-                [_stackFlexibleView addConstraint:heightOfStack];
-                _heightOfEffectFlexibleView = heightOfStack;
-            } else {
-                _equalHeightOfEffectFlexibleAndStack.active = YES;
-                _heightOfEffectFlexibleView.active = !_equalHeightOfEffectFlexibleAndStack.active;
-                
-                NSLayoutConstraint *equalOfStack =
-                [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
-                                             attribute:NSLayoutAttributeHeight
-                                             relatedBy:NSLayoutRelationEqual
-                                                toItem:_stackView
-                                             attribute:NSLayoutAttributeHeight
-                                            multiplier:1.0 constant:0.0];
-                [_stackFlexibleView removeConstraints:_stackFlexibleView.constraints];
-                if (_equalHeightOfEffectFlexibleAndStack) [_containerView removeConstraint:_equalHeightOfEffectFlexibleAndStack];
-                [_containerView addConstraint:equalOfStack];
-                _equalHeightOfEffectFlexibleAndStack = equalOfStack;
+        if ([[self class] usingAutolayout]) {
+            if (_translucent) {
+                if (height >= flag) {
+                    _equalHeightOfEffectFlexibleAndStack.active = NO;
+                    _heightOfEffectFlexibleView.active = !_equalHeightOfEffectFlexibleAndStack.active;
+                    
+                    NSLayoutConstraint *heightOfStack =
+                    [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
+                                                 attribute:NSLayoutAttributeHeight
+                                                 relatedBy:NSLayoutRelationEqual
+                                                    toItem:nil attribute:NSLayoutAttributeNotAnAttribute
+                                                multiplier:1.0 constant:0.0];
+                    [_stackFlexibleView removeConstraints:_stackFlexibleView.constraints];
+                    [_stackFlexibleView addConstraint:heightOfStack];
+                    _heightOfEffectFlexibleView = heightOfStack;
+                } else {
+                    _equalHeightOfEffectFlexibleAndStack.active = YES;
+                    _heightOfEffectFlexibleView.active = !_equalHeightOfEffectFlexibleAndStack.active;
+                    
+                    NSLayoutConstraint *equalOfStack =
+                    [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
+                                                 attribute:NSLayoutAttributeHeight
+                                                 relatedBy:NSLayoutRelationEqual
+                                                    toItem:_stackView
+                                                 attribute:NSLayoutAttributeHeight
+                                                multiplier:1.0 constant:0.0];
+                    [_stackFlexibleView removeConstraints:_stackFlexibleView.constraints];
+                    if (_equalHeightOfEffectFlexibleAndStack) [_containerView removeConstraint:_equalHeightOfEffectFlexibleAndStack];
+                    [_containerView addConstraint:equalOfStack];
+                    _equalHeightOfEffectFlexibleAndStack = equalOfStack;
+                }
             }
+            
+            [self _updateHeightConstraintsOfContentViewWithHeight:height];
         }
-        
-        [self _updateHeightConstraintsOfContentViewWithHeight:height];
-#endif
         
         [self setNeedsDisplay];
     } else {
@@ -312,131 +313,133 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)layoutSubviews {
     // Call SUPER.
     [super layoutSubviews];
-#if !AXAlertViewUsingAutolayout
-    // Get the current frame of SELF.
-    CGRect currentFrame = self.frame;
-    // Initialize a CGSize struct of custom view and title label using the current frame and prefered magin and the insets.
-    CGSize sizeOfCustomView = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin) - (_contentInset.left+_contentInset.right)-(_customViewInset.left+_customViewInset.right), 0);
-    CGSize sizeOfTitleLabel = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin) - (_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right), 0);
-    // Calculate size of title label.
-    if (_titleLabel.numberOfLines == 1) {// If number of lines of the title label.
-        // Size to fit text content.
-        [_titleLabel sizeToFit];
-        // Set height of the title label.
-        sizeOfTitleLabel.height = _titleLabel.bounds.size.height;
-    } else {// Or calculate the size using the TextKit.
-        // Calculate size.
-        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(sizeOfTitleLabel.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:_titleLabel.font} context:NULL].size;
-        // Set height of size.
-        sizeOfTitleLabel.height = ceil(size.height);
-    }
-    // Height of the title label will only be allowed to half of height of SELF.
-    sizeOfTitleLabel.height = MIN(sizeOfTitleLabel.height, CGRectGetHeight(currentFrame)*.5);
-    // Calculate size of the custom view.
-    if ([_customView isKindOfClass:UILabel.class]) {// For the case of custom view is being a kind of UILabel.
-        // Calculte the size of label.
-        UILabel *label = (UILabel *)_customView;
-        // Using bounding rect way.
-        CGSize size = [label.text boundingRectWithSize:CGSizeMake(sizeOfCustomView.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:label.font} context:NULL].size;
-        // Set height of size.
-        sizeOfCustomView.height = ceil(size.height)+_customViewInset.top+_customViewInset.bottom;
-    } else {// Size to fit content whatever it is.
-        // Size that fit the width of SELF.
-        [_customView sizeToFit];
-        // Set height of size.
-        sizeOfCustomView.height = _customView.bounds.size.height+_customViewInset.top+_customViewInset.bottom;
-    }
-    // Plus all the heights and paddings adding to a total height of container view.
-    CGFloat heightOfContainer = .0;
-    heightOfContainer += _contentInset.top;
-    if (_titleLabel.text.length > 0) {
-        heightOfContainer += _titleInset.top;
-        heightOfContainer += sizeOfTitleLabel.height;
-        heightOfContainer += _titleInset.bottom;
-        heightOfContainer += _padding;
-    }
-    heightOfContainer += sizeOfCustomView.height;
-    // Plus all the heights of the action items ignoring the paddings.
-    CGFloat heightOfItems = .0;
     
-    if (_actionItems.count > _horizontalLimits) {
-        for (int i = 0; i < _actionItems.count; i++) {
-            AXAlertViewAction *action = _actionItems[i];
-            NSString *identifier = action.identifier;
-            AXAlertViewActionConfiguration *config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
-            if (config) {
-                if (i == 0) {
-                    heightOfContainer += _padding;
-                } else {
-                    heightOfContainer += _actionItemPadding;
-                }
-                heightOfContainer += /*0.5+ */config.preferedHeight;
-                heightOfItems += /*0.5+ */config.preferedHeight;
-            }
+    if (![[self class] usingAutolayout]) {
+        // Get the current frame of SELF.
+        CGRect currentFrame = self.frame;
+        // Initialize a CGSize struct of custom view and title label using the current frame and prefered magin and the insets.
+        CGSize sizeOfCustomView = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin) - (_contentInset.left+_contentInset.right)-(_customViewInset.left+_customViewInset.right), 0);
+        CGSize sizeOfTitleLabel = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin) - (_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right), 0);
+        // Calculate size of title label.
+        if (_titleLabel.numberOfLines == 1) {// If number of lines of the title label.
+            // Size to fit text content.
+            [_titleLabel sizeToFit];
+            // Set height of the title label.
+            sizeOfTitleLabel.height = _titleLabel.bounds.size.height;
+        } else {// Or calculate the size using the TextKit.
+            // Calculate size.
+            CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(sizeOfTitleLabel.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:_titleLabel.font} context:NULL].size;
+            // Set height of size.
+            sizeOfTitleLabel.height = ceil(size.height);
         }
-    } else {
-        CGFloat maxHeightOfItem = .0;
-        for (int i = 0; i < _actionItems.count; i++) {
-            AXAlertViewAction *action = _actionItems[i];
-            NSString *identifier = action.identifier;
-            AXAlertViewActionConfiguration *config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
-            if (config) {
-                maxHeightOfItem = MAX(maxHeightOfItem, config.preferedHeight);
-                heightOfItems = maxHeightOfItem;
-            }
+        // Height of the title label will only be allowed to half of height of SELF.
+        sizeOfTitleLabel.height = MIN(sizeOfTitleLabel.height, CGRectGetHeight(currentFrame)*.5);
+        // Calculate size of the custom view.
+        if ([_customView isKindOfClass:UILabel.class]) {// For the case of custom view is being a kind of UILabel.
+            // Calculte the size of label.
+            UILabel *label = (UILabel *)_customView;
+            // Using bounding rect way.
+            CGSize size = [label.text boundingRectWithSize:CGSizeMake(sizeOfCustomView.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName:label.font} context:NULL].size;
+            // Set height of size.
+            sizeOfCustomView.height = ceil(size.height)+_customViewInset.top+_customViewInset.bottom;
+        } else {// Size to fit content whatever it is.
+            // Size that fit the width of SELF.
+            [_customView sizeToFit];
+            // Set height of size.
+            sizeOfCustomView.height = _customView.bounds.size.height+_customViewInset.top+_customViewInset.bottom;
         }
-        heightOfContainer += _padding;
-        heightOfContainer += /*0.5+ */heightOfItems;
-    }
-    heightOfContainer += _contentInset.bottom;
-    
-    heightOfContainer = MAX(heightOfContainer, _preferedHeight);
-    
-    // Frame of container view.
-    CGRect rect_container = _containerView.frame;
-    rect_container.origin.x = _preferedMargin.left;
-    
-    if (heightOfContainer > CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)) { // Too large to show.
-        rect_container.origin.y = _preferedMargin.top;
-        rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin));
-        _containerView.frame = rect_container;
-        // Enabled the scroll of the content container view.
-        _contentContainerView.scrollEnabled = YES;
-        // Set up hooked content view.
-        [self _setupContentHookedView];
+        // Plus all the heights and paddings adding to a total height of container view.
+        CGFloat heightOfContainer = .0;
+        heightOfContainer += _contentInset.top;
+        if (_titleLabel.text.length > 0) {
+            heightOfContainer += _titleInset.top;
+            heightOfContainer += sizeOfTitleLabel.height;
+            heightOfContainer += _titleInset.bottom;
+            heightOfContainer += _padding;
+        }
+        heightOfContainer += sizeOfCustomView.height;
+        // Plus all the heights of the action items ignoring the paddings.
+        CGFloat heightOfItems = .0;
         
-        _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer);
-    } else {
-        rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5;
-        rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
-        _containerView.frame = rect_container;
-        // Disable the scroll of the content container view.
-        _contentContainerView.scrollEnabled = NO;
-        // Using the bounds of the container view for the short content:
-        //
-        // _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), _contentInset.top+_titleInset.top+sizeOfTitleLabel.height+sizeOfCustomView.height+_titleInset.bottom);
-        _effectView.frame = _containerView.bounds;
+        if (_actionItems.count > _horizontalLimits) {
+            for (int i = 0; i < _actionItems.count; i++) {
+                AXAlertViewAction *action = _actionItems[i];
+                NSString *identifier = action.identifier;
+                AXAlertViewActionConfiguration *config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
+                if (config) {
+                    if (i == 0) {
+                        heightOfContainer += _padding;
+                    } else {
+                        heightOfContainer += _actionItemPadding;
+                    }
+                    heightOfContainer += /*0.5+ */config.preferedHeight;
+                    heightOfItems += /*0.5+ */config.preferedHeight;
+                }
+            }
+        } else {
+            CGFloat maxHeightOfItem = .0;
+            for (int i = 0; i < _actionItems.count; i++) {
+                AXAlertViewAction *action = _actionItems[i];
+                NSString *identifier = action.identifier;
+                AXAlertViewActionConfiguration *config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]]?:_actionConfiguration;
+                if (config) {
+                    maxHeightOfItem = MAX(maxHeightOfItem, config.preferedHeight);
+                    heightOfItems = maxHeightOfItem;
+                }
+            }
+            heightOfContainer += _padding;
+            heightOfContainer += /*0.5+ */heightOfItems;
+        }
+        heightOfContainer += _contentInset.bottom;
+        
+        heightOfContainer = MAX(heightOfContainer, _preferedHeight);
+        
+        // Frame of container view.
+        CGRect rect_container = _containerView.frame;
+        rect_container.origin.x = _preferedMargin.left;
+        
+        if (heightOfContainer > CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)) { // Too large to show.
+            rect_container.origin.y = _preferedMargin.top;
+            rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin));
+            _containerView.frame = rect_container;
+            // Enabled the scroll of the content container view.
+            _contentContainerView.scrollEnabled = YES;
+            // Set up hooked content view.
+            [self _setupContentHookedView];
+            
+            _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer);
+        } else {
+            rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5;
+            rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
+            _containerView.frame = rect_container;
+            // Disable the scroll of the content container view.
+            _contentContainerView.scrollEnabled = NO;
+            // Using the bounds of the container view for the short content:
+            //
+            // _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), _contentInset.top+_titleInset.top+sizeOfTitleLabel.height+sizeOfCustomView.height+_titleInset.bottom);
+            _effectView.frame = _containerView.bounds;
+        }
+        
+        // Frame of title label.
+        CGRect rect_title = _titleLabel.frame;
+        rect_title.origin.x = _contentInset.left+_titleInset.left;
+        rect_title.origin.y = _contentInset.top+_titleInset.top;
+        rect_title.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right);
+        rect_title.size.height = sizeOfTitleLabel.height;
+        _titleLabel.frame = rect_title;
+        
+        // Frame of conent container view.
+        CGRect rect_content = _contentContainerView.frame;
+        rect_content.origin.x = _contentInset.left;
+        rect_content.origin.y = CGRectGetMaxY(rect_title) + _titleInset.bottom + _padding + _customViewInset.top;
+        rect_content.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right);
+        rect_content.size.height = CGRectGetHeight(rect_container)-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_customViewInset.top-_contentInset.bottom;
+        _contentContainerView.frame = rect_content;
+        // Calculate the content size of the content container view.
+        _contentContainerView.contentSize = CGSizeMake(CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right), heightOfContainer-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_customViewInset.top-_contentInset.bottom);
+        _customView.frame = CGRectMake(_customViewInset.left, /*_customViewInset.top*/0, sizeOfCustomView.width, sizeOfCustomView.height-(_customViewInset.top+_customViewInset.bottom));
     }
     
-    // Frame of title label.
-    CGRect rect_title = _titleLabel.frame;
-    rect_title.origin.x = _contentInset.left+_titleInset.left;
-    rect_title.origin.y = _contentInset.top+_titleInset.top;
-    rect_title.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right);
-    rect_title.size.height = sizeOfTitleLabel.height;
-    _titleLabel.frame = rect_title;
-    
-    // Frame of conent container view.
-    CGRect rect_content = _contentContainerView.frame;
-    rect_content.origin.x = _contentInset.left;
-    rect_content.origin.y = CGRectGetMaxY(rect_title) + _titleInset.bottom + _padding + _customViewInset.top;
-    rect_content.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right);
-    rect_content.size.height = CGRectGetHeight(rect_container)-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_customViewInset.top-_contentInset.bottom;
-    _contentContainerView.frame = rect_content;
-    // Calculate the content size of the content container view.
-    _contentContainerView.contentSize = CGSizeMake(CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right), heightOfContainer-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_customViewInset.top-_contentInset.bottom);
-    _customView.frame = CGRectMake(_customViewInset.left, /*_customViewInset.top*/0, sizeOfCustomView.width, sizeOfCustomView.height-(_customViewInset.top+_customViewInset.bottom));
-#endif
     [self configureActions];
     [self setNeedsDisplay];
 }
@@ -574,11 +577,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _titleLabel.numberOfLines = 1;
     _titleLabel.textAlignment = NSTextAlignmentCenter;
-#if AXAlertViewUsingAutolayout
-    _titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
-#else
-    _titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-#endif
+    if ([[self class] usingAutolayout]) {
+        _titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    } else {
+        _titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    }
     return _titleLabel;
 }
 
@@ -589,11 +592,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _containerView.backgroundColor = [UIColor whiteColor];
     _containerView.layer.cornerRadius = _cornerRadius;
     _containerView.layer.masksToBounds = YES;
-#if AXAlertViewUsingAutolayout
-    _containerView.translatesAutoresizingMaskIntoConstraints = NO;
-#else
-    _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-#endif
+    if ([[self class] usingAutolayout]) {
+        _containerView.translatesAutoresizingMaskIntoConstraints = NO;
+    } else {
+        _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    }
     return _containerView;
 }
 
@@ -606,11 +609,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _contentContainerView.showsHorizontalScrollIndicator = NO;
     _contentContainerView.alwaysBounceVertical = YES;
     _contentContainerView.delegate = self;
-#if AXAlertViewUsingAutolayout
-    _contentContainerView.translatesAutoresizingMaskIntoConstraints = NO;
-#else
-    _contentContainerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-#endif
+    if ([[self class] usingAutolayout]) {
+        _contentContainerView.translatesAutoresizingMaskIntoConstraints = NO;
+    } else {
+        _contentContainerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    }
     return _contentContainerView;
 }
 
@@ -626,11 +629,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (_effectView) return _effectView;
     _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
     _effectView.frame = self.bounds;
-#if AXAlertViewUsingAutolayout
-    _effectView.translatesAutoresizingMaskIntoConstraints = NO;
-#else
-    _effectView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-#endif
+    if ([[self class] usingAutolayout]) {
+        _effectView.translatesAutoresizingMaskIntoConstraints = NO;
+    } else {
+        _effectView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    }
     return _effectView;
 }
 
@@ -661,13 +664,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)setTitle:(NSString *)title {
     _titleLabel.text = title;
-#if AXAlertViewUsingAutolayout
-    // [_contentContainerView setNeedsUpdateConstraints];
-    // [_contentContainerView updateConstraintsIfNeeded];
-#else
-    [_titleLabel sizeToFit];
-    [self performSelector:@selector(_layoutSubviews) onThread:[NSThread mainThread] withObject:nil waitUntilDone:NO];
-#endif
+    if (![[self class] usingAutolayout]) {
+        [_titleLabel sizeToFit];
+        [self _layoutSubviews];
+    }
 }
 
 - (void)setCornerRadius:(CGFloat)cornerRadius {
@@ -699,11 +699,12 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (customView == nil) {
         [_customView removeFromSuperview];
         _customView = nil;
-#if AXAlertViewUsingAutolayout
-        [_stackView removeFromSuperview];
         
-        [self _addContraintsOfCustomViewAndStackViewToContentView];
-#endif
+        if ([[self class] usingAutolayout]) {
+            [_stackView removeFromSuperview];
+            
+            [self _addContraintsOfCustomViewAndStackViewToContentView];
+        }
     } else {
         _customView = customView;
         [self configureCustomView];
@@ -725,23 +726,26 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _translucent = translucent;
     
     if (_translucent) {
-#if AXAlertViewUsingAutolayout
-        [self.containerView insertSubview:self.effectFlexibleView atIndex:0];
-        [self.containerView insertSubview:self.stackFlexibleView atIndex:0];
-#endif
+        if ([[self class] usingAutolayout]) {
+            [self.containerView insertSubview:self.effectFlexibleView atIndex:0];
+            [self.containerView insertSubview:self.stackFlexibleView atIndex:0];
+        }
+        
         [self.containerView insertSubview:self.effectView atIndex:0];
         if (_translucentStyle == AXAlertViewTranslucentDark) {
             _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleDark];
         } else {
             _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight];
         }
-#if AXAlertViewUsingAutolayout
-        [self _addContraintsOfEffectViewToContainerView];
-#else
-        _effectView.frame = _containerView.bounds;
-        // Set up hooked view if needed.
-        if (_contentContainerView.scrollEnabled) [self _setupContentHookedView];
-#endif
+        
+        if ([[self class] usingAutolayout]) {
+            [self _addContraintsOfEffectViewToContainerView];
+        } else {
+            _effectView.frame = _containerView.bounds;
+            // Set up hooked view if needed.
+            if (_contentContainerView.scrollEnabled) [self _setupContentHookedView];
+        }
+
         [self _layoutSubviews];
         
         _containerView.backgroundColor = [UIColor clearColor];
@@ -768,61 +772,70 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)setContentInset:(UIEdgeInsets)contentInset {
     _contentInset = contentInset;
-#if AXAlertViewUsingAutolayout
-    _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
-    _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
-    _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
-    _leadingOfContent.constant = -_contentInset.left;
-    _trailingOfContent.constant = _contentInset.right;
-    _bottomOfContent.constant = _contentInset.bottom;
-    _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
-#endif
+    
+    if ([[self class] usingAutolayout]) {
+        _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
+        _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
+        _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
+        _leadingOfContent.constant = -_contentInset.left;
+        _trailingOfContent.constant = _contentInset.right;
+        _bottomOfContent.constant = _contentInset.bottom;
+        _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
+    }
+    
     [self configureCustomView];
     [self _layoutSubviews];
 }
 
 - (void)setCustomViewInset:(UIEdgeInsets)customViewInset {
     _customViewInset = customViewInset;
-#if AXAlertViewUsingAutolayout
-    _leadingOfCustom.constant = -_customViewInset.left;
-    _trailingOfCustom.constant = _customViewInset.right;
-    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
-    _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
-#endif
+
+    if ([[self class] usingAutolayout]) {
+        _leadingOfCustom.constant = -_customViewInset.left;
+        _trailingOfCustom.constant = _customViewInset.right;
+        _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
+        _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
+    }
+    
     [self configureCustomView];
     [self _layoutSubviews];
 }
 
 - (void)setTitleInset:(UIEdgeInsets)titleInset {
     _titleInset = titleInset;
-#if AXAlertViewUsingAutolayout
-    _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
-    _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
-    _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
-    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
-#endif
+
+    if ([[self class] usingAutolayout]) {
+        _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
+        _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
+        _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
+        _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
+    }
+    
     [self _layoutSubviews];
 }
 
 - (void)setPadding:(CGFloat)padding {
     _padding = padding;
     
-#if AXAlertViewUsingAutolayout
-    _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
-    _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
-    _topOfStackView.constant = -_padding-_customViewInset.top;
-#endif
+    if ([[self class] usingAutolayout]) {
+        _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
+        _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
+        _topOfStackView.constant = -_padding-_customViewInset.top;
+    }
+    
     [self configureCustomView];
     [self _layoutSubviews];
 }
 
 - (void)setActionItemMargin:(CGFloat)actionItemMargin {
     _actionItemMargin = actionItemMargin;
-#if AXAlertViewUsingAutolayout
-    _leadingOfStackView.constant = -_actionItemMargin;
-    _trailingOfStackView.constant = _actionItemMargin;
-    _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
-#endif
+
+    if ([[self class] usingAutolayout]) {
+        _leadingOfStackView.constant = -_actionItemMargin;
+        _trailingOfStackView.constant = _actionItemMargin;
+        _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
+    }
+    
     [self configureCustomView];
     [self _layoutSubviews];
 }
@@ -846,21 +859,25 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)setPreferedHeight:(CGFloat)preferedHeight {
     _preferedHeight = preferedHeight;
-#if AXAlertViewUsingAutolayout
-    _heightOfContainer.constant = _preferedHeight;
-#endif
+
+    if ([[self class] usingAutolayout]) {
+        _heightOfContainer.constant = _preferedHeight;
+    }
+    
     [self _layoutSubviews];
     [self configureCustomView];
 }
 
 - (void)setPreferedMargin:(AXEdgeMargins)preferedMargin {
     _preferedMargin = preferedMargin;
-#if AXAlertViewUsingAutolayout
-    _leadingOfContainer.constant = -_preferedMargin.left;
-    _trailingOfContainer.constant = _preferedMargin.right;
-    _topOfContainer.constant = -_preferedMargin.top;
-    _bottomOfContainer.constant = _preferedMargin.bottom;
-#endif
+    
+    if ([[self class] usingAutolayout]) {
+        _leadingOfContainer.constant = -_preferedMargin.left;
+        _trailingOfContainer.constant = _preferedMargin.right;
+        _topOfContainer.constant = -_preferedMargin.top;
+        _bottomOfContainer.constant = _preferedMargin.bottom;
+    }
+    
     [self _layoutSubviews];
     [self configureCustomView];
 }
@@ -1006,9 +1023,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_handleDeviceOrientationDidChange {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:_cmd object:nil];
     [self _layoutSubviews];
-#if !AXAlertViewUsingAutolayout
-    [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
-#endif
+
+    if (![[self class] usingAutolayout]) {
+        [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+    }
+    
     [self set_shouldExceptContentBackground:NO];
     [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.25];
 }
@@ -1345,20 +1364,18 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)configureCustomView {
-    if (!self.customView) {
-        return;
-    }
-#if AXAlertViewUsingAutolayout
-    if (_customView && _customView.superview == self) [_customView removeFromSuperview];
-#endif
-    [_contentContainerView addSubview:_customView];
-#if AXAlertViewUsingAutolayout
-    _customView.translatesAutoresizingMaskIntoConstraints = NO;
+    if (!self.customView) { return; }
     
-    [_stackView removeFromSuperview];
-    [_contentContainerView addSubview:_stackView];
-    [self _addContraintsOfCustomViewAndStackViewToContentView];
-#endif
+    if ([[self class] usingAutolayout]) { if (_customView && _customView.superview == self) [_customView removeFromSuperview]; }
+    [_contentContainerView addSubview:_customView];
+    
+    if ([[self class] usingAutolayout]) {
+        _customView.translatesAutoresizingMaskIntoConstraints = NO;
+        
+        [_stackView removeFromSuperview];
+        [_contentContainerView addSubview:_stackView];
+        [self _addContraintsOfCustomViewAndStackViewToContentView];
+    }
     
     [self setNeedsLayout];
 }
@@ -1370,14 +1387,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _actionButtons = [self buttonsWithActions:_actionItems];
     if (_actionButtons.count == 0) return;
     if (_actionButtons.count > _horizontalLimits) {
-#if AXAlertViewUsingAutolayout
-        _stackView.axis = UILayoutConstraintAxisVertical;
-        _stackView.distribution = UIStackViewDistributionFill;
-        _stackView.alignment = UIStackViewAlignmentFill;
-        _stackView.spacing = _padding;
+        if ([[self class] usingAutolayout]) {
+            _stackView.axis = UILayoutConstraintAxisVertical;
+            _stackView.distribution = UIStackViewDistributionFill;
+            _stackView.alignment = UIStackViewAlignmentFill;
+            _stackView.spacing = _padding;
+            
+            [_stackView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+        }
         
-        [_stackView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
-#endif
         if (_translucent) {
             [self _setExceptionAllowedWidth:0.5];
         }
@@ -1395,22 +1413,22 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             }
             config = config?:_actionConfiguration;
             
-#if AXAlertViewUsingAutolayout
-            [object setTranslatesAutoresizingMaskIntoConstraints:NO];
-            [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
-            
-            [_stackView addArrangedSubview:object];
-#else
-            CGFloat beginContext = .0;
-            if (i == 0) {
-                beginContext = CGRectGetMaxY(_customView.frame) + _customViewInset.bottom + _padding;
+            if ([[self class] usingAutolayout]) {
+                [object setTranslatesAutoresizingMaskIntoConstraints:NO];
+                [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+                
+                [_stackView addArrangedSubview:object];
             } else {
-                UIView *lastItem = _actionButtons[i-1];
-                beginContext = CGRectGetMaxY(lastItem.frame) + _actionItemPadding;
+                CGFloat beginContext = .0;
+                if (i == 0) {
+                    beginContext = CGRectGetMaxY(_customView.frame) + _customViewInset.bottom + _padding;
+                } else {
+                    UIView *lastItem = _actionButtons[i-1];
+                    beginContext = CGRectGetMaxY(lastItem.frame) + _actionItemPadding;
+                }
+                [object setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
+                [self.contentContainerView addSubview:object];
             }
-            [object setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
-            [self.contentContainerView addSubview:object];
-#endif
             
             if (![object isMemberOfClass:[_AXAlertContentPlacehodlerView class]]) {
                 _AXTranslucentButton *button = (_AXTranslucentButton *)object;
@@ -1428,13 +1446,16 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             
         } [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
     } else {
-#if AXAlertViewUsingAutolayout
-        _stackView.axis = UILayoutConstraintAxisHorizontal;
-        _stackView.distribution = UIStackViewDistributionFillEqually;
-        _stackView.spacing = _actionItemPadding;
-#else
-        CGFloat buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-(_actionItemPadding)*(_actionButtons.count-1))/_actionButtons.count;
-#endif
+        CGFloat buttonWidth = .0;
+        
+        if ([[self class] usingAutolayout]) {
+            _stackView.axis = UILayoutConstraintAxisHorizontal;
+            _stackView.distribution = UIStackViewDistributionFillEqually;
+            _stackView.spacing = _actionItemPadding;
+        } else {
+            buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-(_actionItemPadding)*(_actionButtons.count-1))/_actionButtons.count;
+        }
+        
         if (_translucent) {
             [self _setExceptionAllowedWidth:_showsSeparators?0.5:-0.1];
             [_singleSeparator removeFromSuperview];
@@ -1458,14 +1479,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             }
             config = config?:_actionConfiguration;
             
-#if AXAlertViewUsingAutolayout
-            [object setTranslatesAutoresizingMaskIntoConstraints:NO];
-            [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
-            [_stackView addArrangedSubview:object];
-#else
-            [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
-            [self.contentContainerView addSubview:object];
-#endif
+            if ([[self class] usingAutolayout]) {
+                [object setTranslatesAutoresizingMaskIntoConstraints:NO];
+                [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+                [_stackView addArrangedSubview:object];
+            } else {
+                [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
+                [self.contentContainerView addSubview:object];
+            }
             
             if (![object isMemberOfClass:[_AXAlertContentPlacehodlerView class]]) {
                 _AXTranslucentButton *button = (_AXTranslucentButton *)object;
@@ -1573,21 +1594,22 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     CGFloat _flag = 0.0;
     [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
     
-#if AXAlertViewUsingAutolayout
-    if (_actionItems.count > _horizontalLimits && _height >= _flag) {
-        height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
+    if ([[self class] usingAutolayout]) {
+        if (_actionItems.count > _horizontalLimits && _height >= _flag) {
+            height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
+        } else {
+            height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
+        }
     } else {
-        height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
-    }
-#else
-    height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)/*+_customViewInset.top */+ _customViewInset.bottom;
-    if (_actionItems.count > _horizontalLimits && _height >= _flag) {
-        height -= CGRectGetHeight(_customView.frame);
-        if (_customView) {
-            height -= _customViewInset.bottom;
+        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)/*+_customViewInset.top */+ _customViewInset.bottom;
+        if (_actionItems.count > _horizontalLimits && _height >= _flag) {
+            height -= CGRectGetHeight(_customView.frame);
+            if (_customView) {
+                height -= _customViewInset.bottom;
+            }
         }
     }
-#endif
+
     CGRect frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), height);
     
     UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(frame), CGRectGetHeight(frame)-(_actionItems.count > _horizontalLimits ? .0 : arg1))];
@@ -1605,21 +1627,23 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)_setupExceptionSeparatorLayerWidth:(CGFloat)arg1 {
     CGFloat height = 0.0;
-#if AXAlertViewUsingAutolayout
-    if (_actionItems.count > _horizontalLimits) {
-        height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
+    
+    if ([[self class] usingAutolayout]) {
+        if (_actionItems.count > _horizontalLimits) {
+            height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
+        } else {
+            height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
+        }
     } else {
-        height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
-    }
-#else
-    height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)+ _customViewInset.bottom;
-    if (_actionItems.count > _horizontalLimits) {
-        height -= CGRectGetHeight(_customView.frame);
-        if (_customView) {
-            height -= _customViewInset.bottom;
+        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)+ _customViewInset.bottom;
+        if (_actionItems.count > _horizontalLimits) {
+            height -= CGRectGetHeight(_customView.frame);
+            if (_customView) {
+                height -= _customViewInset.bottom;
+            }
         }
     }
-#endif
+
     [_singleSeparator removeFromSuperview];
     _AXAlertContentSeparatorView *separator = [_AXAlertContentSeparatorView new];
     [separator setBackgroundColor:[UIColor colorWithWhite:0 alpha:0.3]];
@@ -1699,6 +1723,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _contentHeaderView.hidden = YES;
         _contentFooterView.hidden = YES;
     }
+}
+
++ (BOOL)usingAutolayout {
+    NSString *systemVersion = [[UIDevice currentDevice].systemVersion copy];
+    NSArray *comp = [systemVersion componentsSeparatedByString:@"."];
+    if (comp.count == 0 || comp.count == 1) {
+        systemVersion = [NSString stringWithFormat:@"%@.0.0", systemVersion];
+    } else if (comp.count == 2) {
+        systemVersion = [NSString stringWithFormat:@"%@.0", systemVersion];
+    }
+    NSString *plat = [NSString stringWithFormat:@"%@.0.0", @(9000/1000)];
+    NSComparisonResult result = [systemVersion compare:plat options:NSNumericSearch];
+    return result == NSOrderedSame || result == NSOrderedDescending;
 }
 
 #pragma mark - UIScrollViewDelegate.

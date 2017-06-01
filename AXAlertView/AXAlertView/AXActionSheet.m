@@ -25,11 +25,6 @@
 
 #import "AXActionSheet.h"
 
-#ifndef AXAlertViewUsingAutolayout
-#define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-// #define AXAlertViewUsingAutolayout 0
-#endif
-
 @interface AXAlertView (SubclassHooks)
 - (void)initializer;
 
@@ -80,21 +75,23 @@
     [self viewWillShow:self animated:animated];
     __weak typeof(self) wself = self;
     
-#if AXAlertViewUsingAutolayout
-    self.contentView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(self.contentView.frame));
-#else
-    CGRect frame = self.contentView.frame;
-    frame.origin.y = CGRectGetHeight(self.bounds);
-    self.contentView.frame = frame;
-#endif
+    if ([[self class] usingAutolayout]) {
+        self.contentView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(self.contentView.frame));
+    } else {
+        CGRect frame = self.contentView.frame;
+        frame.origin.y = CGRectGetHeight(self.bounds);
+        self.contentView.frame = frame;
+    }
+
     CGRect rect = _animatingView.frame; rect.size.height = 0.0;
     if (animated) [UIView animateWithDuration:0.45 delay:0.05 usingSpringWithDamping:1.0 initialSpringVelocity:1.0 options:7 animations:^{
-#if AXAlertViewUsingAutolayout
-        self.contentView.transform = CGAffineTransformIdentity;
-#else
-        [self setNeedsLayout];
-        [self layoutIfNeeded];
-#endif
+        if ([[self class] usingAutolayout]) {
+            self.contentView.transform = CGAffineTransformIdentity;
+        } else {
+            [self setNeedsLayout];
+            [self layoutIfNeeded];
+        }
+
         [_animatingView setFrame:rect];
     } completion:^(BOOL finished) {
         if (finished) {
@@ -134,18 +131,20 @@
     __weak typeof(self) wself = self;
     
     CGRect frame = self.contentView.frame;
-#if AXAlertViewUsingAutolayout
-    _transitionView.transform = CGAffineTransformIdentity;
-#else
     CGRect rect = frame;
-    rect.origin.y = CGRectGetHeight(self.bounds);
-#endif
+    if ([[self class] usingAutolayout]) {
+        _transitionView.transform = CGAffineTransformIdentity;
+    } else {
+        rect.origin.y = CGRectGetHeight(self.bounds);
+    }
+    
     if (animated) [UIView animateWithDuration:0.25 delay:0.0 options:7 animations:^{
-#if AXAlertViewUsingAutolayout
-        _transitionView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(frame));
-#else
-        _transitionView.frame = rect;
-#endif
+        if ([[self class] usingAutolayout]) {
+            _transitionView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(frame));
+        } else {
+            _transitionView.frame = rect;
+        }
+
         _animatingView.frame = frame;
         // self.alpha = 0.0;
     } completion:^(BOOL finished) {
