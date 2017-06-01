@@ -103,6 +103,16 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     return self;
 }
 
+- (id)copyWithZone:(NSZone *)zone {
+    AXAlertAction *action = [[AXAlertAction allocWithZone:zone] init];
+    action.identifier = _identifier;
+    action->_handler = [_handler copy];
+    action->__title = [__title copy];
+    action->__image = __image;
+    action->__style = __style;
+    return action;
+}
+
 + (instancetype)actionWithTitle:(NSString *)title handler:(AXAlertActionHandler)handler {
     return [self actionWithTitle:title style:AXAlertActionStyleDefault handler:handler];
 }
@@ -222,14 +232,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 #pragma mark - Public.
 - (void)addAction:(AXAlertAction *)action {
-    [self addAction:action configuration:nil];
-}
-
-- (void)addAction:(AXAlertAction *)action configuration:(AXAlertActionConfiguration *)config {
     if (!_actions) _actions = [NSMutableArray array];
     [_actions addObject:action];
-    
-    if (config) [self.contentView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count-1)]];
     
     if (_style == AXAlertControllerStyleActionSheet) {
         AXActionSheetAction *_action = action.actionSheetAction;
@@ -248,6 +252,21 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         AXAlertViewAction *_action = action.alertViewAction;
         [self.contentView appendActions:_action, nil];
     }
+}
+
+- (void)addAction:(AXAlertAction *)action configuration:(AXAlertActionConfiguration *)config {
+    if (config) [self.contentView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count-1)]];
+    [self addAction:action];
+}
+
+- (void)addAction:(AXAlertAction *)action configurationHandler:(void (^)(AXAlertActionConfiguration * _Nonnull))configuration {
+    AXAlertActionConfiguration *config = [self.contentView.actionConfiguration copy];
+    
+    if (configuration != NULL) {
+        configuration(config);
+    }
+    
+    [self addAction:action configuration:config];
 }
 
 #pragma mark - Getters.
