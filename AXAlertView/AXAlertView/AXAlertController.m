@@ -65,8 +65,6 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     AXAlertControllerStyle _style;
     NSMutableArray<AXAlertAction *> *_actions;
 }
-/// Content view.
-@property(readonly, nonatomic) AXAlertView *contentView;
 /// Content alert view.
 @property(strong, nonatomic) _AXAlertControllerAlertContentView *alertContentView;
 /// Content action sheet view.
@@ -275,7 +273,6 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (NSString *)title { return _alertContentView.title; }
 - (NSString *)message { return _messageLabel.text; }
 - (AXAlertControllerStyle)preferredStyle { return _style; }
-- (AXAlertView *)alertView { return _alertContentView; }
 - (_AXAlertControllerView *)underlyingView { return (_AXAlertControllerView *)self.view; }
 
 - (UILabel *)messageLabel {
