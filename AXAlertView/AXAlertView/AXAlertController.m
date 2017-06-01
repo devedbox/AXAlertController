@@ -253,8 +253,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)addAction:(AXAlertAction *)action configuration:(AXAlertActionConfiguration *)config {
-    if (config) [self.contentView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count-1)]];
     [self addAction:action];
+    if (config) [self.contentView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count-1)]];
 }
 
 - (void)addAction:(AXAlertAction *)action configurationHandler:(void (^)(AXAlertActionConfiguration * _Nonnull))configuration {
