@@ -1377,7 +1377,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _addContraintsOfCustomViewAndStackViewToContentView];
     }
     
-    [self setNeedsLayout];
+    [self _layoutSubviews];
 }
 
 - (void)configureActions {
@@ -1733,7 +1733,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     } else if (comp.count == 2) {
         systemVersion = [NSString stringWithFormat:@"%@.0", systemVersion];
     }
-    NSString *plat = [NSString stringWithFormat:@"%@.0.0", @(9000/1000)];
+    NSString *plat = [NSString stringWithFormat:@"%@.0.0", @(/*9*/10000/1000)];
     NSComparisonResult result = [systemVersion compare:plat options:NSNumericSearch];
     return result == NSOrderedSame || result == NSOrderedDescending;
 }
