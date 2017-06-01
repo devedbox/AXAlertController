@@ -42,7 +42,7 @@
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
     [self presentViewController:alert animated:YES completion:NULL];
     alert.modalPresentationStyle = UIModalPresentationPageSheet;
-    
+    return;
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.navigationController.view.bounds];
     alertView.customViewInset = UIEdgeInsetsMake(5, 20, 10, 20);
     alertView.padding = 0;
@@ -171,8 +171,16 @@
 
 - (void)showController:(id)sender {
     AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
-    [alert addAction:[AXAlertAction actionWithTitle:@"取消" style:AXAlertActionStyleDefault handler:NULL]];
-    [alert addAction:[AXAlertAction actionWithTitle:@"确定" style:AXAlertActionStyleDefault handler:NULL]];
+    AXAlertActionConfiguration *cancelConfig = [AXAlertActionConfiguration new];
+    cancelConfig.preferedHeight = 44.0;
+    cancelConfig.backgroundColor = [UIColor whiteColor];
+    cancelConfig.font = [UIFont boldSystemFontOfSize:17];
+    cancelConfig.cornerRadius = .0;
+    cancelConfig.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+    AXAlertAction *cancelAction = [AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL];
+    // cancelAction.identifier = @"Cancel";
+    [alert addAction:cancelAction configuration:cancelConfig];
+    [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL]];
     [self presentViewController:alert animated:YES completion:NULL];
 }
 
