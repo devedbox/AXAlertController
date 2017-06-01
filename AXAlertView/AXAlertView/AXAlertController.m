@@ -227,7 +227,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     if (!_actions) _actions = [NSMutableArray array];
     [_actions addObject:action];
     
-    if (config) [self.contentView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count)]];
+    if (config) [self.contentView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count-1)]];
     
     if (_style == AXAlertControllerStyleActionSheet) {
         AXActionSheetAction *_action = action.actionSheetAction;
