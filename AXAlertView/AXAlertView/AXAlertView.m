@@ -307,7 +307,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)willMoveToSuperview:(UIView *)newSuperview {
     [super willMoveToSuperview:newSuperview];
     if (newSuperview) {
-        // [self configureActions];
         [self configureCustomView];
         
         [self setTranslucent:_translucent];
@@ -448,7 +447,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _customView.frame = CGRectMake(_customViewInset.left, /*_customViewInset.top*/0, sizeOfCustomView.width, sizeOfCustomView.height-(_customViewInset.top+_customViewInset.bottom));
     }
     
-    [self configureActions];
+    [self _updateExceptionAreaOfEffectView];
+    // Fix on iOS9.0.
+    if (![[self class] usingAutolayout]) [self configureActions];
     [self setNeedsDisplay];
 }
 #pragma mark - Public method
@@ -464,6 +465,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     va_end(args);
     // Delays to configure action items at layouting subviews.
     [self _layoutSubviews];
+    if ([[self class] usingAutolayout]) [self configureActions];
 }
 
 - (void)appendActions:(AXAlertViewAction *)actions, ... {
@@ -480,6 +482,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     va_end(args);
     // Delays to configure action items at layouting subviews.
     [self _layoutSubviews];
+    if ([[self class] usingAutolayout]) [self configureActions];
 }
 
 - (void)show:(BOOL)animated {
@@ -675,6 +678,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (![[self class] usingAutolayout]) {
         [_titleLabel sizeToFit];
         [self _layoutSubviews];
+        if ([[self class] usingAutolayout]) [self configureActions];
     }
 }
 
@@ -728,6 +732,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _titleFont = titleFont;
     _titleLabel.font = _titleFont;
     [self _layoutSubviews];
+    if ([[self class] usingAutolayout]) [self configureActions];
 }
 
 - (void)setTranslucent:(BOOL)translucent {
@@ -755,6 +760,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
 
         [self _layoutSubviews];
+        if ([[self class] usingAutolayout]) [self configureActions];
         
         _containerView.backgroundColor = [UIColor clearColor];
     } else {
@@ -768,6 +774,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setShowsSeparators:(BOOL)showsSeparators {
     _showsSeparators = showsSeparators;
     [self _layoutSubviews];
+    if ([[self class] usingAutolayout]) [self configureActions];
 }
 
 - (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
@@ -792,7 +799,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self configureCustomView];
-    [self _layoutSubviews];
 }
 
 - (void)setCustomViewInset:(UIEdgeInsets)customViewInset {
@@ -806,7 +812,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self configureCustomView];
-    [self _layoutSubviews];
 }
 
 - (void)setTitleInset:(UIEdgeInsets)titleInset {
@@ -820,6 +825,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self _layoutSubviews];
+    if ([[self class] usingAutolayout]) [self configureActions];
 }
 
 - (void)setPadding:(CGFloat)padding {
@@ -832,7 +838,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self configureCustomView];
-    [self _layoutSubviews];
 }
 
 - (void)setActionItemMargin:(CGFloat)actionItemMargin {
@@ -845,12 +850,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self configureCustomView];
-    [self _layoutSubviews];
 }
 
 - (void)setActionItemPadding:(CGFloat)actionItemPadding {
     _actionItemPadding = actionItemPadding;
-    [self _layoutSubviews];
+
     [self configureCustomView];
 }
 
@@ -858,6 +862,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _horizontalLimits = horizontalLimits;
     // Delays to configure action items at layouting subviews.
     [self _layoutSubviews];
+    if ([[self class] usingAutolayout]) [self configureActions];
 }
 
 - (void)setOpacity:(CGFloat)opacity {
@@ -871,8 +876,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if ([[self class] usingAutolayout]) {
         _heightOfContainer.constant = _preferedHeight;
     }
-    
-    [self _layoutSubviews];
+
     [self configureCustomView];
 }
 
@@ -888,7 +892,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _updateContraintsOfContainer];
     }
     
-    [self _layoutSubviews];
     [self configureCustomView];
 }
 
@@ -900,14 +903,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         [self _updateContraintsOfContainer];
     }
-    
-    [self _layoutSubviews];
+
     [self configureCustomView];
 }
 
 - (void)setActionConfiguration:(AXAlertViewActionConfiguration *)actionConfiguration {
     _actionConfiguration = actionConfiguration;
     [self _layoutSubviews];
+    if ([[self class] usingAutolayout]) [self configureActions];
 }
 
 - (void)set_shouldExceptContentBackground:(BOOL)_shouldExceptContentBackground {
@@ -950,7 +953,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     _processing = YES;
     
-    [self _layoutSubviews];
+    // [self _layoutSubviews];
+    // [self configureActions];
     /*
 #if !TARGET_IPHONE_SIMULATOR
     if (_translucent) {
@@ -1071,6 +1075,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.25];
     
     [self _layoutSubviews];
+    [self performSelector:@selector(_layoutSubviews) withObject:nil afterDelay:0.3];
+    [self configureActions];
 }
 
 - (void)_enabled_shouldExceptContentBackground {
@@ -1439,6 +1445,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self _layoutSubviews];
+    [self configureActions];
 }
 
 - (void)configureActions {
@@ -1447,6 +1454,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     _actionButtons = [self buttonsWithActions:_actionItems];
     if (_actionButtons.count == 0) return;
+    
+    [self _updateExceptionAreaOfEffectView];
+    
     if (_actionButtons.count > _horizontalLimits) {
         if ([[self class] usingAutolayout]) {
             _stackView.axis = UILayoutConstraintAxisVertical;
@@ -1457,9 +1467,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             [_stackView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
         }
         
-        if (_translucent) {
-            [self _setExceptionAllowedWidth:0.5];
-        }
         for (NSInteger i = 0; i < _actionButtons.count ; i++) {
             UIView *object = _actionButtons[i];
             AXAlertViewActionConfiguration *config; 
@@ -1515,15 +1522,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _stackView.spacing = _actionItemPadding;
         } else {
             buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-(_actionItemPadding)*(_actionButtons.count-1))/_actionButtons.count;
-        }
-        
-        if (_translucent) {
-            [self _setExceptionAllowedWidth:_showsSeparators?0.5:-0.1];
-            [_singleSeparator removeFromSuperview];
-        } else {
-            if (_showsSeparators) [self _setupExceptionSeparatorLayerWidth:0.5]; else {
-                [_singleSeparator removeFromSuperview];
-            }
         }
         
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
@@ -1657,7 +1655,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     if ([[self class] usingAutolayout]) {
         if (_actionItems.count > _horizontalLimits && _height >= _flag) {
-            height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
+            height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView])+_contentContainerView.contentOffset.y;
         } else {
             height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
         }
@@ -1675,7 +1673,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(frame), CGRectGetHeight(frame)-(_actionItems.count > _horizontalLimits ? .0 : arg1))];
     CAShapeLayer *maskLayrer = [CAShapeLayer layer];
+    maskLayrer.frame = frame;
     maskLayrer.path = path.CGPath;
+    _filterView.layer.mask = nil;
     _filterView.layer.mask = maskLayrer;
     _effectMaskLayer = maskLayrer;
     
@@ -1794,7 +1794,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     } else if (comp.count == 2) {
         systemVersion = [NSString stringWithFormat:@"%@.0", systemVersion];
     }
-    NSString *plat = [NSString stringWithFormat:@"%@.0.0", @(/*9*/10000/1000)];
+    NSString *plat = [NSString stringWithFormat:@"%@.0.0", @(9000/1000)];
     NSComparisonResult result = [systemVersion compare:plat options:NSNumericSearch];
     return result == NSOrderedSame || result == NSOrderedDescending;
 }
@@ -1806,6 +1806,23 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     } else {
         [NSLayoutConstraint activateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
         [NSLayoutConstraint deactivateConstraints:@[_widthOfContainer, _centerXOfContainer]];
+    }
+}
+
+- (void)_updateExceptionAreaOfEffectView {
+    if (_actionButtons.count > _horizontalLimits) {
+        if (_translucent) {
+            [self _setExceptionAllowedWidth:0.5];
+        }
+    } else {
+        if (_translucent) {
+            [self _setExceptionAllowedWidth:_showsSeparators?0.5:-0.1];
+            [_singleSeparator removeFromSuperview];
+        } else {
+            if (_showsSeparators) [self _setupExceptionSeparatorLayerWidth:0.5]; else {
+                [_singleSeparator removeFromSuperview];
+            }
+        }
     }
 }
 
