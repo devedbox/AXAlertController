@@ -169,6 +169,13 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (void)initializer {
     super.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     super.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
 }
 
 + (instancetype)alertControllerWithTitle:(NSString *)title message:(NSString *)message preferredStyle:(AXAlertControllerStyle)preferredStyle {
@@ -394,6 +401,13 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     }
 }
 
+#pragma mark - Actions.
+- (void)handleDeviceOrientationDidChangeNotification:(NSNotification *)aNote {
+    if (_style == AXAlertControllerStyleActionSheet) return;
+    [self _disableExceptionArea];
+    [self performSelector:@selector(_enableExceptionArea) withObject:nil afterDelay:0.25];
+}
+
 #pragma mark - Private.
 - (void)_dismiss:(id)sender {
     if (_isBeingPresented) {
@@ -411,8 +425,18 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [containerView addSubview:self.contentView];
     [self.contentView setNeedsLayout];
     [self.contentView layoutIfNeeded];
+    [self _enableExceptionArea];
+}
+
+- (void)_enableExceptionArea {
     [self.underlyingView setExceptionFrame:[[self.contentView valueForKeyPath:@"containerView.frame"] CGRectValue]];
     [self.underlyingView setCornerRadius:self.contentView.cornerRadius];
+    [self.underlyingView setNeedsDisplay];
+}
+
+- (void)_disableExceptionArea {
+    [self.underlyingView setExceptionFrame:CGRectZero];
+    [self.underlyingView setCornerRadius:.0];
     [self.underlyingView setNeedsDisplay];
 }
 @end
