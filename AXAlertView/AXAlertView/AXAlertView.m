@@ -319,8 +319,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         // Get the current frame of SELF.
         CGRect currentFrame = self.frame;
         // Initialize a CGSize struct of custom view and title label using the current frame and prefered magin and the insets.
-        CGSize sizeOfCustomView = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin) - (_contentInset.left+_contentInset.right)-(_customViewInset.left+_customViewInset.right), 0);
-        CGSize sizeOfTitleLabel = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin) - (_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right), 0);
+        CGSize sizeOfCustomView = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth) - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_customViewInset), 0);
+        CGSize sizeOfTitleLabel = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth) - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset), 0);
         // Calculate size of title label.
         if (_titleLabel.numberOfLines == 1) {// If number of lines of the title label.
             // Size to fit text content.
@@ -395,13 +395,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         heightOfContainer = MAX(heightOfContainer, _preferedHeight);
         
+        CGFloat preferedLeftMargin = CGRectGetWidth(currentFrame)*.5-_maxAllowedWidth*.5;
         // Frame of container view.
         CGRect rect_container = _containerView.frame;
-        rect_container.origin.x = _preferedMargin.left;
+        rect_container.origin.x = MAX(_preferedMargin.left, preferedLeftMargin);
         
         if (heightOfContainer > CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)) { // Too large to show.
             rect_container.origin.y = _preferedMargin.top;
-            rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin));
+            rect_container.size = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin));
             _containerView.frame = rect_container;
             // Enabled the scroll of the content container view.
             _contentContainerView.scrollEnabled = YES;
@@ -411,7 +412,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer);
         } else {
             rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5;
-            rect_container.size = CGSizeMake(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
+            rect_container.size = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
             _containerView.frame = rect_container;
             // Disable the scroll of the content container view.
             _contentContainerView.scrollEnabled = NO;
@@ -425,7 +426,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         CGRect rect_title = _titleLabel.frame;
         rect_title.origin.x = _contentInset.left+_titleInset.left;
         rect_title.origin.y = _contentInset.top+_titleInset.top;
-        rect_title.size.width = CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right)-(_titleInset.left+_titleInset.right);
+        rect_title.size.width = CGRectGetWidth(rect_container)-UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset);
         rect_title.size.height = sizeOfTitleLabel.height;
         _titleLabel.frame = rect_title;
         
@@ -877,6 +878,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _trailingOfContainer.constant = _preferedMargin.right;
         _topOfContainer.constant = -_preferedMargin.top;
         _bottomOfContainer.constant = _preferedMargin.bottom;
+    }
+    
+    [self _layoutSubviews];
+    [self configureCustomView];
+}
+
+- (void)setMaxAllowedWidth:(CGFloat)maxAllowedWidth {
+    _maxAllowedWidth = maxAllowedWidth;
+    
+    if ([[self class] usingAutolayout]) {
+        
     }
     
     [self _layoutSubviews];
@@ -1726,7 +1738,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
 }
 
-+ (BOOL)usingAutolayout {
++ (BOOL)usingAutolayout { return NO;
     NSString *systemVersion = [[UIDevice currentDevice].systemVersion copy];
     NSArray *comp = [systemVersion componentsSeparatedByString:@"."];
     if (comp.count == 0 || comp.count == 1) {

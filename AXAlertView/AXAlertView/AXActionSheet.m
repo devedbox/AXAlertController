@@ -46,6 +46,7 @@
     super.horizontalLimits = 0;
     super.preferedMargin = UIEdgeInsetsMake(64, 0, 0, 0);
     super.cornerRadius = .0;
+    super.maxAllowedWidth = CGFLOAT_MAX;
     
     self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin;
 }
@@ -260,6 +261,9 @@
     [super setCornerRadius:.0];
 }
 
+- (void)setMaxAllowedWidth:(CGFloat)maxAllowedWidth {
+    [super setMaxAllowedWidth:CGFLOAT_MAX];
+}
 #pragma mark - Private.
 - (UIImage *)_renderedImageOfView:(UIView *)view {
     UIGraphicsBeginImageContextWithOptions(view.bounds.size, NO, [UIScreen mainScreen].scale);
