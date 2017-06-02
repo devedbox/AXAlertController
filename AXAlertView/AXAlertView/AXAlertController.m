@@ -377,9 +377,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)alertViewDidShow:(AXAlertView *)alertView {
-    if (_style == AXAlertControllerStyleAlert) {
-        self.contentView.translucent = _translucent;
-    }
+    [self _updatedTranslucentState];
 }
 
 - (void)alertViewWillHide:(AXAlertView *)alertView {
@@ -396,9 +394,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)alertViewDidHide:(AXAlertView *)alertView {
-    if (_style == AXAlertControllerStyleAlert) {
-        self.contentView.translucent = _translucent;
-    }
+    [self _updatedTranslucentState];
 }
 
 #pragma mark - Actions.
@@ -438,5 +434,11 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [self.underlyingView setExceptionFrame:CGRectZero];
     [self.underlyingView setCornerRadius:.0];
     [self.underlyingView setNeedsDisplay];
+}
+
+- (void)_updatedTranslucentState {
+    if (_translucent && _style == AXAlertControllerStyleAlert) {
+        [self.contentView setTranslucent:_translucent];
+    }
 }
 @end
