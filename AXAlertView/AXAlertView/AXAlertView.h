@@ -97,6 +97,8 @@ typedef UIEdgeInsets AXEdgeMargins;
 @property(assign, nonatomic) CGFloat preferedHeight UI_APPEARANCE_SELECTOR;
 /// Content prefered edge margin. Default is 40.
 @property(assign, nonatomic) AXEdgeMargins preferedMargin UI_APPEARANCE_SELECTOR;
+/// Max width of the alert view. Default is 270.
+@property(assign, nonatomic) CGFloat maxAllowedWidth UI_APPEARANCE_SELECTOR;
 /// Corner radius. Default is 6.
 @property(assign, nonatomic) CGFloat cornerRadius UI_APPEARANCE_SELECTOR;
 /// Custom view. Defaults to nil.

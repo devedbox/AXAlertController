@@ -189,6 +189,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _opacity = 0.4;
     _preferedHeight = .0;
     _preferedMargin = UIEdgeInsetsMake(40, 40, 40, 40);
+    _maxAllowedWidth = 270;
     _cornerRadius = 6;
     _actionConfiguration = [[AXAlertViewActionConfiguration alloc] init];
     _actionConfiguration.backgroundColor = [UIColor colorWithRed:0.996 green:0.725 blue:0.145 alpha:1.00];
