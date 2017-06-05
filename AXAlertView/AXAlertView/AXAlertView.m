@@ -219,6 +219,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _addContraintsOfTitleLabelAndContentViewToContainerView];
         // Add contraints to custom and stack view.
         [self _addContraintsOfCustomViewAndStackViewToContentView];
+        
+        [_containerView addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:NULL];
+        [_contentContainerView addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:@"_content"];
     }
     
     [_contentContainerView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:NULL];
@@ -233,6 +236,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
     [_contentContainerView removeObserver:self forKeyPath:@"contentSize"];
+    if ([[self class] usingAutolayout]) {
+        [_containerView removeObserver:self forKeyPath:@"bounds"];
+        [_contentContainerView removeObserver:self forKeyPath:@"bounds"];
+    }
 }
 #pragma mark - Override
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
@@ -247,6 +254,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             if (height>=flag ) {
                 [self _setupContentHookedView];
                 [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+                // Update transform information of the action buttons.
+                [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
             } else {
                 [_contentHeaderView removeFromSuperview];
                 [_contentFooterView removeFromSuperview];
@@ -291,11 +300,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             }
             // Update height of content scroll view.
             [self _updateHeightConstraintsOfContentViewWithHeight:height];
-            // Update transform information of the action buttons.
-            [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
         }
         
         [self setNeedsDisplay];
+    } else if ([keyPath isEqualToString:@"bounds"]) {
+        // Update exception area of the effect view if bounds of the container view has changed.
+        [self _updateExceptionAreaOfEffectView];
+        
+        if (context != NULL) {
+            // Update transform of action buttons if needed.
+            [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+        }
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
@@ -309,9 +324,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)willMoveToSuperview:(UIView *)newSuperview {
     [super willMoveToSuperview:newSuperview];
     if (newSuperview) {
-        // [self configureCustomView];
-        //
-        // [self setTranslucent:_translucent];
+        if ([[self class] usingAutolayout]) {
+            [self configureCustomView];
+            
+            [self setTranslucent:_translucent];
+        }
     } else {
         // Ensure remove the translucent transition view from super view.
         [_translucentTransitionView removeFromSuperview];
@@ -1660,14 +1677,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         if (_actionItems.count > _horizontalLimits && _height >= _flag) {
             height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView])+_contentContainerView.contentOffset.y;
         } else {
-            CGAffineTransform transform = _stackView.transform;
-            _stackView.transform = CGAffineTransformIdentity;
-            if (_height >= _flag) {
-                height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView])-(_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.frame));
-            } else {
-                height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
-            }
-            _stackView.transform = transform;
+            height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds);
+            // CGAffineTransform transform = _stackView.transform;
+            // _stackView.transform = CGAffineTransformIdentity;
+            // if (_height >= _flag) {
+                // height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView])-(_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.frame));
+            // } else {
+                // height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
+            // }
+            // _stackView.transform = transform;
         }
     } else {
         height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)/*+_customViewInset.top */+ _customViewInset.bottom;
@@ -1820,10 +1838,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     };
     
     if ([[self class] usingAutolayout]) {
-        visibleHeight = CGRectGetHeight(scrollView.frame)-CGRectGetHeight(_stackView.frame)-_padding-_customViewInset.bottom;
+        visibleHeight = CGRectGetHeight(scrollView.bounds)-CGRectGetHeight(_stackView.bounds)-_padding-_customViewInset.bottom;
         
         if (_actionItems.count <= _horizontalLimits && _height >= _flag) {
-            _stackView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y-(scrollView.contentSize.height-CGRectGetHeight(scrollView.frame)));
+            _stackView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y-(scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)));
             maskCustomView(visibleHeight);
         } else if (!CGAffineTransformIsIdentity(_stackView.transform)) {
             _stackView.transform = CGAffineTransformIdentity;
