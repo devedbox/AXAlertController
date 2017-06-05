@@ -324,11 +324,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)willMoveToSuperview:(UIView *)newSuperview {
     [super willMoveToSuperview:newSuperview];
     if (newSuperview) {
-        if ([[self class] usingAutolayout]) {
-            [self configureCustomView];
-            
-            [self setTranslucent:_translucent];
-        }
+        [self configureCustomView];
+        
+        [self setTranslucent:_translucent];
     } else {
         // Ensure remove the translucent transition view from super view.
         [_translucentTransitionView removeFromSuperview];
