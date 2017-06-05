@@ -1676,7 +1676,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         if (_actionItems.count > _horizontalLimits && _height >= _flag) {
             height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView])+_contentContainerView.contentOffset.y;
         } else {
-            height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds);
+            height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds)-_contentInset.bottom;
             // CGAffineTransform transform = _stackView.transform;
             // _stackView.transform = CGAffineTransformIdentity;
             // if (_height >= _flag) {
@@ -1726,7 +1726,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
         } else {
             // height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
-            height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds);
+            height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds)-_contentInset.bottom;
         }
     } else {
         height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)+ _customViewInset.bottom;
