@@ -304,12 +304,12 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         [self setNeedsDisplay];
     } else if ([keyPath isEqualToString:@"bounds"]) {
-        // Update exception area of the effect view if bounds of the container view has changed.
-        [self _updateExceptionAreaOfEffectView];
-        
         if (context != NULL) {
             // Update transform of action buttons if needed.
             [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+        } else {
+            // Update exception area of the effect view if bounds of the container view has changed.
+            [self _updateExceptionAreaOfEffectView];
         }
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
