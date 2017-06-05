@@ -176,6 +176,15 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
+    
+    [_alertContentView removeObserver:self forKeyPath:@"containerView.bounds"];
+    [_actionSheetContentView removeObserver:self forKeyPath:@"containerView.bounds"];
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"containerView.bounds"]) {
+        [self _enableExceptionArea];
+    } else [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
 + (instancetype)alertControllerWithTitle:(NSString *)title message:(NSString *)message preferredStyle:(AXAlertControllerStyle)preferredStyle {
@@ -316,6 +325,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     config.font = [UIFont systemFontOfSize:16];
     [_alertContentView setActionConfiguration:config];
     
+    [_alertContentView addObserver:self forKeyPath:@"containerView.bounds" options:NSKeyValueObservingOptionNew context:NULL];
     return _alertContentView;
 }
 
@@ -344,6 +354,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     config.tintColor = [UIColor blackColor];
     [_actionSheetContentView setActionConfiguration:config];
     
+    [_actionSheetContentView addObserver:self forKeyPath:@"containerView.bounds" options:NSKeyValueObservingOptionNew context:NULL];
     return _actionSheetContentView;
 }
 
