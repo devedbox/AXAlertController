@@ -814,6 +814,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _trailingOfContent.constant = _contentInset.right;
         _bottomOfContent.constant = _contentInset.bottom;
         _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
+    } else if (!_customView) {
+        [self _layoutSubviews];
     }
     
     [self configureCustomView];
