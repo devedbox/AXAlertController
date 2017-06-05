@@ -777,7 +777,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
 
         [self _layoutSubviews];
-        if ([[self class] usingAutolayout]) [self configureActions];
         
         _containerView.backgroundColor = [UIColor clearColor];
     } else {
@@ -786,6 +785,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [_stackFlexibleView removeFromSuperview];
         _containerView.backgroundColor = _backgroundColor?:[UIColor whiteColor];
     }
+    
+    [self configureActions];
 }
 
 - (void)setShowsSeparators:(BOOL)showsSeparators {
@@ -1716,12 +1717,16 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)_setupExceptionSeparatorLayerWidth:(CGFloat)arg1 {
     CGFloat height = 0.0;
+    CGFloat _height = 0.0;
+    CGFloat _flag = 0.0;
+    [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
     
     if ([[self class] usingAutolayout]) {
         if (_actionItems.count > _horizontalLimits) {
             height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView]);
         } else {
-            height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
+            // height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
+            height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds);
         }
     } else {
         height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)+ _customViewInset.bottom;
@@ -1730,6 +1735,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             if (_customView) {
                 height -= _customViewInset.bottom;
             }
+        } else if (_height >= _flag) {
+            height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.frame));
         }
     }
 
