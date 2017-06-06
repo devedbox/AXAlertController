@@ -1459,7 +1459,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)configureCustomView {
     if (!self.customView) { return; }
     
-    if ([[self class] usingAutolayout]) { if (_customView && _customView.superview == self) [_customView removeFromSuperview]; }
+    if ([[self class] usingAutolayout]) { if (_customView && _customView.superview == _contentContainerView) [_customView removeFromSuperview]; }
     [_contentContainerView addSubview:_customView];
     
     if ([[self class] usingAutolayout]) {
