@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:/Users/devedbox/Library/Mobile Documents/com~apple~CloudDocs/Development/AXAlertView/AXAlertController.xcodeproj">
+      location = "group:AXAlertController.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Pods/Pods.xcodeproj">
