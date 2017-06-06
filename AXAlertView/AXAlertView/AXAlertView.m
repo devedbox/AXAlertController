@@ -320,6 +320,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         } else {// Container view.
             // Update exception area of the effect view if bounds of the container view has changed.
             [self _updateExceptionAreaOfEffectView];
+            // Redraw the exception background.
+            [self setNeedsDisplay];
         }
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -888,7 +890,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setActionItemPadding:(CGFloat)actionItemPadding {
     _actionItemPadding = actionItemPadding;
 
-    [self configureActions];
+    if ([[self class] usingAutolayout]) {
+        [self configureActions];
+    } else {
+        [self _layoutSubviews];
+    }
 }
 
 - (void)setHorizontalLimits:(NSInteger)horizontalLimits {
