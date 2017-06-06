@@ -304,10 +304,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         [self setNeedsDisplay];
     } else if ([keyPath isEqualToString:@"bounds"]) {
-        if (context != NULL) {
+        if (context != NULL) {// Content scroll view.
             // Update transform of action buttons if needed.
             [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
-        } else {
+        } else {// Container view.
             // Update exception area of the effect view if bounds of the container view has changed.
             [self _updateExceptionAreaOfEffectView];
         }
@@ -726,13 +726,16 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         if ([[self class] usingAutolayout]) {
             // Removing the stack view and readd the contraints.
-            // TODO:Checking cases.
-            [_stackView removeFromSuperview];
             
+            [_stackView removeFromSuperview];
+            [_contentContainerView addSubview:_stackView];
+        
             [self _addContraintsOfCustomViewAndStackViewToContentView];
+            [self setNeedsDisplay];
         } else {
             // Layout the subviews if needed.
-            [self setNeedsLayout];
+            // [self setNeedsLayout];
+            [self _layoutSubviews];
         }
     } else {
         _customView = customView;
@@ -1096,6 +1099,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     [self _layoutSubviews];
     [self configureActions];
+}
+
+- (void)_disable_shouldExceptContentBackground {
+    [self set_shouldExceptContentBackground:NO];
 }
 
 - (void)_enabled_shouldExceptContentBackground {
