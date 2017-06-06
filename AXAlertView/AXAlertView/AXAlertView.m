@@ -878,7 +878,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setActionItemPadding:(CGFloat)actionItemPadding {
     _actionItemPadding = actionItemPadding;
 
-    [self configureCustomView];
+    [self configureActions];
 }
 
 - (void)setHorizontalLimits:(NSInteger)horizontalLimits {
@@ -1488,7 +1488,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _stackView.axis = UILayoutConstraintAxisVertical;
             _stackView.distribution = UIStackViewDistributionFill;
             _stackView.alignment = UIStackViewAlignmentFill;
-            _stackView.spacing = _padding;
+            _stackView.spacing = _actionItemPadding;
             
             [_stackView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
         }
