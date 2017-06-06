@@ -1927,7 +1927,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
     } else {
         if (_translucent) {
-            [self _setExceptionAllowedWidth:_showsSeparators?0.5:-0.1];
+            [self _setExceptionAllowedWidth:_showsSeparators?0.5:0.0];
             [_singleSeparator removeFromSuperview];
         } else {
             if (_showsSeparators) [self _setupExceptionSeparatorLayerWidth:0.5]; else {
