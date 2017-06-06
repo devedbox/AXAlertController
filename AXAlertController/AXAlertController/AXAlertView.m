@@ -71,6 +71,7 @@ static NSString * _kPlatform_info = @"";
     NSLayoutConstraint *__weak _topOfContainer; // Top contraint of the container view to self.
     NSLayoutConstraint *__weak _bottomOfContainer;// Bottom contraint of the container view to self.
     NSLayoutConstraint * _centerXOfContainer;// Center x contraint of the container view to self.
+    NSLayoutConstraint *__weak _centerYOfContainer;// Center y contraint of the container view to self.
     NSLayoutConstraint * _widthOfContainer;// Width contraint of the container view to self.
     
     NSLayoutConstraint *__weak _leadingOfTitleLabel;// Leading contraint of the title label to container view.
@@ -210,6 +211,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _actionConfiguration.cornerRadius = 4;
     _actionConfiguration.preferedHeight = 44.0;
     _actionConfiguration.translucent = YES;
+    _verticalOffset = 0.0;
     
     _showsSeparators = YES;
     
@@ -440,7 +442,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             
             _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer);
         } else {
-            rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5;
+            rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5+_verticalOffset;
             rect_container.size = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
             _containerView.frame = rect_container;
             // Disable the scroll of the content container view.
@@ -887,6 +889,16 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self configureCustomView];
 }
 
+- (void)setVerticalOffset:(CGFloat)verticalOffset {
+    _verticalOffset = verticalOffset;
+    
+    if ([[self class] usingAutolayout]) {
+        _centerYOfContainer.constant = _verticalOffset;
+    } else {
+        [self _layoutSubviews];
+    }
+}
+
 - (void)setActionItemPadding:(CGFloat)actionItemPadding {
     _actionItemPadding = actionItemPadding;
 
@@ -1204,6 +1216,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _bottomOfContainer = bottomOfContainer;
     _centerXOfContainer = centerXOfContainer;
     _widthOfContainer = widthOfContainer;
+    _centerYOfContainer = centerYOfContainer;
     
     [self _updateContraintsOfContainer];
 }

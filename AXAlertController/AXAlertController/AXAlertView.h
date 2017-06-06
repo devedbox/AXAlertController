@@ -87,6 +87,8 @@ typedef UIEdgeInsets AXEdgeMargins;
 @property(assign, nonatomic) CGFloat actionItemPadding UI_APPEARANCE_SELECTOR;
 /// Action items margin. Default is 0.
 @property(assign, nonatomic) CGFloat actionItemMargin UI_APPEARANCE_SELECTOR;
+/// Offset on the vertical direction. Defaults to 0.0;
+@property(assign, nonatomic) CGFloat verticalOffset UI_APPEARANCE_SELECTOR;
 /// Horizontal action item limits. Defaults to 2.
 ///
 /// @discusstion This is a limits of horizontal action item. If the count of actions is more than the limits count, the action will show vertically.

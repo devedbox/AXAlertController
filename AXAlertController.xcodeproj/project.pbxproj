@@ -88,14 +88,14 @@
 			children = (
 				DCA857A21EE698CB0008E9A4 /* AppDelegate.h */,
 				DCA857A31EE698CB0008E9A4 /* AppDelegate.m */,
-				DCA857A41EE698CB0008E9A4 /* Assets.xcassets */,
+				DCA857B21EE698CB0008E9A4 /* TableViewController.h */,
+				DCA857B31EE698CB0008E9A4 /* TableViewController.m */,
 				DCA857A51EE698CB0008E9A4 /* AXAlertController */,
+				DCA857A41EE698CB0008E9A4 /* Assets.xcassets */,
 				DCA857AC1EE698CB0008E9A4 /* LaunchScreen.storyboard */,
 				DCA857AE1EE698CB0008E9A4 /* Main.storyboard */,
 				DCA857B01EE698CB0008E9A4 /* Info.plist */,
 				DCA857B11EE698CB0008E9A4 /* main.m */,
-				DCA857B21EE698CB0008E9A4 /* TableViewController.h */,
-				DCA857B31EE698CB0008E9A4 /* TableViewController.m */,
 				DCA857B41EE698CB0008E9A4 /* ViewController.h */,
 				DCA857B51EE698CB0008E9A4 /* ViewController.m */,
 			);
@@ -153,7 +153,7 @@
 		01BB35851CB35031002B5D1A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0730;
+				LastUpgradeCheck = 0830;
 				ORGANIZATIONNAME = devedbox;
 				TargetAttributes = {
 					01BB358C1CB35031002B5D1A = {
@@ -293,8 +293,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -337,8 +339,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -367,7 +371,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = TKA48YVS5T;
-				INFOPLIST_FILE = AXAlertView/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/AXAlertController/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = devedbox.AXAlertController;
@@ -382,7 +386,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = TKA48YVS5T;
-				INFOPLIST_FILE = AXAlertView/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/AXAlertController/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = devedbox.AXAlertController;
