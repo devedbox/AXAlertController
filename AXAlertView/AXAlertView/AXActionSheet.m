@@ -76,10 +76,11 @@
     [self viewWillShow:self animated:animated];
     __weak typeof(self) wself = self;
     
+    CGRect rect_content = self.contentView.frame;
     if ([[self class] usingAutolayout]) {
         self.contentView.transform = CGAffineTransformMakeTranslation(0, CGRectGetHeight(self.contentView.frame));
     } else {
-        CGRect frame = self.contentView.frame;
+        CGRect frame = rect_content;
         frame.origin.y = CGRectGetHeight(self.bounds);
         self.contentView.frame = frame;
     }
@@ -89,8 +90,7 @@
         if ([[self class] usingAutolayout]) {
             self.contentView.transform = CGAffineTransformIdentity;
         } else {
-            [self setNeedsLayout];
-            [self layoutIfNeeded];
+            [self.contentView setFrame:rect_content];
         }
 
         [_animatingView setFrame:rect];
