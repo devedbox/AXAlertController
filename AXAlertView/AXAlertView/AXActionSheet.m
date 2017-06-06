@@ -132,6 +132,11 @@
     __weak typeof(self) wself = self;
     
     CGRect frame = self.contentView.frame;
+    
+    CGRect rect_anim = _animatingView.frame;
+    rect_anim.origin.y = frame.origin.y;
+    _animatingView.frame = rect_anim;
+    
     CGRect rect = frame;
     if ([[self class] usingAutolayout]) {
         _transitionView.transform = CGAffineTransformIdentity;
