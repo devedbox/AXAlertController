@@ -893,7 +893,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _verticalOffset = verticalOffset;
     
     if ([[self class] usingAutolayout]) {
-        _centerYOfContainer.constant = _verticalOffset;
+        _centerYOfContainer.constant = -_verticalOffset;
+        [self setNeedsLayout];
+        [self setNeedsDisplay];
     } else {
         [self _layoutSubviews];
     }
