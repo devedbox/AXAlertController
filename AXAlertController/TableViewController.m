@@ -126,12 +126,14 @@
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
     
     [alertView setPreferedMargin:UIEdgeInsetsMake(40, 40, 40, 40)];
-    [alertView setPreferedHeight:14];
+    // [alertView setPreferedHeight:14];
     [alertView setActionItemMargin:0];
     [alertView setActionItemPadding:0];
     
     [self.navigationController.view addSubview:alertView];
     [alertView show:YES];
+    
+    [self _delayUpdateAlertView:alertView];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -167,6 +169,7 @@
     // }
     
     [self presentViewController:alert animated:YES completion:NULL];
+    [self _delayUpdateAlertView:alert.contentView];
 }
 
 - (void)showController:(id)sender {
@@ -184,6 +187,7 @@
         config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
     }];
     [self presentViewController:alert animated:YES completion:NULL];
+    [self _delayUpdateAlertView:alert.contentView];
 }
 
 - (void)showMoreItems:(id)sender {
@@ -226,5 +230,28 @@
      }
     [self.navigationController.view addSubview:alertView];
     [alertView show:YES];
+    
+    [self _delayUpdateAlertView:alertView];
+}
+
+- (void)_delayUpdateAlertView:(AXAlertView *)alertView {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        // alertView.titleColor = [UIColor redColor];
+        // alertView.titleFont = [UIFont systemFontOfSize:12];
+        // alertView.translucent = NO;
+        // alertView.translucentStyle = AXAlertViewTranslucentDark;
+        // alertView.showsSeparators = NO;
+        // alertView.contentInset = UIEdgeInsetsMake(20, 20, 20, 20);
+        // alertView.customViewInset = UIEdgeInsetsMake(50, 50, 50, 50);
+        // alertView.titleInset = UIEdgeInsetsMake(50, 50, 50, 50);
+        // alertView.padding = 50;
+        // alertView.actionItemPadding = 20;
+        // alertView.actionItemMargin = 20;
+        // alertView.horizontalLimits = 20;
+        // alertView.opacity
+        // alertView.
+        // alertView.customView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Image"]];
+        alertView.customView = nil;
+    });
 }
 @end

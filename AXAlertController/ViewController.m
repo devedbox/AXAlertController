@@ -67,7 +67,7 @@ static void test() {
         [_alertView show:YES];
     }],[AXAlertViewAction actionWithTitle:@"取消" handler:NULL],nil];
     _alertView.horizontalLimits = 2;
-    _alertView.preferedHeight = 200;
+    // _alertView.preferedHeight = 200;
     _alertView.title = @"测试";
     _alertView.translucent = YES;
     _alertView.hidesOnTouch = YES;
