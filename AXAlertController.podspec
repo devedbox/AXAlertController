@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name         = "AXAlertController"
-  s.version      = "0.1.0"
+  s.version      = "0.3.0"
   s.summary      = "A customized alert view controller."
   s.description  = "A customized alert view. A subclass of UIView. A simple way to show a custom alert view."
 
