@@ -50,6 +50,8 @@ AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
 AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSize"])
 AXAlertPlaceholderViewHooks(_AXAlertContentPlacehodlerView)
 
+static NSString * _kPlatform_info = @"";
+
 @interface AXAlertView () <UIScrollViewDelegate>
 {
     @private
@@ -1881,6 +1883,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 + (BOOL)usingAutolayout { /*return NO;*/
+    if (_kPlatform_info.length > 0) {
+        return [_kPlatform_info isEqualToString:@"autolayout_true"];
+    }
     NSString *systemVersion = [[UIDevice currentDevice].systemVersion copy];
     NSArray *comp = [systemVersion componentsSeparatedByString:@"."];
     if (comp.count == 0 || comp.count == 1) {
@@ -1890,7 +1895,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     NSString *plat = [NSString stringWithFormat:@"%@.0.0", @(9000/1000)];
     NSComparisonResult result = [systemVersion compare:plat options:NSNumericSearch];
-    return result == NSOrderedSame || result == NSOrderedDescending;
+    if (result == NSOrderedSame || result == NSOrderedDescending) {
+        _kPlatform_info = @"autolayout_true";  return YES;
+    } else {
+        _kPlatform_info = @"autolayout_false"; return NO;
+    }
 }
 
 - (void)_updateContraintsOfContainer {
