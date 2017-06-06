@@ -55,13 +55,14 @@ static NSString * _kPlatform_info = @"";
 @interface AXAlertView () <UIScrollViewDelegate>
 {
     @private
+    /// Action buttons. <AXActionSheet> May not being the subclass of UIButton.
     NSArray<__kindof UIButton *> *_actionButtons;
     
     // Transition view of translucent.
     UIView *__weak _translucentTransitionView;
-    // Single seprator view.
+    // Single seprator view added on the container view.
     _AXAlertContentSeparatorView *__weak _singleSeparator;
-    
+    /// Underlying background color of the alert view.
     UIColor * _backgroundColor;
     // Contraints.
     NSLayoutConstraint * _leadingOfContainer; // Leading contraint of the container view to self.
@@ -95,11 +96,13 @@ static NSString * _kPlatform_info = @"";
     NSLayoutConstraint * _equalHeightOfEffectFlexibleAndStack; // Equal height contraint of effect flexible view and stack view.
     NSLayoutConstraint * _heightOfEffectFlexibleView;// Height contraint of the flexible view to the effect view.
     
+    /// Mask layer of the effect view.
     CAShapeLayer *_effectMaskLayer;
     CALayer *_effectOpacityLayer;
     
     /// Content header view.
     _AXAlertContentHeaderView *_contentHeaderView;
+    /// Content footer view.
     _AXAlertContentFooterView *_contentFooterView;
 }
 /// Title label.
@@ -116,21 +119,24 @@ static NSString * _kPlatform_info = @"";
 @property(strong, nonatomic) _AXAlertContentFlexibleView *stackFlexibleView;
 /// Stack view.
 @property(strong, nonatomic) UIStackView *stackView;
-
+/// Enable and disable the exception area background.
 @property(assign, nonatomic) BOOL _shouldExceptContentBackground;
+/// Is the alert view showed on any view.
 @property(readonly, nonatomic) BOOL _showedOnView;
 @end
 
 @interface _AXTranslucentButton : UIButton {
+    /// Mask of the button root view.
     CAShapeLayer *_maskLayer;
     CALayer *_opacityLayer;
     // Single seprator view.
     _AXAlertContentSeparatorView *__weak _singleSeparator;
     
-    id _arg1;
-    id _arg2;
+    id _arg1;// CGFloat.
+    id _arg2;// CGFloat.
 @public
     uint8_t _type;
+    /// Alert view acton.
     AXAlertViewAction *__weak _action;
 }
 /// Translucent. Defailts to YES.
@@ -144,11 +150,13 @@ static NSString * _kPlatform_info = @"";
 // - 1: Left.
 // - 2: Bottom.
 // - 3: Right.
-- (void)_setExceptionAllowedWidth:(CGFloat)arg1 direction:(int8_t)arg2;
-- (void)_setExceptionSeparatorLayerWidth:(CGFloat)arg1 direction:(int8_t)arg2;
+- (void)_setExceptionAllowedWidth:(CGFloat)arg1 direction:(int8_t)arg2;// For exception.
+- (void)_setExceptionSeparatorLayerWidth:(CGFloat)arg1 direction:(int8_t)arg2;// For addition.
 @end
 
+/// Get the 'height' of he inset by adding top and bottom.
 static CGFloat UIEdgeInsetsGetHeight(UIEdgeInsets insets) { return insets.top + insets.bottom; }
+/// Get the 'width' of the inset by adding left and right.
 static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + insets.right; }
 
 @implementation AXAlertView
@@ -462,7 +470,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self _updateExceptionAreaOfEffectView];
-    // Fix on iOS9.0.
+    // Fix on iOS9.0 and higher.
     if (![[self class] usingAutolayout]) [self configureActions];
     [self setNeedsDisplay];
 }
