@@ -55,6 +55,8 @@ AXAlertCustomSuperViewHooks(_AXAlertExceptionView)
 AXAlertCustomExceptionViewHooks(_AXAlertControllerView, _AXAlertExceptionView)
 
 AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
+@interface AXAlertView (Private) + (BOOL)usingAutolayout; @end
+
 @interface AXAlertController () <AXAlertViewDelegate> {
     BOOL _isBeingPresented;
     BOOL _isViewDidAppear;
@@ -177,12 +179,12 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [[UIDevice currentDevice] endGeneratingDeviceOrientationNotifications];
     
-    [_alertContentView removeObserver:self forKeyPath:@"containerView.bounds"];
-    [_actionSheetContentView removeObserver:self forKeyPath:@"containerView.bounds"];
+    [_alertContentView removeObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame"];
+    [_actionSheetContentView removeObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame"];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
-    if ([keyPath isEqualToString:@"containerView.bounds"]) {
+    if ([keyPath isEqualToString:@"containerView.bounds"] || [keyPath isEqualToString:@"containerView.frame"]) {
         [self _enableExceptionArea];
     } else [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
@@ -325,7 +327,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     config.font = [UIFont systemFontOfSize:16];
     [_alertContentView setActionConfiguration:config];
     
-    [_alertContentView addObserver:self forKeyPath:@"containerView.bounds" options:NSKeyValueObservingOptionNew context:NULL];
+    [_alertContentView addObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame" options:NSKeyValueObservingOptionNew context:NULL];
     return _alertContentView;
 }
 
@@ -354,7 +356,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     config.tintColor = [UIColor blackColor];
     [_actionSheetContentView setActionConfiguration:config];
     
-    [_actionSheetContentView addObserver:self forKeyPath:@"containerView.bounds" options:NSKeyValueObservingOptionNew context:NULL];
+    [_actionSheetContentView addObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame" options:NSKeyValueObservingOptionNew context:NULL];
     return _actionSheetContentView;
 }
 
