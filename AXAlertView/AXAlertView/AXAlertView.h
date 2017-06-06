@@ -94,7 +94,7 @@ typedef UIEdgeInsets AXEdgeMargins;
 /// Opacity of the dimed background. Value between [0, 1]. Defaults to 0.4.
 @property(assign, nonatomic) CGFloat opacity UI_APPEARANCE_SELECTOR;
 /// Content prefered height. Default is 0.
-@property(assign, nonatomic) CGFloat preferedHeight UI_APPEARANCE_SELECTOR;
+@property(assign, nonatomic) CGFloat preferedHeight UI_APPEARANCE_SELECTOR __deprecated;
 /// Content prefered edge margin. Default is 40.
 @property(assign, nonatomic) AXEdgeMargins preferedMargin UI_APPEARANCE_SELECTOR;
 /// Max width of the alert view. Default is 270.
