@@ -24,6 +24,7 @@
 //  SOFTWARE.
 
 #import "AXAlertView.h"
+#import "AXAlertConstant.h"
 
 // #ifndef AXAlertViewUsingAutolayout
 // #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
@@ -1916,16 +1917,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (_kPlatform_info.length > 0) {
         return [_kPlatform_info isEqualToString:@"autolayout_true"];
     }
-    NSString *systemVersion = [[UIDevice currentDevice].systemVersion copy];
-    NSArray *comp = [systemVersion componentsSeparatedByString:@"."];
-    if (comp.count == 0 || comp.count == 1) {
-        systemVersion = [NSString stringWithFormat:@"%@.0.0", systemVersion];
-    } else if (comp.count == 2) {
-        systemVersion = [NSString stringWithFormat:@"%@.0", systemVersion];
-    }
-    NSString *plat = [NSString stringWithFormat:@"%@.0.0", @(9000/1000)];
-    NSComparisonResult result = [systemVersion compare:plat options:NSNumericSearch];
-    if (result == NSOrderedSame || result == NSOrderedDescending) {
+    if (AX_ALERT_AVAILABLE_ON_PLATFORM([NSString stringWithFormat:@"%@.0.0", @(9000/1000)])) {
         _kPlatform_info = @"autolayout_true";  return YES;
     } else {
         _kPlatform_info = @"autolayout_false"; return NO;
