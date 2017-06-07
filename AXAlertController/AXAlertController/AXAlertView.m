@@ -26,10 +26,6 @@
 #import "AXAlertView.h"
 #import "AXAlertConstant.h"
 
-// #ifndef AXAlertViewUsingAutolayout
-// #define AXAlertViewUsingAutolayout (__IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_9_0)
-// #define AXAlertViewUsingAutolayout 0
-// #endif
 #ifndef AXAlertViewCustomViewHooks2
 #define AXAlertViewCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
 #endif
@@ -100,7 +96,6 @@ static NSString * _kPlatform_info = @"";
     
     /// Mask layer of the effect view.
     CAShapeLayer *_effectMaskLayer;
-    CALayer *_effectOpacityLayer;
     
     /// Content header view.
     _AXAlertContentHeaderView *_contentHeaderView;
@@ -130,7 +125,6 @@ static NSString * _kPlatform_info = @"";
 @interface _AXTranslucentButton : UIButton {
     /// Mask of the button root view.
     CAShapeLayer *_maskLayer;
-    CALayer *_opacityLayer;
     // Single seprator view.
     _AXAlertContentSeparatorView *__weak _singleSeparator;
     
@@ -188,6 +182,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)initializer {
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.userInteractionEnabled = YES;
+    // self.contentMode = UIViewContentModeCenter;
     
     _titleColor = [UIColor colorWithRed:0.996 green:0.725 blue:0.145 alpha:1.00];
     _titleFont = [UIFont boldSystemFontOfSize:17];
@@ -266,9 +261,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         if (_translucent) {
             if (height>=flag ) {
                 [self _setupContentHookedView];
-                [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+                [self _updateSettingsOfContentScrollView];
+                // [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
                 // Update transform information of the action buttons.
-                [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+                // [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
             } else {
                 [_contentHeaderView removeFromSuperview];
                 [_contentFooterView removeFromSuperview];
@@ -318,8 +314,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self setNeedsDisplay];
     } else if ([keyPath isEqualToString:@"bounds"]) {
         if (context != NULL) {// Content scroll view.
-            // Update transform of action buttons if needed.
-            [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+            [self _updateSettingsOfContentScrollView];
         } else {// Container view.
             // Update exception area of the effect view if bounds of the container view has changed.
             [self _updateExceptionAreaOfEffectView];
@@ -346,6 +341,31 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         // Ensure remove the translucent transition view from super view.
         [_translucentTransitionView removeFromSuperview];
     }
+}
+
+// Only override drawRect: if you perform custom drawing.
+// An empty implementation adversely affects performance during animation.
+- (void)drawRect:(CGRect)rect {
+    // Drawing code
+    [super drawRect:rect];
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
+    CGContextAddPath(context, outterPath);
+    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
+    CGContextFillPath(context);
+    
+    CGPathRelease(outterPath);
+    if (!__shouldExceptContentBackground) return;
+    
+    CGRect rectOfContainerView = self.containerView.frame;
+    if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
+    CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
+    CGContextAddPath(context, innerPath);
+    CGContextSetBlendMode(context, kCGBlendModeClear);
+    CGContextFillPath(context);
+    
+    CGPathRelease(innerPath);
 }
 
 - (void)layoutSubviews {
@@ -526,18 +546,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }]; else {
         [self viewDidShow:self animated:NO];
     }
-    /*
-     objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_showComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-     
-     if (animated) {
-     [CATransaction begin];
-     [self.containerView.chainAnimator.basic.property(@"transform.scale").duration(0.01).toValue(@1.2).nextToSpring.property(@"transform.scale").duration(0.5).fromValue(@1.2).toValue(@1.0).mass(0.5).stiffness(100).damping(20) easeOut].target(self).complete(@selector(_showComplete:)).animate();
-     [CATransaction flush];
-     [CATransaction commit];
-     } else {
-     [self _showComplete:self.chainAnimator];
-     }
-     */
 }
 
 - (void)show:(BOOL)animated completion:(AXAlertViewShowsBlock)didShow
@@ -559,41 +567,12 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }]; else {
         [self viewDidHide:self animated:NO];
     }
-    /*
-    objc_setAssociatedObject(self.containerView.chainAnimator, @selector(_hideComplete:), @(animated), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-    self.chainAnimator.basic.property(@"opacity").fromValue(@(1.0)).toValue(@(.0)).duration(animated?0.25:.0).target(self).complete(@selector(_hideComplete:)).animate();
-     */
 }
 
 - (void)hide:(BOOL)animated completion:(AXAlertViewShowsBlock)didHide
 {
     _didHide = [didHide copy];
     [self hide:animated];
-}
-
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect {
-    // Drawing code
-    [super drawRect:rect];
-    
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
-    CGContextAddPath(context, outterPath);
-    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
-    CGContextFillPath(context);
-    
-    CGPathRelease(outterPath);
-    if (!__shouldExceptContentBackground) return;
-    
-    CGRect rectOfContainerView = self.containerView.frame;
-    if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
-    CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
-    CGContextAddPath(context, innerPath);
-    CGContextSetBlendMode(context, kCGBlendModeClear);
-    CGContextFillPath(context);
-    
-    CGPathRelease(innerPath);
 }
 #pragma mark - Getters
 - (UIView *)contentView { return _containerView; }
@@ -1007,23 +986,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     _processing = YES;
     
-    // [self _layoutSubviews];
-    // [self configureActions];
-    /*
-#if !TARGET_IPHONE_SIMULATOR
-    if (_translucent) {
-        // Get the current translucent transition view.
-        UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:YES withCapInsets:UIEdgeInsetsZero];
-        [snapshot setFrame:self.containerView.bounds];
-        [self.containerView addSubview:snapshot];
-        // Remove the former from the container view if exits.
-        if (_translucentTransitionView.superview == self.containerView) {
-            [_translucentTransitionView removeFromSuperview];
-        }
-        _translucentTransitionView = snapshot;
-    }
-#endif
-    */
     if (_willShow != NULL && _willShow != nil) {
         _willShow(self, animated);
     }
@@ -1055,19 +1017,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (_translucentTransitionView.superview == self.containerView) {
         [_translucentTransitionView removeFromSuperview];
     }
-    /*
-    if (_translucent) {
-        // Get the current translucent transition view.
-        UIView *snapshot = [self.window resizableSnapshotViewFromRect:self.containerView.frame afterScreenUpdates:NO withCapInsets:UIEdgeInsetsZero];
-        [snapshot setFrame:self.containerView.bounds];
-        [self.containerView addSubview:snapshot];
-        // Remove the former from the container view if exits.
-        if (_translucentTransitionView.superview == self.containerView) {
-            [_translucentTransitionView removeFromSuperview];
-        }
-        _translucentTransitionView = snapshot;
-    }
-    */
     
     _processing = YES;
     
@@ -1096,16 +1045,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 #pragma mark - Private
+/// Set needs layout subviews.
 - (void)_layoutSubviews {
     if (![self _showedOnView]) return;
     [self setNeedsLayout];
     [self layoutIfNeeded];
 }
-
+/// Animate to handle device orientation changing.
 - (void)_handleDeviceOrientationDidChangeByAnimated {
     [self _handleDeviceOrientationDidChangeAnimated:YES];
 }
-
+/// Handle device orientation changing wiithout animation.
 - (void)_handleDeviceOrientationDidChangeWithoutAnimated {
     [self _handleDeviceOrientationDidChangeAnimated:NO];
 }
@@ -1113,9 +1063,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_handleDeviceOrientationDidChangeAnimated:(BOOL)animated {
     if (![[self class] usingAutolayout]) {
         if (animated) [UIView animateWithDuration:0.25 animations:^{
-            [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+            [self _updateSettingsOfContentScrollView];
         }]; else {
-            [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+            [self _updateSettingsOfContentScrollView];
         }
     } else {
         if (animated) [UIView animateWithDuration:0.25 animations:^{
@@ -1126,7 +1076,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self set_shouldExceptContentBackground:NO];
-    [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.25];
+    [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.3];
     
     [self _layoutSubviews];
     [self configureActions];
@@ -1570,7 +1520,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 }
             }
             
-        } [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+        } if (![[self class] usingAutolayout])[self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
     } else {
         CGFloat buttonWidth = .0;
         
@@ -1621,7 +1571,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             }
         }
         // There may be a larger content size of the content scroll view when added the custom view, so update the transform of the action buttons if needed.
-        [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
+        if (![[self class] usingAutolayout]) [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
     }
 }
 
@@ -1703,12 +1653,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }];
     
     if (arg1 < 0.0) {
-        _effectMaskLayer = nil; _filterView.layer.mask = nil; [_effectOpacityLayer removeFromSuperlayer]; _effectOpacityLayer = nil; return;
+        _effectMaskLayer = nil; _filterView.layer.mask = nil; return;
     }
     
-    if (_effectOpacityLayer != nil) {
-        [_effectOpacityLayer removeFromSuperlayer];
-    }
     CGFloat height = 0.0;
     CGFloat _height = 0.0;
     CGFloat _flag = 0.0;
@@ -1749,12 +1696,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _filterView.layer.mask = nil;
     _filterView.layer.mask = maskLayrer;
     _effectMaskLayer = maskLayrer;
-    
-    /* CALayer *opacityLayer = [CALayer layer];
-    opacityLayer.frame = CGRectMake(0, CGRectGetHeight(frame)-arg1, CGRectGetWidth(frame), arg1);
-    _effectOpacityLayer = opacityLayer;
-    _effectOpacityLayer.backgroundColor = [UIColor colorWithWhite:1 alpha:0.5].CGColor;
-    [_backdropView.layer addSublayer:_effectOpacityLayer]; */
 }
 
 - (void)_setupExceptionSeparatorLayerWidth:(CGFloat)arg1 {
@@ -1923,7 +1864,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _kPlatform_info = @"autolayout_false"; return NO;
     }
 }
-
+/// Updating the contraints of container if needed. Configurations for the max alowed width.
 - (void)_updateContraintsOfContainer {
     if (_maxAllowedWidth <= CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin)) {
         [NSLayoutConstraint activateConstraints:@[_widthOfContainer, _centerXOfContainer]];
@@ -1933,7 +1874,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [NSLayoutConstraint deactivateConstraints:@[_widthOfContainer, _centerXOfContainer]];
     }
 }
-
+/// Updating exception area of effect view by remask the layer of the filter view of the effect view.
 - (void)_updateExceptionAreaOfEffectView {
     if (_actionButtons.count > _horizontalLimits) {
         if (_translucent) {
@@ -1950,21 +1891,24 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
     }
 }
-
-#pragma mark - UIScrollViewDelegate.
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+/// - Updating frames of hooked views if translucent.
+/// - Updating transform of action item buttons.
+- (void)_updateSettingsOfContentScrollView {
+    [self _updateSettingsOfScrollView:_contentContainerView];
+}
+- (void)_updateSettingsOfScrollView:(UIScrollView *)scrollView {
     CGPoint contentOffset = scrollView.contentOffset;
-    
-    // if (scrollView == _containerView) {
-        // _effectView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y);
-        // _titleLabel.transform = CGAffineTransformMakeTranslation(0, contentOffset.y);
-    // }
     // Handle content hooked views.
     if (_translucent) {
         [self _updateFramesOfHookedVeiwsWithContentOffset:contentOffset ofScrollView:scrollView];
     }
     // Pin the stack view of needed.
     [self _updateTransformOfActionItemsWithContentOffset:contentOffset ofScrollView:scrollView];
+}
+
+#pragma mark - UIScrollViewDelegate.
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    [self _updateSettingsOfScrollView:scrollView];
 }
 @end
 
@@ -2054,29 +1998,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_setExceptionAllowedWidth:(CGFloat)arg1 direction:(int8_t)arg2 {
     _arg1 = @(arg1); _arg2 = @(arg2);
     
-    UIView */* __block */_filterView = self;
-    UIView */* __block */_backdropView;
-    /* [self.effectView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        if ([obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]) {
-            _filterView = obj;
-        } else if ([obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectBackdropView")]) {
-            _backdropView = obj;
-        }
-    }]; */
-    // if (!_filterView || !_backdropView) return;
+    UIView *_filterView = self;
     
     if (arg1 == 0.0 || arg2 < 0) {
-        _filterView.layer.mask = nil; _maskLayer = nil; [_opacityLayer removeFromSuperlayer]; _opacityLayer = nil; return;
-    }
-    
-    if (_opacityLayer != nil) {
-        [_opacityLayer removeFromSuperlayer];
+        _filterView.layer.mask = nil; _maskLayer = nil; return;
     }
     
     CALayer *layer = [CALayer layer];
     layer.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.5].CGColor;
-    _opacityLayer = layer;
-    [_backdropView.layer addSublayer:_opacityLayer];
     
     CAShapeLayer *maskLayer = [CAShapeLayer layer];
     _maskLayer = maskLayer;
@@ -2086,31 +2015,27 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, arg1, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-arg1)];
             _maskLayer.path = path.CGPath;
             _filterView.layer.mask = _maskLayer;
-            _opacityLayer.frame = CGRectMake(0, 0, CGRectGetWidth(self.frame), arg1);
             [self setContentEdgeInsets:UIEdgeInsetsMake(arg1, 0, 0, 0)];
         } break;
         case 1: {// Left.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(arg1, 0, CGRectGetWidth(self.frame)-arg1, CGRectGetHeight(self.frame))];
             _maskLayer.path = path.CGPath;
             _filterView.layer.mask = _maskLayer;
-            _opacityLayer.frame = CGRectMake(0, 0, arg1, CGRectGetHeight(self.frame));
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, arg1, 0, 0)];
         } break;
         case 2: {// Bottom.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-arg1)];
             _maskLayer.path = path.CGPath;
             _filterView.layer.mask = _maskLayer;
-            _opacityLayer.frame = CGRectMake(0, CGRectGetHeight(self.frame)-arg1, CGRectGetWidth(self.frame), arg1);
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, arg1, 0)];
         } break;
         case 3: {// Right.
             UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame)-arg1, CGRectGetHeight(self.frame))];
             _maskLayer.path = path.CGPath;
             _filterView.layer.mask = _maskLayer;
-            _opacityLayer.frame = CGRectMake(CGRectGetWidth(self.frame)-arg1, 0, arg1, CGRectGetHeight(self.frame));
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, 0, arg1)];
         } break;
-        default: _filterView.layer.mask = nil; _maskLayer = nil; [_opacityLayer removeFromSuperlayer]; _opacityLayer = nil; [self setContentEdgeInsets:UIEdgeInsetsZero]; return;
+        default: _filterView.layer.mask = nil; _maskLayer = nil; [self setContentEdgeInsets:UIEdgeInsetsZero]; return;
     }
 }
 
