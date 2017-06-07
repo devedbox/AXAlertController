@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3DA8ED676693A24D990DA890 /* libPods-AXAlertView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */; };
+		DC6399171EE79C0300F23BCC /* image.jpg in Resources */ = {isa = PBXBuildFile; fileRef = DC6399161EE79C0200F23BCC /* image.jpg */; };
 		DCA857B61EE698CB0008E9A4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857A31EE698CB0008E9A4 /* AppDelegate.m */; };
 		DCA857B71EE698CB0008E9A4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DCA857A41EE698CB0008E9A4 /* Assets.xcassets */; };
 		DCA857B81EE698CB0008E9A4 /* AXActionSheet.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857A71EE698CB0008E9A4 /* AXActionSheet.m */; };
@@ -26,6 +27,8 @@
 		37D7438B4F614BD7E4BD7FDA /* Pods-AXAlertView.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertView.release.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView.release.xcconfig"; sourceTree = "<group>"; };
 		525EDD5E82AD48153196FAAB /* Pods-AXAlertView.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertView.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView.debug.xcconfig"; sourceTree = "<group>"; };
 		6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AXAlertView.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC6399161EE79C0200F23BCC /* image.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = image.jpg; path = ../../../../../../Desktop/image.jpg; sourceTree = "<group>"; };
+		DC6399181EE79DB000F23BCC /* AXAlertConstant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXAlertConstant.h; sourceTree = "<group>"; };
 		DCA857A21EE698CB0008E9A4 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DCA857A31EE698CB0008E9A4 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		DCA857A41EE698CB0008E9A4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -92,6 +95,7 @@
 				DCA857B31EE698CB0008E9A4 /* TableViewController.m */,
 				DCA857A51EE698CB0008E9A4 /* AXAlertController */,
 				DCA857A41EE698CB0008E9A4 /* Assets.xcassets */,
+				DC6399161EE79C0200F23BCC /* image.jpg */,
 				DCA857AC1EE698CB0008E9A4 /* LaunchScreen.storyboard */,
 				DCA857AE1EE698CB0008E9A4 /* Main.storyboard */,
 				DCA857B01EE698CB0008E9A4 /* Info.plist */,
@@ -107,6 +111,7 @@
 			children = (
 				DCA857A81EE698CB0008E9A4 /* AXAlertController.h */,
 				DCA857A91EE698CB0008E9A4 /* AXAlertController.m */,
+				DC6399181EE79DB000F23BCC /* AXAlertConstant.h */,
 				DCA857A61EE698CB0008E9A4 /* AXActionSheet.h */,
 				DCA857A71EE698CB0008E9A4 /* AXActionSheet.m */,
 				DCA857AA1EE698CB0008E9A4 /* AXAlertView.h */,
@@ -186,6 +191,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DCA857BD1EE698CB0008E9A4 /* Info.plist in Resources */,
+				DC6399171EE79C0300F23BCC /* image.jpg in Resources */,
 				DCA857BC1EE698CB0008E9A4 /* Main.storyboard in Resources */,
 				DCA857B71EE698CB0008E9A4 /* Assets.xcassets in Resources */,
 				DCA857BB1EE698CB0008E9A4 /* LaunchScreen.storyboard in Resources */,
