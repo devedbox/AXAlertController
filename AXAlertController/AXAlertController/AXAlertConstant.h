@@ -29,7 +29,7 @@
 
 #endif /* AXAlertConstant_h */
 
-BOOL AX_ALERT_AVAILABLE_ON_PLATFORM(NSString *plat) {
+static BOOL AX_ALERT_AVAILABLE_ON_PLATFORM(NSString *plat) {
     NSString *systemVersion = [[UIDevice currentDevice].systemVersion copy];
     NSArray *comp = [systemVersion componentsSeparatedByString:@"."];
     if (comp.count == 0 || comp.count == 1) {
