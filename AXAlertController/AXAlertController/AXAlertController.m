@@ -86,7 +86,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 @property(strong, nonatomic) _AXAlertControllerSheetContentView *actionSheetContentView;
 /// Message label.
 @property(strong, nonatomic) UILabel *messageLabel;
-///
+/// Content view.
+@property(strong, nonatomic) _AXAlertControllerContentView *contentView;
 
 @property(readonly, nonatomic) _AXAlertControllerView *underlyingView;
 
@@ -421,6 +422,12 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     _messageLabel.numberOfLines = 0;
     _messageLabel.textAlignment = NSTextAlignmentCenter;
     return _messageLabel;
+}
+
+- (_AXAlertControllerContentView *)contentView {
+    if (_contentView) return _contentView;
+    _contentView = [_AXAlertControllerContentView new];
+    return _contentView;
 }
 
 - (_AXAlertControllerAlertContentView *)alertContentView {
