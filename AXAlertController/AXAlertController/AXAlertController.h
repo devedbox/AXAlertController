@@ -58,7 +58,7 @@ typedef void(^AXAlertActionHandler)(AXAlertAction *__weak _Nonnull action);
 @interface AXAlertActionConfiguration : AXAlertViewActionConfiguration @end
 
 @interface AXAlertController : UIViewController
-/// Content view.
+/// Alert view.
 @property(readonly, nonatomic) AXAlertView *alertView;
 
 @property(nullable, nonatomic, copy) NSString *title;
