@@ -58,6 +58,17 @@ AXAlertCustomExceptionViewHooks(_AXAlertControllerView, _AXAlertExceptionView)
 AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 @interface AXAlertView (Private) + (BOOL)usingAutolayout; @end
 
+@interface _AXAlertControllerContentView: UIView
+/// Stack view for using autolayout.
+@property(strong, nonatomic) UIStackView *stackView;
+/// Content label.
+@property(strong, nonatomic) UILabel *contentLabel;
+/// Content image view.
+@property(strong, nonatomic) UIImageView *imageView;
+/// Image top margin. Defaults to 10.0.
+@property(assign, nonatomic) CGFloat imageTopMargin;
+@end
+
 @interface AXAlertController () <AXAlertViewDelegate> {
     BOOL _isBeingPresented;
     BOOL _isViewDidAppear;
@@ -148,6 +159,106 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     return _a;
 }
 @end @implementation AXAlertActionConfiguration @end
+
+@implementation _AXAlertControllerContentView
+#pragma mark - Life cycle.
+- (instancetype)init {
+    if (self = [super init]) {
+        [self initializer];
+    } return self;
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    if (self = [super initWithCoder:aDecoder]) {
+        [self initializer];
+    } return self;
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if (self = [super initWithFrame:frame]) {
+        [self initializer];
+    } return self;
+}
+
+- (void)initializer {
+    _imageTopMargin = 10.0;
+    
+    if ([AXAlertView usingAutolayout]) {
+        [self addSubview:self.stackView];
+        [self _addContraintsOfStackViewToSelf];
+        [_stackView addArrangedSubview:self.contentLabel];
+        [_stackView addArrangedSubview:self.imageView];
+    } else {
+        [self addSubview:self.contentLabel];
+        [self addSubview:self.imageView];
+    }
+}
+
+- (void)dealloc {}
+#pragma mark - Overrides.
+- (CGSize)sizeThatFits:(CGSize)size {
+    CGSize susize = [super sizeThatFits:size];
+    [_contentLabel sizeToFit];
+    susize.height += CGRectGetHeight(_contentLabel.bounds);
+    
+    susize.height += _imageTopMargin;
+    
+    [_imageView sizeToFit];
+    susize.height += CGRectGetHeight(_imageView.bounds);
+    return susize;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    if (![AXAlertView usingAutolayout]) {
+        CGRect rect_label = _contentLabel.frame;
+        CGRect rect_image = _imageView.frame;
+        
+        rect_label.size.width = CGRectGetWidth(self.bounds);
+        rect_image.origin.y = CGRectGetMaxY(rect_label)+_imageTopMargin;
+        
+        _contentLabel.frame = rect_label;
+        _imageView.frame = rect_image;
+    }
+}
+
+#pragma mark - Getters.
+- (UIStackView *)stackView {
+    if (_stackView) return _stackView;
+    _stackView = [UIStackView new];
+    _stackView.translatesAutoresizingMaskIntoConstraints = NO;
+    _stackView.axis = UILayoutConstraintAxisVertical;
+    _stackView.distribution = UIStackViewDistributionFill;
+    _stackView.alignment = UIStackViewAlignmentFill;
+    return _stackView;
+}
+
+- (UILabel *)contentLabel {
+    if (_contentLabel) return _contentLabel;
+    _contentLabel = [UILabel new];
+    _contentLabel.font = [UIFont systemFontOfSize:13];
+    _contentLabel.numberOfLines = 0;
+    _contentLabel.textAlignment = NSTextAlignmentCenter;
+    _contentLabel.backgroundColor = [UIColor clearColor];
+    if ([AXAlertView usingAutolayout]) {
+        _contentLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    }
+    return _contentLabel;
+}
+
+- (UIImageView *)imageView {
+    if (_imageView) return _imageView;
+    _imageView = [UIImageView new];
+    _imageView.backgroundColor = [UIColor clearColor];
+    return _imageView;
+}
+
+#pragma mark - Private.
+- (void)_addContraintsOfStackViewToSelf {
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_stackView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_stackView)]];
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_stackView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_stackView)]];
+}
+@end
 
 @implementation AXAlertController @dynamic title;
 #pragma mark - Life cycle.
