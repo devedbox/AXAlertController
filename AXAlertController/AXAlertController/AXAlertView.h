@@ -49,6 +49,13 @@ typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
 
 typedef UIEdgeInsets AXEdgeMargins;
 
+/// Bounds of the container view remain in the center.
+extern CGFloat const kAXAlertVertivalOffsetCenter;
+/// Bounds of the container view pin to the top.
+extern CGFloat const kAXAlertVertivalOffsetPinToTop;
+/// Bounds of the container view pin to the bottom.
+extern CGFloat const kAXAlertVertivalOffsetPinToBottom;
+
 /// UIAlertController
 @interface AXAlertView : UIView {
     @protected

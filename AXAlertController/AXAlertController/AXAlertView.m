@@ -48,6 +48,9 @@ AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSiz
 AXAlertPlaceholderViewHooks(_AXAlertContentPlacehodlerView)
 
 static NSString * _kPlatform_info = @"";
+CGFloat const kAXAlertVertivalOffsetCenter = 0.0;
+CGFloat const kAXAlertVertivalOffsetPinToTop = CGFLOAT_MIN;
+CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
 
 @interface AXAlertView () <UIScrollViewDelegate>
 {
@@ -463,7 +466,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             
             _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer);
         } else {
-            rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5+_verticalOffset;
+            if (_verticalOffset == kAXAlertVertivalOffsetPinToTop) {
+                rect_container.origin.y = _preferedMargin.top;
+            } else if (_verticalOffset == kAXAlertVertivalOffsetPinToBottom) {
+                rect_container.origin.y = CGRectGetHeight(currentFrame) - _preferedMargin.bottom - MIN(heightOfContainer, CGRectGetHeight(currentFrame));
+            } else {
+                rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5+_verticalOffset;
+            }
+            
             rect_container.size = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
             _containerView.frame = rect_container;
             // Disable the scroll of the content container view.
@@ -866,14 +876,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
     }
     
-    [self configureCustomView];
+    [self configureActions];
 }
 
 - (void)setVerticalOffset:(CGFloat)verticalOffset {
     _verticalOffset = verticalOffset;
     
     if ([[self class] usingAutolayout]) {
-        _centerYOfContainer.constant = -_verticalOffset;
+        [self _updatePositionContraintsOfContainer];
         [self setNeedsLayout];
         [self setNeedsDisplay];
     } else {
@@ -1904,6 +1914,71 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     // Pin the stack view of needed.
     [self _updateTransformOfActionItemsWithContentOffset:contentOffset ofScrollView:scrollView];
+}
+
+- (void)_updatePositionContraintsOfContainer {
+    if (_verticalOffset == kAXAlertVertivalOffsetPinToTop) {
+        [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
+        
+        if (_topOfContainer) {
+            [self removeConstraint:_topOfContainer];
+        }
+        NSLayoutConstraint *topOfContainer =
+        [NSLayoutConstraint constraintWithItem:self
+                                     attribute:NSLayoutAttributeTop
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_containerView
+                                     attribute:NSLayoutAttributeTop
+                                    multiplier:1.0
+                                      constant:-_preferedMargin.top];
+        [self addConstraint:topOfContainer];
+        _topOfContainer = topOfContainer;
+    } else if (_verticalOffset == kAXAlertVertivalOffsetPinToBottom) {
+        [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
+        
+        if (_bottomOfContainer) {
+            [self removeConstraint:_bottomOfContainer];
+        }
+        NSLayoutConstraint *bottomOfContainer =
+        [NSLayoutConstraint constraintWithItem:self
+                                     attribute:NSLayoutAttributeBottom
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_containerView
+                                     attribute:NSLayoutAttributeBottom
+                                    multiplier:1.0
+                                      constant:_preferedMargin.bottom];
+        [self addConstraint:bottomOfContainer];
+        _bottomOfContainer = bottomOfContainer;
+    } else {
+        [NSLayoutConstraint activateConstraints:@[_centerYOfContainer]];
+        _centerYOfContainer.constant = -_verticalOffset;
+        [self _reconfigureVerticalPositionConstraintsOfContainer];
+    }
+}
+
+- (void)_reconfigureVerticalPositionConstraintsOfContainer {
+    if (_topOfContainer) [self removeConstraint:_topOfContainer];
+    if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
+    NSLayoutConstraint *bottomOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationGreaterThanOrEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeBottom
+                                multiplier:1.0
+                                  constant:_preferedMargin.bottom];
+    [self addConstraint:bottomOfContainer];
+    _bottomOfContainer = bottomOfContainer;
+    NSLayoutConstraint *topOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeTop
+                                 relatedBy:NSLayoutRelationGreaterThanOrEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeTop
+                                multiplier:1.0
+                                  constant:-_preferedMargin.top];
+    [self addConstraint:topOfContainer];
+    _topOfContainer = topOfContainer;
 }
 
 #pragma mark - UIScrollViewDelegate.
