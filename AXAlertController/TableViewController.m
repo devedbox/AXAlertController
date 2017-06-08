@@ -25,7 +25,8 @@
     
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    UIView *backgroundView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Image"]];
+    UIImage *image = [UIImage imageNamed:@"Image"];
+    UIView *backgroundView = [[UIImageView alloc] initWithImage:image];
     backgroundView.contentMode = UIViewContentModeScaleAspectFill;
     self.tableView.backgroundView = backgroundView;
 }
@@ -237,7 +238,7 @@
 - (void)_delayUpdateAlertView:(AXAlertView *)alertView {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         // alertView.titleColor = [UIColor redColor];
-        // alertView.titleFont = [UIFont systemFontOfSize:12];
+        alertView.titleFont = [UIFont systemFontOfSize:12];
         // alertView.translucent = NO;
         // alertView.translucentStyle = AXAlertViewTranslucentDark;
         // alertView.showsSeparators = NO;
@@ -251,7 +252,8 @@
         // alertView.opacity
         // alertView.
         // alertView.customView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Image"]];
-        alertView.customView = nil;
+        // alertView.customView = nil;
+        // alertView.verticalOffset = 100;
     });
 }
 @end
