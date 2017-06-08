@@ -41,7 +41,11 @@
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
-    [alert addTextFieldWithConfigurationHandler:NULL];
+    [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+        // textField.borderStyle = UITextBorderStyleRoundedRect;
+        // textField.font = [UIFont boldSystemFontOfSize:21];
+        textField.placeholder = @"Type text...";
+    }];
     [self presentViewController:alert animated:YES completion:NULL];
     alert.modalPresentationStyle = UIModalPresentationPageSheet;
     return;
@@ -169,14 +173,14 @@
     // for (int i = 0; i < 15; i++) {
         // [alert addAction:[AXAlertAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] handler:NULL]];
     // }
-    
+    alert.image = [UIImage imageNamed:@"Image"];
     [self presentViewController:alert animated:YES completion:NULL];
     [self _delayUpdateAlertView:alert.alertView];
 }
 
 - (void)showController:(id)sender {
     AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
-
+    // alert.image = [UIImage imageNamed:@"Image"];
     [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.preferedHeight = 44.0;
         config.backgroundColor = [UIColor whiteColor];
@@ -187,6 +191,9 @@
     [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.font = [UIFont systemFontOfSize:17];
         config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+    }];
+    [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+        textField.placeholder = @"Type text...";
     }];
     [self presentViewController:alert animated:YES completion:NULL];
     [self _delayUpdateAlertView:alert.alertView];

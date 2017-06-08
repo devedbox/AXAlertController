@@ -1,6 +1,6 @@
 //
 //  AXAlertController.h
-//  AXAlertView
+//  AXAlertController
 //
 //  Created by devedbox on 2017/5/27.
 //  Copyright © 2017年 devedbox. All rights reserved.
@@ -26,7 +26,6 @@
 #import <UIKit/UIKit.h>
 #import "AXAlertView.h"
 #import "AXActionSheet.h"
-#import <UIKit/UIAlertController.h>
 NS_ASSUME_NONNULL_BEGIN
 @class AXAlertAction;
 
@@ -81,5 +80,11 @@ typedef void(^AXAlertActionHandler)(AXAlertAction *__weak _Nonnull action);
 @property(nonatomic, nullable) UIImage *image;
 
 + (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message image:(nullable UIImage *)image preferredStyle:(AXAlertControllerStyle)preferredStyle;
+@end
+
+@interface AXAlertController (TextField)
+@property (nullable, nonatomic, readonly) NSArray<UITextField *> *textFields;
+
+- (void)addTextFieldWithConfigurationHandler:(void (^ __nullable)(UITextField *textField))configurationHandler;
 @end
 NS_ASSUME_NONNULL_END
