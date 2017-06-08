@@ -24,6 +24,7 @@
 //  SOFTWARE.
 
 #import "AXAlertController.h"
+#import "AXAlertConstant.h"
 
 #ifndef AXAlertViewHooks
 #define AXAlertViewHooks(_CustomView) @interface _CustomView : AXAlertView @end @implementation _CustomView @end
@@ -63,6 +64,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     BOOL _animated;
     
     BOOL _translucent;
+    BOOL _shouldExceptArea;
     
     AXAlertControllerStyle _style;
     NSMutableArray<AXAlertAction *> *_actions;
@@ -78,6 +80,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 /// Set the style of the alert controller.
 - (void)_setStyle:(uint64_t)arg;
+/// Set should except area.
+- (void)_setShouldExceptArea:(BOOL)arg;
 @end
 
 @interface AXAlertAction () {
@@ -173,6 +177,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     super.modalPresentationStyle = UIModalPresentationOverCurrentContext;
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
+    _shouldExceptArea = YES;
 }
 
 - (void)dealloc {
@@ -181,11 +186,15 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     
     [_alertContentView removeObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame"];
     [_actionSheetContentView removeObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame"];
+    [_alertContentView removeObserver:self forKeyPath:@"center"];
+    [_actionSheetContentView removeObserver:self forKeyPath:@"center"];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
-    if ([keyPath isEqualToString:@"containerView.bounds"] || [keyPath isEqualToString:@"containerView.frame"]) {
-        [self _enableExceptionArea];
+    if ([keyPath isEqualToString:@"containerView.bounds"] || [keyPath isEqualToString:@"containerView.frame"] || [keyPath isEqualToString:@"center"]) {
+        if (_shouldExceptArea) {
+            [self _enableExceptionArea];
+        }
     } else [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
@@ -328,6 +337,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [_alertContentView setActionConfiguration:config];
     
     [_alertContentView addObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame" options:NSKeyValueObservingOptionNew context:NULL];
+    [_alertContentView addObserver:self forKeyPath:@"center" options:NSKeyValueObservingOptionNew context:NULL];
     return _alertContentView;
 }
 
@@ -357,6 +367,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [_actionSheetContentView setActionConfiguration:config];
     
     [_actionSheetContentView addObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame" options:NSKeyValueObservingOptionNew context:NULL];
+    [_actionSheetContentView addObserver:self forKeyPath:@"center" options:NSKeyValueObservingOptionNew context:NULL];
     return _actionSheetContentView;
 }
 
@@ -384,13 +395,17 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         [view setBackgroundColor:[UIColor colorWithWhite:0 alpha:self.underlyingView.opacity]];
         [self.underlyingView addSubview:view];
     } else {
-        _translucent = self.contentView.translucent;
-        self.contentView.translucent = NO;
+        if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
+            _translucent = self.contentView.translucent;
+            self.contentView.translucent = NO;
+        }
     }
 }
 
 - (void)alertViewDidShow:(AXAlertView *)alertView {
-    [self _updatedTranslucentState];
+    if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
+        [self _updatedTranslucentState];
+    }
 }
 
 - (void)alertViewWillHide:(AXAlertView *)alertView {
@@ -400,21 +415,25 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         UIView *containerView = /*self.view.superview ?: self.view*/self.view.window;
         [containerView addSubview:transitionView];
     } else {
-        _translucent = self.contentView.translucent;
-        self.contentView.translucent = NO;
+        if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
+            _translucent = self.contentView.translucent;
+            self.contentView.translucent = NO;
+        }
     }
     [self _dismiss:alertView];
 }
 
 - (void)alertViewDidHide:(AXAlertView *)alertView {
-    [self _updatedTranslucentState];
+    if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
+        [self _updatedTranslucentState];
+    }
 }
 
 #pragma mark - Actions.
 - (void)handleDeviceOrientationDidChangeNotification:(NSNotification *)aNote {
-    if (_style == AXAlertControllerStyleActionSheet) return;
-    [self _disableExceptionArea];
-    [self performSelector:@selector(_enableExceptionArea) withObject:nil afterDelay:0.25];
+    // if (_style == AXAlertControllerStyleActionSheet) return;
+    [self _setShouldExceptArea:NO];
+    [self performSelector:@selector(_enableShouldExceptArea) withObject:nil afterDelay:0.3];
 }
 
 #pragma mark - Private.
@@ -425,6 +444,18 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)_setStyle:(uint64_t)arg { _style = arg; }
+
+- (void)_setShouldExceptArea:(BOOL)arg {
+    _shouldExceptArea = arg;
+    if (_shouldExceptArea) {
+        [self _enableExceptionArea];
+    } else {
+        [self _disableExceptionArea];
+    }
+}
+- (void)_enableShouldExceptArea {
+    [self _setShouldExceptArea:YES];
+}
 
 - (void)_addContentViewToContainer {
     UIView *containerView = self.view.superview ?: self.view;
