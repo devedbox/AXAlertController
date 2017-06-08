@@ -59,7 +59,7 @@ typedef void(^AXAlertActionHandler)(AXAlertAction *__weak _Nonnull action);
 
 @interface AXAlertController : UIViewController
 /// Content view.
-@property(readonly, nonatomic) AXAlertView *contentView;
+@property(readonly, nonatomic) AXAlertView *alertView;
 
 @property(nullable, nonatomic, copy) NSString *title;
 @property(nullable, nonatomic, copy) NSString *message;

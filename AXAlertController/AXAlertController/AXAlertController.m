@@ -86,6 +86,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 @property(strong, nonatomic) _AXAlertControllerSheetContentView *actionSheetContentView;
 /// Message label.
 @property(strong, nonatomic) UILabel *messageLabel;
+///
 
 @property(readonly, nonatomic) _AXAlertControllerView *underlyingView;
 
@@ -312,8 +313,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 + (instancetype)alertControllerWithTitle:(NSString *)title message:(NSString *)message preferredStyle:(AXAlertControllerStyle)preferredStyle {
     AXAlertController *alert = [[self alloc] init];
     [alert _setStyle:preferredStyle];
-    alert.contentView.title = title;
-    alert.contentView.customView = alert.messageLabel;
+    alert.alertView.title = title;
+    alert.alertView.customView = alert.messageLabel;
     alert.messageLabel.text = message;
     return alert;
 }
@@ -340,7 +341,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     if (!_isViewDidAppear) {
         [self _addContentViewToContainer];
         if (_style == AXAlertControllerStyleActionSheet) {
-            [self.contentView show:_animated];
+            [self.alertView show:_animated];
         }
     }
 }
@@ -350,7 +351,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     _isBeingPresented = [self isBeingPresented];
     _animated = animated;
     
-    if (!_isViewDidAppear && _style == AXAlertControllerStyleAlert) [self.contentView show:animated];
+    if (!_isViewDidAppear && _style == AXAlertControllerStyleAlert) [self.alertView show:animated];
 }
 
 - (void)viewWillMoveToSuperview:(UIView *)newSuperView {}
@@ -361,8 +362,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     
     _isViewDidAppear = YES;
     // _alertContentView.translucent = YES;
-    if (self.contentView.superview != self.view) {
-        [self.view addSubview:self.contentView];
+    if (self.alertView.superview != self.view) {
+        [self.view addSubview:self.alertView];
     }
 }
 
@@ -381,22 +382,22 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
             cancel.cornerRadius = .0;
             cancel.separatorHeight = .0;
             cancel.tintColor = [UIColor redColor];
-            [self.contentView setActionConfiguration:cancel forKey:_action.identifier];
+            [self.alertView setActionConfiguration:cancel forKey:_action.identifier];
         }
-        [self.contentView appendActions:_action, nil];
+        [self.alertView appendActions:_action, nil];
     } else {
         AXAlertViewAction *_action = action.alertViewAction;
-        [self.contentView appendActions:_action, nil];
+        [self.alertView appendActions:_action, nil];
     }
 }
 
 - (void)addAction:(AXAlertAction *)action configuration:(AXAlertActionConfiguration *)config {
     [self addAction:action];
-    if (config) [self.contentView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count-1)]];
+    if (config) [self.alertView setActionConfiguration:config forKey:action.identifier.length?action.identifier:[NSString stringWithFormat:@"%@", @(_actions.count-1)]];
 }
 
 - (void)addAction:(AXAlertAction *)action configurationHandler:(void (^)(AXAlertActionConfiguration * _Nonnull))configuration {
-    AXAlertActionConfiguration *config = [self.contentView.actionConfiguration copy];
+    AXAlertActionConfiguration *config = [self.alertView.actionConfiguration copy];
     
     if (configuration != NULL) {
         configuration(config);
@@ -406,7 +407,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 #pragma mark - Getters.
-- (AXAlertView *)contentView { return (_style==AXAlertControllerStyleActionSheet?self.actionSheetContentView:self.alertContentView); }
+- (AXAlertView *)alertView { return (_style==AXAlertControllerStyleActionSheet?self.actionSheetContentView:self.alertContentView); }
 - (NSArray<AXAlertAction *> *)actions { return [_actions copy]; }
 - (NSString *)title { return _alertContentView.title; }
 - (NSString *)message { return _messageLabel.text; }
@@ -507,8 +508,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         [self.underlyingView addSubview:view];
     } else {
         if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
-            _translucent = self.contentView.translucent;
-            self.contentView.translucent = NO;
+            _translucent = self.alertView.translucent;
+            self.alertView.translucent = NO;
         }
     }
 }
@@ -527,8 +528,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         [containerView addSubview:transitionView];
     } else {
         if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
-            _translucent = self.contentView.translucent;
-            self.contentView.translucent = NO;
+            _translucent = self.alertView.translucent;
+            self.alertView.translucent = NO;
         }
     }
     [self _dismiss:alertView];
@@ -573,15 +574,15 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     if (_style == AXAlertControllerStyleAlert) {
         containerView = self.view;
     }
-    [containerView addSubview:self.contentView];
-    [self.contentView setNeedsLayout];
-    [self.contentView layoutIfNeeded];
+    [containerView addSubview:self.alertView];
+    [self.alertView setNeedsLayout];
+    [self.alertView layoutIfNeeded];
     [self _enableExceptionArea];
 }
 
 - (void)_enableExceptionArea {
-    [self.underlyingView setExceptionFrame:[[self.contentView valueForKeyPath:@"containerView.frame"] CGRectValue]];
-    [self.underlyingView setCornerRadius:self.contentView.cornerRadius];
+    [self.underlyingView setExceptionFrame:[[self.alertView valueForKeyPath:@"containerView.frame"] CGRectValue]];
+    [self.underlyingView setCornerRadius:self.alertView.cornerRadius];
     [self.underlyingView setNeedsDisplay];
 }
 
@@ -593,7 +594,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 - (void)_updatedTranslucentState {
     if (_translucent && _style == AXAlertControllerStyleAlert) {
-        [self.contentView setTranslucent:_translucent];
+        [self.alertView setTranslucent:_translucent];
     }
 }
 @end

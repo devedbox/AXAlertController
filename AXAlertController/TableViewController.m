@@ -41,6 +41,7 @@
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
+    [alert addTextFieldWithConfigurationHandler:NULL];
     [self presentViewController:alert animated:YES completion:NULL];
     alert.modalPresentationStyle = UIModalPresentationPageSheet;
     return;
@@ -170,7 +171,7 @@
     // }
     
     [self presentViewController:alert animated:YES completion:NULL];
-    [self _delayUpdateAlertView:alert.contentView];
+    [self _delayUpdateAlertView:alert.alertView];
 }
 
 - (void)showController:(id)sender {
@@ -188,7 +189,7 @@
         config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
     }];
     [self presentViewController:alert animated:YES completion:NULL];
-    [self _delayUpdateAlertView:alert.contentView];
+    [self _delayUpdateAlertView:alert.alertView];
 }
 
 - (void)showMoreItems:(id)sender {
