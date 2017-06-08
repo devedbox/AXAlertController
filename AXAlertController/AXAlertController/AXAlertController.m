@@ -186,12 +186,12 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     
     [_alertContentView removeObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame"];
     [_actionSheetContentView removeObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame"];
-    [_alertContentView removeObserver:self forKeyPath:@"center"];
-    [_actionSheetContentView removeObserver:self forKeyPath:@"center"];
+    [_alertContentView removeObserver:self forKeyPath:@"containerView.center"];
+    [_actionSheetContentView removeObserver:self forKeyPath:@"containerView.center"];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
-    if ([keyPath isEqualToString:@"containerView.bounds"] || [keyPath isEqualToString:@"containerView.frame"] || [keyPath isEqualToString:@"center"]) {
+    if ([keyPath isEqualToString:@"containerView.bounds"] || [keyPath isEqualToString:@"containerView.frame"] || [keyPath isEqualToString:@"containerView.center"]) {
         if (_shouldExceptArea) {
             [self _enableExceptionArea];
         }
@@ -337,7 +337,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [_alertContentView setActionConfiguration:config];
     
     [_alertContentView addObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame" options:NSKeyValueObservingOptionNew context:NULL];
-    [_alertContentView addObserver:self forKeyPath:@"center" options:NSKeyValueObservingOptionNew context:NULL];
+    [_alertContentView addObserver:self forKeyPath:@"containerView.center" options:NSKeyValueObservingOptionNew context:NULL];
     return _alertContentView;
 }
 
@@ -367,7 +367,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [_actionSheetContentView setActionConfiguration:config];
     
     [_actionSheetContentView addObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame" options:NSKeyValueObservingOptionNew context:NULL];
-    [_actionSheetContentView addObserver:self forKeyPath:@"center" options:NSKeyValueObservingOptionNew context:NULL];
+    [_actionSheetContentView addObserver:self forKeyPath:@"containerView.center" options:NSKeyValueObservingOptionNew context:NULL];
     return _actionSheetContentView;
 }
 
