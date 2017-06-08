@@ -29,7 +29,6 @@
 - (void)initializer;
 
 + (BOOL)usingAutolayout;
-- (void)_handleDeviceOrientationDidChangeAnimated:(BOOL)animated;
 @end
 
 @interface AXActionSheet () {
@@ -50,7 +49,7 @@
     super.maxAllowedWidth = 10000.0;
     self.verticalOffset = kAXAlertVertivalOffsetPinToBottom;
     
-    self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin;
+    if (![[self class] usingAutolayout]) self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin;
 }
 
 - (void)dealloc {}
@@ -58,23 +57,11 @@
 #pragma mark - Override.
 - (void)layoutSubviews {
     [super layoutSubviews];
-    
-    // CGRect rect_container = self.contentView.frame;
-    // rect_container.origin.y = CGRectGetHeight(self.frame) - CGRectGetHeight(rect_container);
-    // self.contentView.frame = rect_container;
-}
-
-- (void)_handleDeviceOrientationDidChangeAnimated:(BOOL)animated {
-    [super _handleDeviceOrientationDidChangeAnimated:animated];
-    
-    // [self setVerticalOffset:CGRectGetHeight(self.bounds)-CGRectGetMaxY(self.contentView.frame)];
 }
 
 - (void)viewWillShow:(AXAlertView *)alertView animated:(BOOL)animated {
     [self setNeedsLayout];
     [self layoutIfNeeded];
-    
-    // [self setVerticalOffset:CGRectGetHeight(self.bounds)-CGRectGetMaxY(self.contentView.frame)];
     
     [self _addupAnimatingViewWithHeight:-0.1];
     
@@ -269,7 +256,7 @@
 }
 
 - (void)setPreferedMargin:(AXEdgeMargins)preferedMargin {
-    [super setPreferedMargin:UIEdgeInsetsMake(64, 0, 0, 0)];
+    [super setPreferedMargin:UIEdgeInsetsMake(preferedMargin.top, 0, 0, 0)];
 }
 
 - (void)setCornerRadius:(CGFloat)cornerRadius {
@@ -278,6 +265,10 @@
 
 - (void)setMaxAllowedWidth:(CGFloat)maxAllowedWidth {
     [super setMaxAllowedWidth:10000.0];
+}
+
+- (void)setVerticalOffset:(CGFloat)verticalOffset {
+    [super setVerticalOffset:kAXAlertVertivalOffsetPinToBottom];
 }
 #pragma mark - Private.
 - (UIImage *)_renderedImageOfView:(UIView *)view {
