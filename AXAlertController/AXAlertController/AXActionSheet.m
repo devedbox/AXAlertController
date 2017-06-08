@@ -1,6 +1,6 @@
 //
 //  AXActionSheet.m
-//  AXAlertView
+//  AXAlertController
 //
 //  Created by devedbox on 2017/5/28.
 //  Copyright © 2017年 devedbox. All rights reserved.
