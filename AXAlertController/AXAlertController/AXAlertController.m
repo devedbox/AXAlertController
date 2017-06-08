@@ -84,8 +84,6 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 @property(strong, nonatomic) _AXAlertControllerAlertContentView *alertContentView;
 /// Content action sheet view.
 @property(strong, nonatomic) _AXAlertControllerSheetContentView *actionSheetContentView;
-/// Message label.
-@property(strong, nonatomic) UILabel *messageLabel;
 /// Content view.
 @property(strong, nonatomic) _AXAlertControllerContentView *contentView;
 
@@ -315,8 +313,14 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     AXAlertController *alert = [[self alloc] init];
     [alert _setStyle:preferredStyle];
     alert.alertView.title = title;
-    alert.alertView.customView = alert.messageLabel;
-    alert.messageLabel.text = message;
+    alert.alertView.customView = alert.contentView;
+    alert.contentView.contentLabel.text = message;
+    return alert;
+}
+
++ (instancetype)alertControllerWithTitle:(NSString *)title message:(NSString *)message image:(UIImage *)image preferredStyle:(AXAlertControllerStyle)preferredStyle {
+    AXAlertController *alert = [self alertControllerWithTitle:title message:message preferredStyle:preferredStyle];
+    alert.image = image;
     return alert;
 }
 
@@ -411,18 +415,10 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (AXAlertView *)alertView { return (_style==AXAlertControllerStyleActionSheet?self.actionSheetContentView:self.alertContentView); }
 - (NSArray<AXAlertAction *> *)actions { return [_actions copy]; }
 - (NSString *)title { return _alertContentView.title; }
-- (NSString *)message { return _messageLabel.text; }
+- (NSString *)message { return _contentView.contentLabel.text; }
+- (UIImage *)image { return _contentView.imageView.image; }
 - (AXAlertControllerStyle)preferredStyle { return _style; }
 - (_AXAlertControllerView *)underlyingView { return (_AXAlertControllerView *)self.view; }
-
-- (UILabel *)messageLabel {
-    if (_messageLabel) return _messageLabel;
-    _messageLabel = [UILabel new];
-    _messageLabel.font = [UIFont systemFontOfSize:13];
-    _messageLabel.numberOfLines = 0;
-    _messageLabel.textAlignment = NSTextAlignmentCenter;
-    return _messageLabel;
-}
 
 - (_AXAlertControllerContentView *)contentView {
     if (_contentView) return _contentView;
@@ -496,7 +492,11 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)setMessage:(NSString *)message {
-    [_messageLabel setText:message];
+    [_contentView.contentLabel setText:message];
+}
+
+- (void)setImage:(UIImage *)image {
+    [_contentView.imageView setImage:image];
 }
 
 - (void)setModalTransitionStyle:(UIModalTransitionStyle)modalTransitionStyle {

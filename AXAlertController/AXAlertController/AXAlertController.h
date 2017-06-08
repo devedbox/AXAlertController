@@ -76,4 +76,10 @@ typedef void(^AXAlertActionHandler)(AXAlertAction *__weak _Nonnull action);
 - (void)addAction:(AXAlertAction *)action configuration:(nullable AXAlertActionConfiguration *)config;
 - (void)addAction:(AXAlertAction *)action configurationHandler:(void (^__nullable)(AXAlertActionConfiguration *config))configuration;
 @end
+
+@interface AXAlertController (Image)
+@property(nonatomic, nullable) UIImage *image;
+
++ (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message image:(nullable UIImage *)image preferredStyle:(AXAlertControllerStyle)preferredStyle;
+@end
 NS_ASSUME_NONNULL_END
