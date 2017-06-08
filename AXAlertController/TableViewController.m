@@ -238,7 +238,7 @@
 - (void)_delayUpdateAlertView:(AXAlertView *)alertView {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         // alertView.titleColor = [UIColor redColor];
-        alertView.titleFont = [UIFont systemFontOfSize:12];
+        // alertView.titleFont = [UIFont systemFontOfSize:12];
         // alertView.translucent = NO;
         // alertView.translucentStyle = AXAlertViewTranslucentDark;
         // alertView.showsSeparators = NO;
