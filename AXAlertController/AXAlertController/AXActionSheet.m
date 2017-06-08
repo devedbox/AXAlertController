@@ -29,6 +29,7 @@
 - (void)initializer;
 
 + (BOOL)usingAutolayout;
+- (void)_handleDeviceOrientationDidChangeAnimated:(BOOL)animated;
 @end
 
 @interface AXActionSheet () {
@@ -47,6 +48,7 @@
     super.preferedMargin = UIEdgeInsetsMake(64, 0, 0, 0);
     super.cornerRadius = .0;
     super.maxAllowedWidth = 10000.0;
+    self.verticalOffset = kAXAlertVertivalOffsetPinToBottom;
     
     self.contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin;
 }
@@ -57,14 +59,22 @@
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    CGRect rect_container = self.contentView.frame;
-    rect_container.origin.y = CGRectGetHeight(self.frame) - CGRectGetHeight(rect_container);
-    self.contentView.frame = rect_container;
+    // CGRect rect_container = self.contentView.frame;
+    // rect_container.origin.y = CGRectGetHeight(self.frame) - CGRectGetHeight(rect_container);
+    // self.contentView.frame = rect_container;
+}
+
+- (void)_handleDeviceOrientationDidChangeAnimated:(BOOL)animated {
+    [super _handleDeviceOrientationDidChangeAnimated:animated];
+    
+    // [self setVerticalOffset:CGRectGetHeight(self.bounds)-CGRectGetMaxY(self.contentView.frame)];
 }
 
 - (void)viewWillShow:(AXAlertView *)alertView animated:(BOOL)animated {
     [self setNeedsLayout];
     [self layoutIfNeeded];
+    
+    // [self setVerticalOffset:CGRectGetHeight(self.bounds)-CGRectGetMaxY(self.contentView.frame)];
     
     [self _addupAnimatingViewWithHeight:-0.1];
     
@@ -279,7 +289,8 @@
 }
 
 - (void)_addupAnimatingViewWithHeight:(CGFloat)height {
-    [self.animatingView setFrame:self.contentView.frame];
+    CGSize size = self.contentView.bounds.size;
+    [self.animatingView setFrame:CGRectMake(0, CGRectGetHeight(self.bounds)-size.height, size.width, size.height)];
     [_animatingView setBackgroundColor:[UIColor colorWithWhite:0 alpha:self.opacity]];
     [_animatingView.layer setCornerRadius:self.cornerRadius];
     [_animatingView.layer setMasksToBounds:YES];
