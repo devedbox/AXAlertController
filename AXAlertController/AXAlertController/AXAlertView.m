@@ -123,7 +123,7 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
 /// Stack view.
 @property(strong, nonatomic) UIStackView *stackView;
 /// Enable and disable the exception area background.
-@property(assign, nonatomic) BOOL _shouldExceptContentBackground;
+@property(assign, nonatomic) BOOL _shouldExceptContentBackground __deprecated_msg("Using dimming contet image instead.") ;
 /// Is the alert view showed on any view.
 @property(readonly, nonatomic) BOOL _showedOnView;
 @end
@@ -1119,6 +1119,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
     }
     
+    // Using dimming content image instead:
     // [self set_shouldExceptContentBackground:NO];
     // [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.3];
     
@@ -1126,11 +1127,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self configureActions];
 }
 
-- (void)_disable_shouldExceptContentBackground {
+- (void)_disable_shouldExceptContentBackground __deprecated_msg("Using dimming contet image instead.") {
     [self set_shouldExceptContentBackground:NO];
 }
 
-- (void)_enabled_shouldExceptContentBackground {
+- (void)_enabled_shouldExceptContentBackground __deprecated_msg("Using dimming contet image instead.") {
     [self set_shouldExceptContentBackground:YES];
 }
 
