@@ -320,7 +320,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 }
             }
             // Update height of content scroll view.
-            [self _updateHeightConstraintsOfContentViewWithHeight:height];
+            [self _updateHeightConstraintsOfContentViewWithHeight:MAX(0, MIN(height, flag))];
         }
         
         // [self setNeedsDisplay];
