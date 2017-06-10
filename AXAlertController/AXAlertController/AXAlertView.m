@@ -44,6 +44,7 @@ AXAlertViewCustomViewHooks(_AXAlertContentHeaderView)
 AXAlertViewCustomViewHooks(_AXAlertContentFooterView)
 AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
+AXAlertViewCustomViewHooks2(_AXAlertViewDimmingView, UIImageView)
 AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSize"])
 AXAlertPlaceholderViewHooks(_AXAlertContentPlacehodlerView)
 
@@ -105,6 +106,8 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
     /// Content footer view.
     _AXAlertContentFooterView *_contentFooterView;
 }
+/// Content dimming view.
+@property(strong, nonatomic) _AXAlertViewDimmingView *dimmingView;
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
 /// Container view.
@@ -217,6 +220,12 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     __shouldExceptContentBackground = YES;
     
     super.backgroundColor = [UIColor clearColor];
+    // Add dimming view.
+    [self addSubview:self.dimmingView];
+    // Add contraints of dimming view.
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_dimmingView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_dimmingView)]];
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_dimmingView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_dimmingView)]];
+    
     [self addSubview:self.containerView];
     [self.containerView addSubview:self.contentContainerView];
     [self.containerView addSubview:self.titleLabel];
@@ -314,7 +323,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             [self _updateHeightConstraintsOfContentViewWithHeight:height];
         }
         
-        [self setNeedsDisplay];
+        // [self setNeedsDisplay];
+        // Replaced with:
+        [self _setupContentImageOfDimmingView];
     } else if ([keyPath isEqualToString:@"bounds"]) {
         if (context != NULL) {// Content scroll view.
             [self _updateSettingsOfContentScrollView];
@@ -322,7 +333,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             // Update exception area of the effect view if bounds of the container view has changed.
             [self _updateExceptionAreaOfEffectView];
             // Redraw the exception background.
-            [self setNeedsDisplay];
+            // [self setNeedsDisplay];
+            // Replaced with:
+            [self _setupContentImageOfDimmingView];
         }
     } else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -351,7 +364,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)drawRect:(CGRect)rect {
     // Drawing code
     [super drawRect:rect];
-    
+    // [self _setupContentImageOfDimmingView];
+    /* Using content dimming view instead.
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
     CGContextAddPath(context, outterPath);
@@ -369,6 +383,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     CGContextFillPath(context);
     
     CGPathRelease(innerPath);
+     */
 }
 
 - (void)layoutSubviews {
@@ -507,7 +522,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self _updateExceptionAreaOfEffectView];
     // Fix on iOS9.0 and higher.
     if (![[self class] usingAutolayout]) [self configureActions];
-    [self setNeedsDisplay];
+    // [self setNeedsDisplay];
+    // Replaced with:
+    [self _setupContentImageOfDimmingView];
 }
 #pragma mark - Public method
 - (void)setActions:(AXAlertViewAction *)actions, ... {
@@ -595,6 +612,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (UIColor *)backgroundColor {
     return _containerView.backgroundColor;
+}
+
+- (_AXAlertViewDimmingView *)dimmingView {
+    if (_dimmingView) return _dimmingView;
+    _dimmingView = [_AXAlertViewDimmingView new];
+    _dimmingView.backgroundColor = [UIColor clearColor];
+    _dimmingView.contentMode = UIViewContentModeCenter;
+    _dimmingView.translatesAutoresizingMaskIntoConstraints = NO;
+    return _dimmingView;
 }
 
 - (UILabel *)titleLabel {
@@ -735,7 +761,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             [_contentContainerView addSubview:_stackView];
         
             [self _addContraintsOfCustomViewAndStackViewToContentView];
-            [self setNeedsDisplay];
+            // [self setNeedsDisplay];
+            // Replaced with:
+            [self _setupContentImageOfDimmingView];
         } else {
             // Layout the subviews if needed.
             // [self setNeedsLayout];
@@ -885,7 +913,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if ([[self class] usingAutolayout]) {
         [self _updatePositionContraintsOfContainer];
         [self setNeedsLayout];
-        [self setNeedsDisplay];
+        // [self setNeedsDisplay];
+        // Replaced with:
+        [self _setupContentImageOfDimmingView];
     } else {
         [self _layoutSubviews];
     }
@@ -910,7 +940,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)setOpacity:(CGFloat)opacity {
     _opacity = opacity;
-    [self setNeedsDisplay];
+    // [self setNeedsDisplay];
+    // Replaced with:
+    [self _setupContentImageOfDimmingView];
 }
 
 - (void)setPreferedHeight:(CGFloat)preferedHeight {
@@ -958,7 +990,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)set_shouldExceptContentBackground:(BOOL)_shouldExceptContentBackground {
     __shouldExceptContentBackground = _shouldExceptContentBackground;
-    [self setNeedsDisplay];
+    // [self setNeedsDisplay];
+    // Replaced with:
+    [self _setupContentImageOfDimmingView];
 }
 
 #pragma mark - Actions
@@ -1085,8 +1119,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }
     }
     
-    [self set_shouldExceptContentBackground:NO];
-    [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.3];
+    // [self set_shouldExceptContentBackground:NO];
+    // [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.3];
     
     [self _layoutSubviews];
     [self configureActions];
@@ -1979,6 +2013,51 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                   constant:-_preferedMargin.top];
     [self addConstraint:topOfContainer];
     _topOfContainer = topOfContainer;
+}
+
+- (UIImage *)_dimmingKnockoutImageOfFrameOfContainerView {
+    return [[self class] _dimmingKnockoutImageOfExceptionRect:self.containerView.frame cornerRadius:_cornerRadius inRect:self.bounds opacity:_opacity];
+}
+
++ (UIImage *)_dimmingKnockoutImageOfExceptionRect:(CGRect)exceptionRect cornerRadius:(CGFloat)cornerRadius inRect:(CGRect)mainBounds opacity:(CGFloat)opacity {
+    CGFloat maxElements = MAX(CGRectGetWidth(mainBounds), CGRectGetHeight(mainBounds));
+    CGSize size = CGSizeMake(maxElements, maxElements);
+    UIColor *drawingColor = [UIColor colorWithWhite:0 alpha:opacity];
+    UIColor *clearingColor = [UIColor clearColor];
+    UIGraphicsBeginImageContextWithOptions(size, NO, [UIScreen mainScreen].scale);
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGPathRef outterPath = CGPathCreateWithRect(CGRectMake(0, 0, size.width, size.height), nil);
+    CGContextAddPath(context, outterPath);
+    CGContextSetFillColorWithColor(context, drawingColor.CGColor);
+    CGContextFillPath(context);
+    
+    CGPathRelease(outterPath);
+    
+    CGRect exceptionFrame = exceptionRect;
+    exceptionFrame.origin.x += size.width*.5-CGRectGetWidth(mainBounds)*.5;
+    exceptionFrame.origin.y += size.height*.5-CGRectGetHeight(mainBounds)*.5;
+    
+    if (CGRectGetWidth(exceptionFrame) < cornerRadius*2 || CGRectGetHeight(exceptionFrame) < cornerRadius*2) return nil;
+    CGPathRef innerPath = CGPathCreateWithRoundedRect(exceptionFrame, cornerRadius, cornerRadius, nil);
+    CGContextAddPath(context, innerPath);
+    CGContextSetBlendMode(context, kCGBlendModeClear);
+    CGContextSetFillColorWithColor(context, clearingColor.CGColor);
+    CGContextFillPath(context);
+    
+    CGPathRelease(innerPath);
+    // CGContextDrawImage(context, self.bounds, nil);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return image;
+}
+
+- (void)_setupContentImageOfDimmingView {
+    UIImage *image = [self _dimmingKnockoutImageOfFrameOfContainerView];
+    if (image != nil) {
+        _dimmingView.image = image;
+    }
 }
 
 #pragma mark - UIScrollViewDelegate.
