@@ -417,6 +417,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (void)loadView {
     [super loadView];
     _AXAlertControllerView *view = [[_AXAlertControllerView alloc] initWithFrame:self.view.bounds];
+    view.userInteractionEnabled = YES;
     [view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
     [view setDelegate:self];
     // [view setOpacity:0.4];
