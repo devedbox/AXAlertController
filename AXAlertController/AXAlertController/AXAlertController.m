@@ -33,10 +33,10 @@
 #define AXActionSheetHooks(_CustomView) @interface _CustomView : AXActionSheet @end @implementation _CustomView @end
 #endif
 #ifndef AXAlertCustomSuperViewHooks
-#define AXAlertCustomSuperViewHooks(_CustomView) @protocol _AXAlertCustomSuperViewDelegate <NSObject>\
+#define AXAlertCustomSuperViewHooks(_CustomView, CocoaView) @protocol _AXAlertCustomSuperViewDelegate <NSObject>\
 - (void)viewWillMoveToSuperview:(UIView *)newSuperView;\
 - (void)viewDidMoveToSuperview;\
-@end @interface _CustomView : UIView\
+@end @interface _CustomView : CocoaView\
 @property(weak, nonatomic) id<_AXAlertCustomSuperViewDelegate> delegate;\
 @end @implementation _CustomView\
 - (void)willMoveToSuperview:(UIView *)newSuperview { [super willMoveToSuperview:newSuperview]; [_delegate viewWillMoveToSuperview:newSuperview]; }\
@@ -44,7 +44,7 @@
 @end
 #endif
 #ifndef AXAlertCustomExceptionViewHooks
-#define AXAlertCustomExceptionViewHooks(_ExceptionView, View) @interface _ExceptionView : View@property(assign, nonatomic) CGRect exceptionFrame;@property(assign, nonatomic) CGFloat cornerRadius;@property(assign, nonatomic) CGFloat opacity;@end@implementation _ExceptionView - (void)drawRect:(CGRect)rect {[super drawRect:rect];CGContextRef context = UIGraphicsGetCurrentContext();CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);CGContextAddPath(context, outterPath);CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);CGContextFillPath(context);CGPathRelease(outterPath);CGRect rectOfContainerView =_exceptionFrame;if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);CGContextAddPath(context, innerPath);CGContextSetBlendMode(context, kCGBlendModeClear);CGContextFillPath(context);CGPathRelease(innerPath);}@end
+#define AXAlertCustomExceptionViewHooks(_ExceptionView, View) @interface _ExceptionView : View@property(assign, nonatomic) CGRect exceptionFrame __deprecated_msg("Using dimming contet image instead.");@property(assign, nonatomic) CGFloat cornerRadius __deprecated_msg("Using dimming contet image instead.");@property(assign, nonatomic) CGFloat opacity __deprecated_msg("Using dimming contet image instead.");@end@implementation _ExceptionView - (void)drawRect:(CGRect)rect {[super drawRect:rect];CGContextRef context = UIGraphicsGetCurrentContext();CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);CGContextAddPath(context, outterPath);CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);CGContextFillPath(context);CGPathRelease(outterPath);CGRect rectOfContainerView =_exceptionFrame;if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);CGContextAddPath(context, innerPath);CGContextSetBlendMode(context, kCGBlendModeClear);CGContextFillPath(context);CGPathRelease(innerPath);}@end
 #endif
 #ifndef AXAlertControllerDelegateHooks
 #define AXAlertControllerDelegateHooks(_Delegate) @interface AXAlertController (_Delegate) <_Delegate> @end
@@ -52,11 +52,14 @@
 
 AXAlertViewHooks(_AXAlertControllerAlertContentView)
 AXActionSheetHooks(_AXAlertControllerSheetContentView)
-AXAlertCustomSuperViewHooks(_AXAlertExceptionView)
+AXAlertCustomSuperViewHooks(_AXAlertExceptionView, UIImageView)
 AXAlertCustomExceptionViewHooks(_AXAlertControllerView, _AXAlertExceptionView)
 
 AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
-@interface AXAlertView (Private) + (BOOL)usingAutolayout; @end
+@interface AXAlertView (Private)
++ (BOOL)usingAutolayout;
++ (UIImage *)_dimmingKnockoutImageOfExceptionRect:(CGRect)exceptionRect cornerRadius:(CGFloat)cornerRadius inRect:(CGRect)mainBounds opacity:(CGFloat)opacity;
+@end
 
 @interface _AXAlertTextfield: UITextField @end
 @interface _AXAlertControllerContentView: UIView
@@ -318,7 +321,9 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     BOOL _animated;
     
     BOOL _translucent;
-    BOOL _shouldExceptArea;
+    BOOL _shouldExceptArea  __deprecated_msg("Using dimming content image instead.");
+    
+    float _opacity; // Defaults to 0.4.
     
     AXAlertControllerStyle _style;
     NSMutableArray<AXAlertAction *> *_actions;
@@ -335,7 +340,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 /// Set the style of the alert controller.
 - (void)_setStyle:(uint64_t)arg;
 /// Set should except area.
-- (void)_setShouldExceptArea:(BOOL)arg;
+- (void)_setShouldExceptArea:(BOOL)arg  __deprecated_msg("Using dimming content image instead.");
 @end
 
 @implementation AXAlertController @dynamic title;
@@ -362,11 +367,12 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)initializer {
+    _opacity = 0.4;
     super.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
     super.modalPresentationStyle = UIModalPresentationOverCurrentContext;
     [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
-    _shouldExceptArea = YES;
+    // _shouldExceptArea = YES;
     // Observe the notification of key board.
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleKeyboardWillShowNotification:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleKeyboardWillHideNotification:) name:UIKeyboardWillHideNotification object:nil];
@@ -384,9 +390,11 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
     if ([keyPath isEqualToString:@"containerView.bounds"] || [keyPath isEqualToString:@"containerView.frame"] || [keyPath isEqualToString:@"containerView.center"]) {
-        if (_shouldExceptArea) {
-            [self _enableExceptionArea];
-        }
+        // if (_shouldExceptArea) {
+            // [self _enableExceptionArea];
+            // Replaced with:
+        [self _setupContentImageOfDimmingView];
+        // }
     } else [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
@@ -411,7 +419,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     _AXAlertControllerView *view = [[_AXAlertControllerView alloc] initWithFrame:self.view.bounds];
     [view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
     [view setDelegate:self];
-    [view setOpacity:0.4];
+    // [view setOpacity:0.4];
+    [view setContentMode:UIViewContentModeCenter];
     self.view = view;
     self.view.backgroundColor = [UIColor clearColor];
 }
@@ -597,7 +606,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (void)alertViewWillShow:(AXAlertView *)alertView {
     if (_style == AXAlertControllerStyleActionSheet) {
         UIView *view = [_actionSheetContentView valueForKeyPath:@"animatingView"];
-        [view setBackgroundColor:[UIColor colorWithWhite:0 alpha:self.underlyingView.opacity]];
+        [view setBackgroundColor:[UIColor colorWithWhite:0 alpha:/*self.underlyingView.opacity*/_opacity]];
         [self.underlyingView addSubview:view];
     } else {
         if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
@@ -637,8 +646,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 #pragma mark - Actions.
 - (void)handleDeviceOrientationDidChangeNotification:(NSNotification *)aNote {
     // if (_style == AXAlertControllerStyleActionSheet) return;
-    [self _setShouldExceptArea:NO];
-    [self performSelector:@selector(_enableShouldExceptArea) withObject:nil afterDelay:0.3];
+    // [self _setShouldExceptArea:NO];
+    // [self performSelector:@selector(_enableShouldExceptArea) withObject:nil afterDelay:0.3];
 }
 
 - (void)handleKeyboardWillShowNotification:(NSNotification *)aNote {
@@ -663,14 +672,14 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 - (void)_setShouldExceptArea:(BOOL)arg {
     _shouldExceptArea = arg;
-    if (_shouldExceptArea) {
-        [self _enableExceptionArea];
-    } else {
-        [self _disableExceptionArea];
-    }
+    // if (_shouldExceptArea) {
+        // [self _enableExceptionArea];
+    // } else {
+        // [self _disableExceptionArea];
+    //}
 }
-- (void)_enableShouldExceptArea {
-    [self _setShouldExceptArea:YES];
+- (void)_enableShouldExceptArea __deprecated_msg("Using dimming content image instead.") {
+    // [self _setShouldExceptArea:YES];
 }
 
 - (void)_addContentViewToContainer {
@@ -681,19 +690,33 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [containerView addSubview:self.alertView];
     [self.alertView setNeedsLayout];
     [self.alertView layoutIfNeeded];
-    [self _enableExceptionArea];
+    // [self _enableExceptionArea];
+    // Replaced with:
+    [self _setupContentImageOfDimmingView];
 }
 
-- (void)_enableExceptionArea {
-    [self.underlyingView setExceptionFrame:[[self.alertView valueForKeyPath:@"containerView.frame"] CGRectValue]];
-    [self.underlyingView setCornerRadius:self.alertView.cornerRadius];
-    [self.underlyingView setNeedsDisplay];
+- (void)_enableExceptionArea __deprecated_msg("Using dimming content image instead.") { /*return;*/
+    // [self.underlyingView setExceptionFrame:[[self.alertView valueForKeyPath:@"containerView.frame"] CGRectValue]];
+    // [self.underlyingView setCornerRadius:self.alertView.cornerRadius];
+    // [self.underlyingView setNeedsDisplay];
+    UIImage *image = [AXAlertView _dimmingKnockoutImageOfExceptionRect:[[self.alertView valueForKeyPath:@"containerView.frame"] CGRectValue] cornerRadius:self.alertView.cornerRadius inRect:self.underlyingView.bounds opacity:_opacity];
+    if (image) {
+        [self.underlyingView setImage:image];
+    }
 }
 
-- (void)_disableExceptionArea {
-    [self.underlyingView setExceptionFrame:CGRectZero];
-    [self.underlyingView setCornerRadius:.0];
-    [self.underlyingView setNeedsDisplay];
+- (void)_disableExceptionArea __deprecated_msg("Using dimming content image instead.") {
+    // [self.underlyingView setExceptionFrame:CGRectZero];
+    // [self.underlyingView setCornerRadius:.0];
+    // [self.underlyingView setNeedsDisplay];
+    [self.underlyingView setImage:nil];
+}
+
+- (void)_setupContentImageOfDimmingView {
+    UIImage *image = [AXAlertView _dimmingKnockoutImageOfExceptionRect:[[self.alertView valueForKeyPath:@"containerView.frame"] CGRectValue] cornerRadius:self.alertView.cornerRadius inRect:self.underlyingView.bounds opacity:_opacity];
+    if (image != nil) {
+        [self.underlyingView setImage:image];
+    }
 }
 
 - (void)_updatedTranslucentState {
