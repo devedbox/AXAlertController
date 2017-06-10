@@ -2028,6 +2028,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     UIGraphicsBeginImageContextWithOptions(size, NO, [UIScreen mainScreen].scale);
     
     CGContextRef context = UIGraphicsGetCurrentContext();
+    if (!context) {
+        return nil;
+    }
     CGPathRef outterPath = CGPathCreateWithRect(CGRectMake(0, 0, size.width, size.height), nil);
     CGContextAddPath(context, outterPath);
     CGContextSetFillColorWithColor(context, drawingColor.CGColor);
