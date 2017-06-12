@@ -2025,7 +2025,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 + (UIImage *)_dimmingKnockoutImageOfExceptionRect:(CGRect)exceptionRect cornerRadius:(CGFloat)cornerRadius inRect:(CGRect)mainBounds opacity:(CGFloat)opacity {
-    CGFloat maxElements = MAX(CGRectGetWidth(mainBounds), CGRectGetHeight(mainBounds));
+    CGFloat maxElements = MAX(CGRectGetWidth(mainBounds), CGRectGetHeight(mainBounds))*2;
     CGSize size = CGSizeMake(maxElements, maxElements);
     UIColor *drawingColor = [UIColor colorWithWhite:0 alpha:opacity];
     UIColor *clearingColor = [UIColor clearColor];
