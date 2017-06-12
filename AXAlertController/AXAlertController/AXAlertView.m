@@ -1088,6 +1088,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
 }
 
+#pragma mark - Access to private.
+/// Access to `_processing` for the module.
+- (BOOL)processing { return _processing; }
+
 #pragma mark - Private
 /// Set needs layout subviews.
 - (void)_layoutSubviews {
