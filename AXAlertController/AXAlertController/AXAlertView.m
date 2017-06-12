@@ -1775,8 +1775,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [_singleSeparator removeFromSuperview];
     _AXAlertContentSeparatorView *separator = [_AXAlertContentSeparatorView new];
     [separator setBackgroundColor:[UIColor colorWithWhite:0 alpha:0.3]];
-    [separator setFrame:CGRectMake(0, height-arg1, CGRectGetWidth(_containerView.frame), arg1)];
     [_containerView insertSubview:separator atIndex:0];
+    if ([[self class] usingAutolayout]) {
+        separator.translatesAutoresizingMaskIntoConstraints = NO;
+        [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[separator]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(separator)]];
+        [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-margin-[separator(==height)]" options:0 metrics:@{@"margin":@(height-arg1), @"height":@(arg1)} views:NSDictionaryOfVariableBindings(separator)]];
+    } else {
+        [separator setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleBottomMargin];
+        [separator setFrame:CGRectMake(0, height-arg1, CGRectGetWidth(_containerView.frame), arg1)];
+    }
     _singleSeparator = separator;
 }
 
