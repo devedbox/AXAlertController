@@ -149,6 +149,11 @@ extern CGFloat const kAXAlertVertivalOffsetPinToBottom;
 - (void)viewDidHide:(AXAlertView *)alertView animated:(BOOL)animated NS_REQUIRES_SUPER;
 @end
 
+@interface AXAlertView (Configurations)
+- (void)setNeedsReconfigureItems;
+- (void)reconfigureItemsIfNeeded;
+@end
+
 typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *__weak _Nonnull action);
 
 @interface AXAlertViewAction : NSObject
