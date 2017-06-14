@@ -837,6 +837,8 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
                 _processingKeyboardAlignmentViewTransition = NO;
             }
         }];
+    } else {
+        _processingKeyboardAlignmentViewTransition = NO;
     }
 }
 @end
