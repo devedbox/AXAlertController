@@ -2040,7 +2040,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)_updatePositionContraintsOfContainer {
     if (_verticalOffset == kAXAlertVertivalOffsetPinToTop) {
-        [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
+        if (_centerYOfContainer) [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
         
         if (_topOfContainer) {
             [self removeConstraint:_topOfContainer];
@@ -2056,7 +2056,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self addConstraint:topOfContainer];
         _topOfContainer = topOfContainer;
     } else if (_verticalOffset == kAXAlertVertivalOffsetPinToBottom) {
-        [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
+        if (_centerYOfContainer) [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
         
         if (_bottomOfContainer) {
             [self removeConstraint:_bottomOfContainer];
@@ -2072,13 +2072,32 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self addConstraint:bottomOfContainer];
         _bottomOfContainer = bottomOfContainer;
     } else {
+        // [self _reconfigureVerticalPositionConstraintsOfContainer];
+        if (_topOfContainer) [self removeConstraint:_topOfContainer];
+        if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
+        if (!_centerYOfContainer) {
+            NSLayoutConstraint *centerYOfContainer =
+            [NSLayoutConstraint constraintWithItem:self
+                                         attribute:NSLayoutAttributeCenterY
+                                         relatedBy:NSLayoutRelationEqual
+                                            toItem:_containerView
+                                         attribute:NSLayoutAttributeCenterY
+                                        multiplier:1.0
+                                          constant:0.0];
+            [self addConstraint:centerYOfContainer];
+            _centerXOfContainer = centerYOfContainer;
+        }
         [NSLayoutConstraint activateConstraints:@[_centerYOfContainer]];
-        _centerYOfContainer.constant = -_verticalOffset;
-        [self _reconfigureVerticalPositionConstraintsOfContainer];
+        CGFloat height = 0.0;
+        CGFloat flag = 0.0;
+        [self _getHeightOfContentView:&height flag:&flag];
+        if (height < flag) {
+            _centerYOfContainer.constant = -MIN(flag-height, _verticalOffset);
+        }
     }
 }
 
-- (void)_reconfigureVerticalPositionConstraintsOfContainer {
+- (void)_reconfigureVerticalPositionConstraintsOfContainer __deprecated {
     if (_topOfContainer) [self removeConstraint:_topOfContainer];
     if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
     NSLayoutConstraint *bottomOfContainer =
@@ -2101,6 +2120,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                   constant:-_preferedMargin.top];
     [self addConstraint:topOfContainer];
     _topOfContainer = topOfContainer;
+    [self updateConstraints];
 }
 
 - (UIImage *)_dimmingKnockoutImageOfFrameOfContainerView {
