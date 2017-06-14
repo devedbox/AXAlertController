@@ -135,7 +135,7 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
     /// Mask of the button root view.
     CAShapeLayer *_maskLayer;
     // Single seprator view.
-    _AXAlertContentSeparatorView *__weak _singleSeparator;
+    _AXAlertContentSeparatorView * _singleSeparator;
     
     id _arg1;// CGFloat.
     id _arg2;// CGFloat.
@@ -826,10 +826,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _containerView.backgroundColor = _backgroundColor?:[UIColor whiteColor];
     }
     
-    // [self _setupActionItems];
+    [self _setupActionItems];
     // Replaced with:
-    [self updateConfigurationsOfAllItems];
-    [self _setupSeparatorOfActionButtons];
+    // [self _updateExceptionAreaOfEffectView];
+    // [self updateConfigurationsOfAllItems];
+    // [self _layoutActionButtons:NO];
 }
 
 - (void)setShowsSeparators:(BOOL)showsSeparators {
@@ -1033,8 +1034,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     // Set container view to clear background color of translucent.
     if (self.translucent) self.containerView.backgroundColor = [UIColor clearColor];
     
-    [self.layer removeAllAnimations];
-    [self.containerView.layer removeAllAnimations];
+    // [self.layer removeAllAnimations];
+    // [self.containerView.layer removeAllAnimations];
     
     _processing = YES;
     
@@ -1047,8 +1048,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)viewDidShow:(AXAlertView *)alertView animated:(BOOL)animated {
-    [self.layer removeAllAnimations];
-    [self.containerView.layer removeAllAnimations];
+    // [self.layer removeAllAnimations];
+    // [self.containerView.layer removeAllAnimations];
     // Remove translucent view from container view.
     [_translucentTransitionView removeFromSuperview];
     
@@ -1063,8 +1064,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)viewWillHide:(AXAlertView *)alertView animated:(BOOL)animated {
-    [self.layer removeAllAnimations];
-    [self.containerView.layer removeAllAnimations];
+    // [self.layer removeAllAnimations];
+    // [self.containerView.layer removeAllAnimations];
     // Remove the former from the container view if exits.
     if (_translucentTransitionView.superview == self.containerView) {
         [_translucentTransitionView removeFromSuperview];
@@ -1082,8 +1083,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)viewDidHide:(AXAlertView *)alertView animated:(BOOL)animated {
     [self removeFromSuperview];
-    [self.layer removeAllAnimations];
-    [self.containerView.layer removeAllAnimations];
+    // [self.layer removeAllAnimations];
+    // [self.containerView.layer removeAllAnimations];
     [_translucentTransitionView removeFromSuperview];
     
     _processing = NO;
@@ -1129,43 +1130,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
 }
 
-- (void)_setupSeparatorOfActionButtons {
-    for (int i = 0; i < _actionButtons.count; i ++) {
-        UIView *object = _actionButtons[i];
-        if ([object isKindOfClass:[_AXTranslucentButton class]]) {
-            _AXTranslucentButton *button = (_AXTranslucentButton *)object;
-            AXAlertViewActionConfiguration *config;
-            if ([object isKindOfClass:[_AXTranslucentButton class]]) {
-                NSString *identifier = ((_AXTranslucentButton *)object)->_action.identifier;
-                config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]];
-            } else if ([object respondsToSelector:@selector(identifier)]) {
-                NSString *identifier = [object performSelector:@selector(identifier)];
-                config = _actionConfig[identifier.length?identifier:[NSString stringWithFormat:@"%@", @(i)]];
-            } else {
-                config = _actionConfig[NSStringFromClass(object.class)];
-            }
-            config = config?:_actionConfiguration;
-            if (_actionButtons.count > _horizontalLimits) {
-                if (_showsSeparators) {
-                    if (_translucent) [button _setExceptionAllowedWidth:config.separatorHeight direction:0]; else {
-                        button->_type = -1;
-                        [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:0];
-                    }
-                }
-            } else {
-                if (_translucent) {
-                    if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:config.separatorHeight direction:3];
-                } else {
-                    if (i < _actionButtons.count-1 && _showsSeparators) {
-                        button->_type = -1;
-                        [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:3];
-                    }
-                }
-            }
-        }
-    }
-}
-
 - (void)configureCustomView {
     if (!self.customView) { return; }
     
@@ -1187,10 +1151,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)configureActions {
     // Remove all the older views.
     [_actionButtons makeObjectsPerformSelector:@selector(removeFromSuperview)];
-    
+    // Initialize all new action buttons.
     _actionButtons = [self buttonsWithActions:_actionItems];
-    if (_actionButtons.count == 0) return;
     
+    if (_actionButtons.count == 0) return;
+    // Layout and update contraints of actions.
     [self _layoutActionButtons:YES];
 }
 
@@ -1248,9 +1213,20 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
                 
                 if (_showsSeparators) {
-                    if (_translucent) [button _setExceptionAllowedWidth:config.separatorHeight direction:0]; else {
+                    if (_translucent) {
+                        button->_type = 0;
+                        [button _setExceptionAllowedWidth:config.separatorHeight direction:0];
+                    } else {
                         button->_type = -1;
                         [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:0];
+                    }
+                } else {
+                    if (_translucent) {
+                        button->_type = 0;
+                        [button _setExceptionAllowedWidth:.0 direction:0];
+                    } else {
+                        button->_type = -1;
+                        [button _setExceptionSeparatorLayerWidth:0 direction:0];
                     }
                 }
             }
@@ -1300,11 +1276,20 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 [button addTarget:self action:@selector(handleActionButtonDidClick:) forControlEvents:UIControlEventTouchUpInside];
                 
                 if (_translucent) {
-                    if (i < _actionButtons.count-1 && _showsSeparators) [button _setExceptionAllowedWidth:config.separatorHeight direction:3];
+                    if (_showsSeparators && i < _actionButtons.count-1) {
+                        button->_type = 0;
+                        [button _setExceptionAllowedWidth:config.separatorHeight direction:3];
+                    } else {
+                        button->_type = 0;
+                        [button _setExceptionAllowedWidth:0.0 direction:3];
+                    }
                 } else {
-                    if (i < _actionButtons.count-1 && _showsSeparators) {
+                    if (_showsSeparators && i < _actionButtons.count-1) {
                         button->_type = -1;
                         [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:3];
+                    } else {
+                        button->_type = -1;
+                        [button _setExceptionSeparatorLayerWidth:0.0 direction:3];
                     }
                 }
             }
@@ -1745,15 +1730,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)_setupButtonItem:(UIView **)itemView withConfiguration:(AXAlertViewActionConfiguration *)config {
-    if (!config) {
-        config = _actionConfiguration;
-    }
-    UIColor *backgroundColor = config.backgroundColor;
-    if (!backgroundColor) {
-        backgroundColor = [self window].tintColor;
-    }
+    config = config?:_actionConfiguration;
     
-    [*itemView setBackgroundColor:[UIColor clearColor]];
+    UIColor *backgroundColor = config.backgroundColor?:[self window].tintColor;
+    
+    [(*itemView) setBackgroundColor:[UIColor clearColor]];
     (*itemView).layer.cornerRadius = config.cornerRadius;
     (*itemView).layer.masksToBounds = YES;
     
@@ -1765,10 +1746,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             [button setBackgroundImage:nil forState:UIControlStateNormal];
         }
         [button.titleLabel setFont:config.font];
-        UIColor *tintColor = config.tintColor;
-        if (!tintColor) {
-            tintColor = [[self window] tintColor];
-        }
+        UIColor *tintColor = config.tintColor ?: [[self window] tintColor];
+        
         [button setTitleColor:tintColor forState:UIControlStateNormal];
         button.translucent = config.translucent&&_translucent;
         button.translucentStyle = config.translucentStyle;
@@ -1778,6 +1757,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (UIImage *)rectangleImageWithColor:(UIColor *)color size:(CGSize)size {
     UIGraphicsBeginImageContextWithOptions(size, NO, 2.0);
     CGContextRef context = UIGraphicsGetCurrentContext();
+    if (!context) {
+        return nil;
+    }
     CGContextSetFillColorWithColor(context, color.CGColor);
     CGContextFillRect(context, CGRectMake(0, 0, size.width, size.height));
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
@@ -1789,7 +1771,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     UIView * __block _filterView;
     UIView * __block _backdropView;
     [self.effectView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        // !!!: Fixs _UIVisualEffectSubview class on the iOS 11.0 developer beta1.0.
+        //!!!: Fixs _UIVisualEffectSubview class on the iOS 11.0 developer beta1.0.
         if (/*[obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]*/[[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] '_UIVisualEffectFilterView' OR SELF MATCHES[cd] '_UIVisualEffectSubview'"] evaluateWithObject:NSStringFromClass(obj.class)]) {
             _filterView = obj;
         } else if ([obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectBackdropView")]) {
@@ -2205,9 +2187,16 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)layoutSubviews {
     [super layoutSubviews];
     
-    if (_type == 0) [self _setupFrameOfMaskLayer]; else {
-        [self _setExceptionSeparatorLayerWidth:[_arg1 floatValue] direction:[_arg2 integerValue]];
+    if (_type == 0) {// Layout mask layer.
+        [self _setupFrameOfMaskLayer];
+    } else {// Layout separator view.
+        [self _setupFrameOfSeparator];
     }
+}
+
+- (void)layoutSublayersOfLayer:(CALayer *)layer {
+    [super layoutSublayersOfLayer:layer];
+    if (_type == 0) [self _setupFrameOfMaskLayer];
 }
 
 - (UIImageView *)masksView {
@@ -2259,17 +2248,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_setExceptionAllowedWidth:(CGFloat)arg1 direction:(int8_t)arg2 {
     _arg1 = @(arg1); _arg2 = @(arg2);
     
-    UIView *_filterView = self;
-    
-    if (arg1 == 0.0 || arg2 < 0) {
-        _filterView.layer.mask = nil; _maskLayer = nil; return;
+    if (arg1 <= 0.0 || arg2 < 0) {// Show no mask layer.
+        self.layer.mask = nil;
+        _maskLayer = nil;
+        return;
     }
     
-    CALayer *layer = [CALayer layer];
-    layer.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.5].CGColor;
-    
-    CAShapeLayer *maskLayer = [CAShapeLayer layer];
-    _maskLayer = maskLayer;
+    if (!_maskLayer) {
+        _maskLayer = [CAShapeLayer layer];
+    }
     
     [self _setupFrameOfMaskLayer];
 }
@@ -2308,41 +2295,42 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_setExceptionSeparatorLayerWidth:(CGFloat)arg1 direction:(int8_t)arg2 {
     _arg1 = @(arg1); _arg2 = @(arg2);
     
-    _AXAlertContentSeparatorView *separatorView = [_AXAlertContentSeparatorView new];
-    separatorView.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
-    
-    [_singleSeparator removeFromSuperview];
-    [self addSubview:separatorView];
-    _singleSeparator = separatorView;
+    if (!_singleSeparator) {
+        _singleSeparator = [_AXAlertContentSeparatorView new];
+        _singleSeparator.backgroundColor = [UIColor colorWithWhite:0 alpha:0.3];
+        [self addSubview:_singleSeparator];
+    } if (arg1 <= 0.0) {
+        _singleSeparator.hidden = YES;
+    } else {
+        _singleSeparator.hidden = NO;
+    }
     
     [self _setupFrameOfSeparator];
 }
 
 - (void)_setupFrameOfSeparator {
-    if (!_singleSeparator) return;
+    if (!_singleSeparator || _singleSeparator.hidden) return;
     switch ([_arg2 integerValue]) {
         case 0: {// Top.
             [_singleSeparator setFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), [_arg1 floatValue])];
-            [_singleSeparator setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleBottomMargin];
             [self setContentEdgeInsets:UIEdgeInsetsMake([_arg1 floatValue], 0, 0, 0)];
         } break;
         case 1: {// Left.
             [_singleSeparator setFrame:CGRectMake(0, 0, [_arg1 floatValue], CGRectGetHeight(self.frame))];
-            [_singleSeparator setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleRightMargin];
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, [_arg1 floatValue], 0, 0)];
         } break;
         case 2: {// Bottom.
             [_singleSeparator setFrame:CGRectMake(0, CGRectGetHeight(self.frame)-[_arg1 floatValue], CGRectGetWidth(self.frame), [_arg1 floatValue])];
-            [_singleSeparator setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin];
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, [_arg1 floatValue], 0)];
         } break;
         case 3: {// Right.
             [_singleSeparator setFrame:CGRectMake(CGRectGetWidth(self.frame)-[_arg1 floatValue], 0, [_arg1 floatValue], CGRectGetHeight(self.frame))];
-            [_singleSeparator setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleLeftMargin];
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, 0, [_arg1 floatValue])];
         } break;
         default: [_singleSeparator removeFromSuperview]; [self setContentEdgeInsets:UIEdgeInsetsZero]; return;
     }
+    // Bring the separator to the front.
+    [self bringSubviewToFront:_singleSeparator];
 }
 @end
 
