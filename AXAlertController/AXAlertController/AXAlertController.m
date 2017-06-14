@@ -43,6 +43,9 @@
 - (void)didMoveToSuperview { [super didMoveToSuperview]; [_delegate viewDidMoveToSuperview]; }\
 @end
 #endif
+#ifndef AXAlertCustomViewHooks2
+#define AXAlertCustomViewHooks2(_CustomView, CocoaView) @interface _CustomView : CocoaView @end @implementation _CustomView @end
+#endif
 #ifndef AXAlertCustomExceptionViewHooks
 #define AXAlertCustomExceptionViewHooks(_ExceptionView, View) @interface _ExceptionView : View@property(assign, nonatomic) CGRect exceptionFrame __deprecated_msg("Using dimming contet image instead.");@property(assign, nonatomic) CGFloat cornerRadius __deprecated_msg("Using dimming contet image instead.");@property(assign, nonatomic) CGFloat opacity __deprecated_msg("Using dimming contet image instead.");@end@implementation _ExceptionView - (void)drawRect:(CGRect)rect {[super drawRect:rect];CGContextRef context = UIGraphicsGetCurrentContext();CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);CGContextAddPath(context, outterPath);CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);CGContextFillPath(context);CGPathRelease(outterPath);CGRect rectOfContainerView =_exceptionFrame;if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);CGContextAddPath(context, innerPath);CGContextSetBlendMode(context, kCGBlendModeClear);CGContextFillPath(context);CGPathRelease(innerPath);}@end
 #endif
@@ -54,14 +57,19 @@ AXAlertViewHooks(_AXAlertControllerAlertContentView)
 AXActionSheetHooks(_AXAlertControllerSheetContentView)
 AXAlertCustomSuperViewHooks(_AXAlertExceptionView, UIImageView)
 AXAlertCustomExceptionViewHooks(_AXAlertControllerView, _AXAlertExceptionView)
+AXAlertCustomViewHooks2(_AXAlertKeybboardAlignmentView, UIImageView)
 
 AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 @interface AXAlertView (Private)
+- (BOOL)processing;// Access to `_processing`, Used inside the module.
+- (void)_layoutSubviews;// Layout subviews.
 + (BOOL)usingAutolayout;
 + (UIImage *)_dimmingKnockoutImageOfExceptionRect:(CGRect)exceptionRect cornerRadius:(CGFloat)cornerRadius inRect:(CGRect)mainBounds opacity:(CGFloat)opacity;
 @end
 
-@interface _AXAlertTextfield: UITextField @end
+AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
+AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
+
 @interface _AXAlertControllerContentView: UIView
 /// Stack view for using autolayout.
 @property(strong, nonatomic) UIStackView *stackView;
@@ -77,6 +85,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 @property(strong, nonatomic) UIBlurEffect *overridesEffect;
 
 - (void)addTextFieldWithConfigurationHandler:(void (^)(UITextField * _Nonnull))configurationHandler;
+- (void)disableVisualEffects;
+- (void)enableVisualEffects;
 @end
 
 @interface AXAlertAction () {
@@ -225,8 +235,10 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     textField.borderStyle = UITextBorderStyleNone;
     textField.backgroundColor = [UIColor whiteColor];
     textField.font = [UIFont systemFontOfSize:13];
+    textField.spellCheckingType = UITextSpellCheckingTypeNo;
+    textField.autocorrectionType = UITextAutocorrectionTypeNo;
     
-    UIView *_textBackgroundView = [UIView new];
+    UIView *_textBackgroundView = [_AXAlertContentBackgroundView new];
     [_textBackgroundView setBackgroundColor:[UIColor clearColor]];
     _textBackgroundView.translatesAutoresizingMaskIntoConstraints = NO;
     
@@ -268,6 +280,33 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     }
 }
 
+- (void)disableVisualEffects {
+    for (UIView *view in self.stackView.arrangedSubviews) {
+        if ([view isKindOfClass:[_AXAlertContentBackgroundView class]]) {
+            view.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.3].CGColor;
+            view.layer.borderWidth = 0.5;
+            for (UIView *effectView in view.subviews) {
+                if ([effectView isKindOfClass:[UIVisualEffectView class]]) {
+                    [effectView setHidden:YES];
+                }
+            }
+        }
+    }
+}
+
+- (void)enableVisualEffects {
+    for (UIView *view in self.stackView.arrangedSubviews) {
+        if ([view isKindOfClass:[_AXAlertContentBackgroundView class]]) {
+            view.layer.borderColor = [UIColor clearColor].CGColor;
+            view.layer.borderWidth = 0.0;
+            for (UIView *effectView in view.subviews) {
+                if ([effectView isKindOfClass:[UIVisualEffectView class]]) {
+                    [effectView setHidden:NO];
+                }
+            }
+        }
+    }
+}
 #pragma mark - Getters.
 - (UIStackView *)stackView {
     if (_stackView) return _stackView;
@@ -313,29 +352,36 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_stackView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_stackView)]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_stackView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_stackView)]];
 }
-@end @implementation _AXAlertTextfield @end
+@end
 
 @interface AXAlertController () <AXAlertViewDelegate> {
     BOOL _isBeingPresented;
     BOOL _isViewDidAppear;
-    BOOL _animated;
+    BOOL _animated;// Whether showing transition is animated or not.
+    BOOL _isAlertShowsTranitionTriggered;// Whether the alert view has showed any once.
+    BOOL _isAlertShowsTranitionFinished;
     
     BOOL _translucent;
     BOOL _shouldExceptArea  __deprecated_msg("Using dimming content image instead.");
+    /// Indicator is the keyboard alignment view is in animating or not. YES when animation is in processing, otherwise NO.
+    BOOL _processingKeyboardAlignmentViewTransition;
     
     float _opacity; // Defaults to 0.4.
+    NSLayoutConstraint *__weak _heightOfKeyboardAlignment;
     
     AXAlertControllerStyle _style;
     NSMutableArray<AXAlertAction *> *_actions;
 }
+/// Underlying view.
+@property(strong, nonatomic) _AXAlertControllerView *underlyingView;
+/// Keyboard alignment view.
+@property(strong, nonatomic) _AXAlertKeybboardAlignmentView *keyboardAlignmentView;
 /// Content alert view.
 @property(strong, nonatomic) _AXAlertControllerAlertContentView *alertContentView;
 /// Content action sheet view.
 @property(strong, nonatomic) _AXAlertControllerSheetContentView *actionSheetContentView;
 /// Content view.
 @property(strong, nonatomic) _AXAlertControllerContentView *contentView;
-
-@property(readonly, nonatomic) _AXAlertControllerView *underlyingView;
 
 /// Set the style of the alert controller.
 - (void)_setStyle:(uint64_t)arg;
@@ -374,8 +420,9 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
     // _shouldExceptArea = YES;
     // Observe the notification of key board.
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleKeyboardWillShowNotification:) name:UIKeyboardWillShowNotification object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleKeyboardWillHideNotification:) name:UIKeyboardWillHideNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleKeyboardWillChangeFrameNotification:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleKeyboardWillChangeFrameNotification:) name:UIKeyboardWillChangeFrameNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleKeyboardWillChangeFrameNotification:) name:UIKeyboardWillHideNotification object:nil];
 }
 
 - (void)dealloc {
@@ -416,14 +463,16 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 #pragma mark - Overrides.
 - (void)loadView {
     [super loadView];
-    _AXAlertControllerView *view = [[_AXAlertControllerView alloc] initWithFrame:self.view.bounds];
-    view.userInteractionEnabled = YES;
-    [view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-    [view setDelegate:self];
-    // [view setOpacity:0.4];
-    [view setContentMode:UIViewContentModeCenter];
-    self.view = view;
-    self.view.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:self.keyboardAlignmentView];
+    [self.view addSubview:self.underlyingView];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_underlyingView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_underlyingView)]];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_keyboardAlignmentView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_keyboardAlignmentView)]];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_underlyingView][_keyboardAlignmentView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_underlyingView, _keyboardAlignmentView)]];
+    NSLayoutConstraint *height = [NSLayoutConstraint constraintWithItem:_keyboardAlignmentView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:0.0];
+    [_keyboardAlignmentView addConstraint:height];
+    _heightOfKeyboardAlignment = height;
+    
+    [self _addContentViewToContainer];
 }
 
 - (void)viewDidLoad {
@@ -434,11 +483,17 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
-    if (!_isViewDidAppear) {
-        [self _addContentViewToContainer];
+    if (!_isViewDidAppear && !_isAlertShowsTranitionTriggered) {
         if (_style == AXAlertControllerStyleActionSheet) {
+            [self _addContentViewToContainer];
             [self.alertView show:_animated];
+        } else {
+            [self.alertView show:_animated];
+            if (_contentView.textFields.count > 0) {
+                [_contentView.textFields.firstObject becomeFirstResponder];
+            }
         }
+        [self _setupContentImageOfDimmingView];
     }
 }
 
@@ -446,8 +501,6 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [super viewWillAppear:animated];
     _isBeingPresented = [self isBeingPresented];
     _animated = animated;
-    
-    if (!_isViewDidAppear && _style == AXAlertControllerStyleAlert) [self.alertView show:animated];
 }
 
 - (void)viewWillMoveToSuperview:(UIView *)newSuperView {}
@@ -457,9 +510,8 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     [super viewDidAppear:animated];
     
     _isViewDidAppear = YES;
-    // _alertContentView.translucent = YES;
-    if (self.alertView.superview != self.view) {
-        [self.view addSubview:self.alertView];
+    if (self.alertView.superview != self.underlyingView) {
+        [self _addContentViewToView:self.underlyingView];
     }
 }
 
@@ -503,7 +555,12 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)addTextFieldWithConfigurationHandler:(void (^)(UITextField * _Nonnull))configurationHandler {
+    NSAssert(_style == AXAlertControllerStyleAlert, @"Text fields configurations support only alert style.");
     [_contentView addTextFieldWithConfigurationHandler:configurationHandler];
+    // Reset the inset of the custom view.
+    UIEdgeInsets customViewInset = self.alertView.customViewInset;
+    customViewInset.bottom = 12;
+    [self.alertView setCustomViewInset:customViewInset];
 }
 
 #pragma mark - Getters.
@@ -514,7 +571,6 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (NSString *)message { return _contentView.contentLabel.text; }
 - (UIImage *)image { return _contentView.imageView.image; }
 - (AXAlertControllerStyle)preferredStyle { return _style; }
-- (_AXAlertControllerView *)underlyingView { return (_AXAlertControllerView *)self.view; }
 
 - (_AXAlertControllerContentView *)contentView {
     if (_contentView) return _contentView;
@@ -522,11 +578,32 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     return _contentView;
 }
 
+- (_AXAlertKeybboardAlignmentView *)keyboardAlignmentView {
+    if (_keyboardAlignmentView) return _keyboardAlignmentView;
+    _keyboardAlignmentView = [_AXAlertKeybboardAlignmentView new];
+    _keyboardAlignmentView.translatesAutoresizingMaskIntoConstraints = NO;
+    _keyboardAlignmentView.backgroundColor = [UIColor colorWithWhite:0 alpha:_opacity];
+    return _keyboardAlignmentView;
+}
+
+- (_AXAlertControllerView *)underlyingView {
+    if (_underlyingView) return _underlyingView;
+    _underlyingView = [_AXAlertControllerView new];
+    _underlyingView.translatesAutoresizingMaskIntoConstraints = NO;
+    _underlyingView.userInteractionEnabled = YES;
+    [_underlyingView setDelegate:self];
+    // [_underlyingView setOpacity:0.4];
+    [_underlyingView setContentMode:UIViewContentModeCenter];
+    [_underlyingView setBackgroundColor:[UIColor clearColor]];
+    [_underlyingView setClipsToBounds:YES];
+    return _underlyingView;
+}
+
 - (_AXAlertControllerAlertContentView *)alertContentView {
     if (_alertContentView) return  _alertContentView;
-    _alertContentView = [[_AXAlertControllerAlertContentView alloc] initWithFrame:self.view.bounds];
+    _alertContentView = [[_AXAlertControllerAlertContentView alloc] initWithFrame:self.underlyingView.bounds];
     [_alertContentView setBackgroundColor:[UIColor whiteColor]];
-    [_alertContentView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    _alertContentView.translatesAutoresizingMaskIntoConstraints = NO;
     _alertContentView.opacity = 0.0;
     _alertContentView.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
     _alertContentView.delegate = self;
@@ -554,9 +631,9 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 - (_AXAlertControllerSheetContentView *)actionSheetContentView {
     if (_actionSheetContentView) return _actionSheetContentView;
-    _actionSheetContentView = [[_AXAlertControllerSheetContentView alloc] initWithFrame:self.view.bounds];
+    _actionSheetContentView = [[_AXAlertControllerSheetContentView alloc] initWithFrame:self.underlyingView.bounds];
     [_actionSheetContentView setBackgroundColor:[UIColor whiteColor]];
-    [_actionSheetContentView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    _actionSheetContentView.translatesAutoresizingMaskIntoConstraints = NO;
     _actionSheetContentView.opacity = 0.0;
     _actionSheetContentView.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
     _actionSheetContentView.delegate = self;
@@ -605,6 +682,7 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 
 #pragma mark - AXAlertViewDelegate.
 - (void)alertViewWillShow:(AXAlertView *)alertView {
+    _isAlertShowsTranitionTriggered = YES;// Disabled the more times show actions.
     if (_style == AXAlertControllerStyleActionSheet) {
         UIView *view = [_actionSheetContentView valueForKeyPath:@"animatingView"];
         [view setBackgroundColor:[UIColor colorWithWhite:0 alpha:/*self.underlyingView.opacity*/_opacity]];
@@ -613,11 +691,13 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
         if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
             _translucent = self.alertView.translucent;
             self.alertView.translucent = NO;
+            [self.contentView disableVisualEffects];
         }
     }
 }
 
 - (void)alertViewDidShow:(AXAlertView *)alertView {
+    _isAlertShowsTranitionFinished = YES;
     if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
         [self _updatedTranslucentState];
     }
@@ -627,14 +707,16 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     if (_style == AXAlertControllerStyleActionSheet) {
         // [self _addContentViewToContainer];
         UIView *transitionView = [_actionSheetContentView valueForKeyPath:@"transitionView"];
-        UIView *containerView = /*self.view.superview ?: self.view*/self.view.window;
+        UIView *containerView = /*self.view.superview ?: self.underlyingView*/self.view.window;
         [containerView addSubview:transitionView];
     } else {
         if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
             _translucent = self.alertView.translucent;
             self.alertView.translucent = NO;
+            [self.contentView disableVisualEffects];
         }
     }
+    [_contentView.textFields makeObjectsPerformSelector:@selector(resignFirstResponder)];
     [self _dismiss:alertView];
 }
 
@@ -650,16 +732,13 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
     // [self _setShouldExceptArea:NO];
     // [self performSelector:@selector(_enableShouldExceptArea) withObject:nil afterDelay:0.3];
 }
-
-- (void)handleKeyboardWillShowNotification:(NSNotification *)aNote {
+// UIKeyboardWillChangeFrameNotification
+- (void)handleKeyboardWillChangeFrameNotification:(NSNotification *)aNote {
     CGRect keyboardFrame = [[[aNote userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    [UIView animateWithDuration:0.25 delay:0 options:7 animations:^{
-        [self.view setFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.bounds), CGRectGetHeight(keyboardFrame))];
-    } completion:NULL];
-}
-
-- (void)handleKeyboardWillHideNotification:(NSNotification *)aNote {
+    NSTimeInterval duration = [[[aNote userInfo] objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+    NSUInteger curve = [[[aNote userInfo] objectForKey:UIKeyboardAnimationCurveUserInfoKey] integerValue];
     
+    [self _updateContraintsOfAlignmentViewAndContentViewWithHeight:CGRectGetHeight(keyboardFrame) duration:duration curve:curve];
 }
 
 #pragma mark - Private.
@@ -684,13 +763,22 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 }
 
 - (void)_addContentViewToContainer {
-    UIView *containerView = self.view.superview ?: self.view;
+    UIView *containerView = self.view.superview ?: self.underlyingView;
     if (_style == AXAlertControllerStyleAlert) {
-        containerView = self.view;
+        containerView = self.underlyingView;
     }
-    [containerView addSubview:self.alertView];
-    [self.alertView setNeedsLayout];
-    [self.alertView layoutIfNeeded];
+    [self _addContentViewToView:containerView];
+}
+
+- (void)_addContentViewToView:(UIView *)view {
+    if (self.alertView.superview) [self.alertView removeFromSuperview];
+    [view addSubview:self.alertView];
+    [view addConstraint:[NSLayoutConstraint constraintWithItem:self.alertView attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:view attribute:NSLayoutAttributeLeading multiplier:1.0 constant:0.0]];
+    [view addConstraint:[NSLayoutConstraint constraintWithItem:self.alertView attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:view attribute:NSLayoutAttributeTrailing multiplier:1.0 constant:0.0]];
+    [view addConstraint:[NSLayoutConstraint constraintWithItem:self.alertView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:view attribute:NSLayoutAttributeTop multiplier:1.0 constant:0.0]];
+    [view addConstraint:[NSLayoutConstraint constraintWithItem:self.alertView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:view attribute:NSLayoutAttributeBottom multiplier:1.0 constant:0.0]];
+    
+    [self.alertView _layoutSubviews];
     // [self _enableExceptionArea];
     // Replaced with:
     [self _setupContentImageOfDimmingView];
@@ -723,6 +811,32 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 - (void)_updatedTranslucentState {
     if (_translucent && _style == AXAlertControllerStyleAlert) {
         [self.alertView setTranslucent:_translucent];
+        [self.contentView enableVisualEffects];
+    }
+}
+
+- (BOOL)_shouldBeginTransitionOfKeyboardAlignmentView { return !_processingKeyboardAlignmentViewTransition; }
+/// Update contraints of views by animated.
+- (void)_updateContraintsOfAlignmentViewAndContentViewWithHeight:(CGFloat)height duration:(NSTimeInterval)duration curve:(NSUInteger)curve {
+    if (![self _shouldBeginTransitionOfKeyboardAlignmentView]) return;
+    _processingKeyboardAlignmentViewTransition = YES;
+    _heightOfKeyboardAlignment.constant = height;
+    
+    if (!_isAlertShowsTranitionFinished) {
+        [UIView setAnimationsEnabled:NO];
+        self.underlyingView.clipsToBounds = NO;
+        self.keyboardAlignmentView.hidden = YES;
+        self.underlyingView.transform = CGAffineTransformMakeTranslation(0, height/2);
+        [UIView setAnimationsEnabled:YES];
+        [UIView animateWithDuration:duration delay:0.0 options:curve|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionOverrideInheritedOptions animations:^{
+            self.underlyingView.transform = CGAffineTransformIdentity;
+        } completion:^(BOOL finished) {
+            if (finished) {
+                self.underlyingView.clipsToBounds = YES;
+                self.keyboardAlignmentView.hidden = NO;
+                _processingKeyboardAlignmentViewTransition = NO;
+            }
+        }];
     }
 }
 @end
