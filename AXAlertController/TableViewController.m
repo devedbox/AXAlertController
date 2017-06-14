@@ -46,7 +46,20 @@
         // textField.font = [UIFont boldSystemFontOfSize:21];
         textField.placeholder = @"Type text...";
     }];
-    [self presentViewController:alert animated:YES completion:NULL];
+    [self presentViewController:alert animated:YES completion:^{
+        
+//        for (UIView *view in alert.view.subviews) {
+//            for (UIView *_view in view.subviews) {
+//                for (UIView *__view in _view.subviews) {
+//                    for (UIView *___view in __view.subviews) {
+//                        if ([___view isKindOfClass:UIVisualEffectView.class]) {
+//                            ___view.hidden = YES;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+    }];
     alert.modalPresentationStyle = UIModalPresentationPageSheet;
     return;
     AXAlertView *alertView = [[AXAlertView alloc] initWithFrame:self.navigationController.view.bounds];
