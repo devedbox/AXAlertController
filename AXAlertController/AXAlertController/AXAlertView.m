@@ -567,7 +567,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)show:(BOOL)animated {
     if (_processing) return;
     [self viewWillShow:self animated:animated];
-    if (animated) _containerView.transform = CGAffineTransformMakeScale(1.2, 1.2);
+    if (animated) _containerView.transform = CGAffineTransformConcat(CGAffineTransformMakeScale(1.2, 1.2), _containerView.transform);
     __weak typeof(self) wself = self;
     if (animated) [UIView animateWithDuration:0.45 delay:0.00 usingSpringWithDamping:1.0 initialSpringVelocity:0.0 options:(2 << 16)|(3 << 24)|UIViewAnimationOptionLayoutSubviews|UIViewAnimationOptionShowHideTransitionViews animations:^{
         _containerView.transform = CGAffineTransformIdentity;
