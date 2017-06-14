@@ -335,6 +335,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         } else {// Container view.
             // Update exception area of the effect view if bounds of the container view has changed.
             [self _updateExceptionAreaOfEffectView];
+            // Update contraints of container view when bounds have changed.
+            [self _updateContraintsOfContainer];
             // Redraw the exception background.
             // [self setNeedsDisplay];
             // Replaced with:
@@ -1997,11 +1999,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 /// Updating the contraints of container if needed. Configurations for the max alowed width.
 - (void)_updateContraintsOfContainer {
     if (_maxAllowedWidth <= CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin)) {
-        [NSLayoutConstraint activateConstraints:@[_widthOfContainer, _centerXOfContainer]];
         [NSLayoutConstraint deactivateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
+        [NSLayoutConstraint activateConstraints:@[_widthOfContainer, _centerXOfContainer]];
     } else {
-        [NSLayoutConstraint activateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
         [NSLayoutConstraint deactivateConstraints:@[_widthOfContainer, _centerXOfContainer]];
+        [NSLayoutConstraint activateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
     }
 }
 /// Updating exception area of effect view by remask the layer of the filter view of the effect view.
