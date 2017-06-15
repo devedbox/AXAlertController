@@ -1830,13 +1830,25 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
     CGRect frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), height);
     
-    UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(frame), CGRectGetHeight(frame)-(_actionItems.count > _horizontalLimits ? .0 : arg1))];
-    CAShapeLayer *maskLayrer = _effectMaskLayer?:[CAShapeLayer layer];
-    maskLayrer.frame = frame;
-    maskLayrer.path = path.CGPath;
-    _filterView.layer.mask = nil;
-    _filterView.layer.mask = maskLayrer;
-    if (!_effectMaskLayer) _effectMaskLayer = maskLayrer;
+    if (_actionItems.count <= _horizontalLimits) {
+        frame.size.height -= arg1;
+    }
+    if (!_effectMaskLayer) {
+        CAShapeLayer *maskLayrer = [CAShapeLayer layer];
+        [maskLayrer setAnchorPoint:CGPointMake(0.5, 0)];
+        [maskLayrer setBackgroundColor:[UIColor whiteColor].CGColor];
+        [maskLayrer setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
+        [maskLayrer setBounds:frame];
+        _filterView.layer.mask = maskLayrer;
+        _effectMaskLayer = maskLayrer;
+    } else {
+        [CATransaction begin];
+        // [CATransaction setAnimationDuration:0.5];
+        // [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn]];
+        [_filterView.layer.mask setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
+        [_filterView.layer.mask setBounds:frame];
+        [CATransaction commit];
+    }
 }
 
 - (void)_setupExceptionSeparatorLayerWidth:(CGFloat)arg1 {
