@@ -68,8 +68,21 @@ AXAlertControllerDelegateHooks(_AXAlertCustomSuperViewDelegate)
 @end
 
 AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
-AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
 
+@interface _AXAlertContentBackgroundView: UIView
+/// Text field.
+@property(readwrite, nonatomic) _AXAlertTextfield *textfield;
+/// Effect view.
+@property(strong, nonatomic) UIVisualEffectView *effectView;
+/// Effect mask view.
+@property(strong, nonatomic) UIImageView *effectMasksView;
+/// Background color view.
+@property(strong, nonatomic) UIImageView *backgroundColorView;
+/// Overrides effect.
+@property(readwrite, nonatomic) UIBlurEffect *overridesEffect;
+/// Overrides light effect.
+@property(assign, nonatomic) BOOL overridesLightStyle;
+@end
 @interface _AXAlertControllerContentView: UIView
 /// Stack view for using autolayout.
 @property(strong, nonatomic) UIStackView *stackView;
@@ -154,6 +167,105 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
 }
 @end @implementation AXAlertActionConfiguration @end
 
+@implementation _AXAlertContentBackgroundView
+- (instancetype)init {
+    if (self = [super init]) {
+        self.clipsToBounds = YES;
+        [self addSubview:self.effectView];
+        [self addSubview:self.backgroundColorView];
+        if ([AXAlertView usingAutolayout]) {
+            _effectView.translatesAutoresizingMaskIntoConstraints = NO;
+            _backgroundColorView.translatesAutoresizingMaskIntoConstraints = NO;
+            [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
+            [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
+            [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0.5-[_backgroundColorView]-0.5-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_backgroundColorView)]];
+            [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0.5-[_backgroundColorView]-0.5-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_backgroundColorView)]];
+        }
+    } return self;
+}
+
+- (CGSize)sizeThatFits:(CGSize)size {
+    CGSize susize = [super sizeThatFits:size];
+    [self layoutSubviews];
+    susize.height = CGRectGetHeight(self.bounds);
+    return susize;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    if (![AXAlertView usingAutolayout]) {
+        CGSize sizeOfTxf = CGSizeMake(CGRectGetWidth(self.bounds)-10, _textfield.font.pointSize);
+        CGFloat heightOfSelf = sizeOfTxf.height + 10;
+        
+        CGRect rect = self.frame;
+        rect.size.height = heightOfSelf;
+        [self setFrame:rect];
+        
+        [_effectView setFrame:self.bounds];
+        [_effectMasksView setFrame:_effectView.bounds];
+        [_backgroundColorView setFrame:CGRectMake(0.5, 0.5, CGRectGetWidth(self.bounds)-1, CGRectGetHeight(self.bounds)-1)];
+        [_textfield setFrame:CGRectMake(5, 5, sizeOfTxf.width, sizeOfTxf.height)];
+    }
+}
+
+- (void)setTextfield:(_AXAlertTextfield *)textfield {
+    _textfield = textfield;
+    [self addSubview:_textfield];
+    if ([AXAlertView usingAutolayout]) {
+        _textfield.translatesAutoresizingMaskIntoConstraints = NO;
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-5-[_textfield]-5-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_textfield)]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-5-[_textfield]-5-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_textfield)]];
+    } else {
+        [self setNeedsLayout];
+    }
+}
+
+- (void)setOverridesEffect:(UIBlurEffect *)overridesEffect {
+    _overridesEffect = overridesEffect;
+    _effectView.effect = _overridesEffect;
+    [self setOverridesLightStyle:_overridesLightStyle];
+}
+
+- (void)setOverridesLightStyle:(BOOL)overridesLightStyle {
+    _overridesLightStyle = overridesLightStyle;
+    if (_overridesLightStyle) {
+        _effectMasksView.layer.borderColor = [UIColor whiteColor].CGColor;
+    } else {
+        _effectMasksView.layer.borderColor = [UIColor blackColor].CGColor;
+    }
+    _effectMasksView.layer.borderWidth = 0.5;
+}
+
+- (UIVisualEffectView *)effectView {
+    if (_effectView) return _effectView;
+    _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIVibrancyEffect effectForBlurEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]]];
+    [_effectView.contentView addSubview:self.effectMasksView];
+    if ([AXAlertView usingAutolayout]) {
+        _effectView.translatesAutoresizingMaskIntoConstraints = NO;
+        _effectMasksView.translatesAutoresizingMaskIntoConstraints = NO;
+        [_effectView.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectMasksView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectMasksView)]];
+        [_effectView.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_effectMasksView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectMasksView)]];
+    }
+    return _effectView;
+}
+
+- (UIImageView *)effectMasksView {
+    if (_effectMasksView) return _effectMasksView;
+    _effectMasksView = [UIImageView new];
+    [_effectMasksView setBackgroundColor:[UIColor clearColor]];
+    _effectMasksView.layer.borderWidth = 0.5;
+    _effectMasksView.layer.borderColor = [UIColor whiteColor].CGColor;
+    return _effectMasksView;
+}
+
+- (UIImageView *)backgroundColorView {
+    if (_backgroundColorView) return _backgroundColorView;
+    _backgroundColorView = [UIImageView new];
+    _backgroundColorView.backgroundColor = [UIColor whiteColor];
+    return _backgroundColorView;
+}
+@end
 @implementation _AXAlertControllerContentView
 #pragma mark - Life cycle.
 - (instancetype)init {
@@ -194,116 +306,128 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
 #pragma mark - Overrides.
 - (CGSize)sizeThatFits:(CGSize)size {
     CGSize susize = [super sizeThatFits:size];
-    /// Calculate size of conte label.
-    CGSize sizeOfContent = [_contentLabel.text boundingRectWithSize:CGSizeMake(susize.width, CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading attributes:@{NSFontAttributeName:_contentLabel.font} context:NULL].size;
-    susize.height += ceil(sizeOfContent.height);
-    // Add padding.
-    susize.height += _padding;
-    // Calculate size of image view.
-    [_imageView sizeToFit];
-    CGSize sizeOfImage = _imageView.image.size;
-    if (_imageView.image.size.width > susize.width) {
-        sizeOfImage.width = susize.width;
-    }
-    susize.height += sizeOfImage.height;
-    
-    if (_textFields.count > 0) {
-        susize.height += _padding;
-        
-    }
+    [self layoutSubviews];
+    susize.height = CGRectGetHeight(self.bounds);
     return susize;
 }
 
 - (void)layoutSubviews {
     [super layoutSubviews];
     if (![AXAlertView usingAutolayout]) {
-        CGRect rect_label = _contentLabel.frame;
-        CGRect rect_image = _imageView.frame;
+        // Calculate size of content label.
+        CGSize sizeOfContentLabel = CGSizeMake(CGRectGetWidth(self.bounds), .0);
+        if (_contentLabel.numberOfLines == 0) {
+            [_contentLabel sizeToFit];
+            sizeOfContentLabel.height = CGRectGetHeight(_contentLabel.bounds);
+        } else {
+            CGSize size = [_contentLabel.text boundingRectWithSize:CGSizeMake(CGRectGetWidth(self.bounds), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading attributes:@{NSFontAttributeName:_contentLabel.font} context:NULL].size;
+            sizeOfContentLabel.height = ceil(size.height);
+        }
+        // Calculate size of image view.
+        CGSize sizeOfImageView = CGSizeMake(CGRectGetWidth(self.bounds), .0);
+        sizeOfImageView.height = _imageView.image.size.height;
         
-        rect_label.size.width = CGRectGetWidth(self.bounds);
-        rect_image.origin.y = CGRectGetMaxY(rect_label)+_padding;
+        CGRect rect_contentLabel = _contentLabel.frame;
+        rect_contentLabel.size = sizeOfContentLabel;
+        _contentLabel.frame = rect_contentLabel;
         
-        _contentLabel.frame = rect_label;
-        _imageView.frame = rect_image;
+        CGRect rect_imageView = _imageView.frame;
+        rect_imageView.origin.y = CGRectGetHeight(rect_contentLabel)+_padding;
+        rect_imageView.size = sizeOfImageView;
+        _imageView.frame = rect_imageView;
+        
+        CGFloat height = CGRectGetMaxY(rect_imageView);
+        
+        // Set up frames of text fields.
+        for (int i = 0; i < _textFields.count; i++) {
+            _AXAlertTextfield *txf = (_AXAlertTextfield *)[_textFields objectAtIndex:i];
+            _AXAlertContentBackgroundView *_bgnView = [self viewWithTag:i+1];
+            CGSize sizeOfBgnView = CGSizeMake(CGRectGetWidth(self.bounds), .0);
+            sizeOfBgnView.height += 5*2;
+            sizeOfBgnView.height += txf.font.pointSize;
+            CGFloat originY = .0;
+            if (i == 0) {
+                originY = CGRectGetMaxY(rect_imageView) + _padding;
+            } else {
+                originY = CGRectGetMaxY([self viewWithTag:i].frame) + _padding;
+            }
+            CGRect rect = CGRectMake(0, originY, sizeOfBgnView.width, sizeOfBgnView.height);
+            [_bgnView setFrame:rect];
+            
+            if (i == _textFields.count - 1) {
+                height = CGRectGetMaxY(rect);
+            }
+        }
+        
+        CGRect rect = self.frame;
+        rect.size.height = height;
+        [self setFrame:rect];
     }
 }
 
 #pragma mark - Public.
 - (void)addTextFieldWithConfigurationHandler:(void (^)(UITextField * _Nonnull))configurationHandler {
     _AXAlertTextfield *textField = [_AXAlertTextfield new];
-    textField.translatesAutoresizingMaskIntoConstraints = NO;
     textField.borderStyle = UITextBorderStyleNone;
     textField.backgroundColor = [UIColor whiteColor];
     textField.font = [UIFont systemFontOfSize:13];
     textField.spellCheckingType = UITextSpellCheckingTypeNo;
     textField.autocorrectionType = UITextAutocorrectionTypeNo;
     
-    UIView *_textBackgroundView = [_AXAlertContentBackgroundView new];
-    [_textBackgroundView setBackgroundColor:[UIColor clearColor]];
-    _textBackgroundView.translatesAutoresizingMaskIntoConstraints = NO;
-    
-    UIVisualEffectView *effectView = [[UIVisualEffectView alloc] initWithEffect:[UIVibrancyEffect effectForBlurEffect:_overridesEffect]];
-    effectView.translatesAutoresizingMaskIntoConstraints = NO;
-    UIView *_masksView = [UIView new];
-    [_masksView setBackgroundColor:[UIColor clearColor]];
-    _masksView.translatesAutoresizingMaskIntoConstraints = NO;
-    _masksView.layer.borderWidth = 0.5;
-    _masksView.layer.borderColor = [UIColor whiteColor].CGColor;
-    [effectView.contentView addSubview:_masksView];
-    [effectView.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_masksView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_masksView)]];
-    [effectView.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_masksView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_masksView)]];
-    
-    UIView *_backgroundColorView = [UIView new];
-    _backgroundColorView.backgroundColor = [UIColor whiteColor];
-    _backgroundColorView.translatesAutoresizingMaskIntoConstraints = NO;
-    
-    [_textBackgroundView addSubview:effectView];
-    [_textBackgroundView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(effectView)]];
-    [_textBackgroundView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(effectView)]];
-    
-    [_textBackgroundView addSubview:_backgroundColorView];
-    [_textBackgroundView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-0.5-[_backgroundColorView]-0.5-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_backgroundColorView)]];
-    [_textBackgroundView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0.5-[_backgroundColorView]-0.5-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_backgroundColorView)]];
-    
-    [_textBackgroundView addSubview:textField];
-    [_textBackgroundView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-5-[textField]-5-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(textField)]];
-    [_textBackgroundView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-5-[textField]-5-|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(textField)]];
-    
     if (configurationHandler) {
         configurationHandler(textField);
     }
     if ([AXAlertView usingAutolayout]) {
+        _AXAlertContentBackgroundView * _textBackgroundView = [_AXAlertContentBackgroundView new];
+        [_textBackgroundView setTextfield:textField];
         [_stackView addArrangedSubview:_textBackgroundView];
         [_textFields addObject:textField];
     } else {
-        textField.translatesAutoresizingMaskIntoConstraints = YES;
+        _AXAlertContentBackgroundView * _textBackgroundView = [_AXAlertContentBackgroundView new];
+        [_textBackgroundView setTextfield:textField];
+        _textBackgroundView.tag = _textFields.count+1;
+        [self addSubview:_textBackgroundView];
+        [_textFields addObject:textField];
+        [self setNeedsLayout];
     }
 }
 
 - (void)disableVisualEffects {
-    for (UIView *view in self.stackView.arrangedSubviews) {
-        if ([view isKindOfClass:[_AXAlertContentBackgroundView class]]) {
-            view.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.3].CGColor;
-            view.layer.borderWidth = 0.5;
-            for (UIView *effectView in view.subviews) {
-                if ([effectView isKindOfClass:[UIVisualEffectView class]]) {
-                    [effectView setHidden:YES];
-                }
+    if ([AXAlertView usingAutolayout]) {
+        for (UIView *view in self.stackView.arrangedSubviews) {
+            if ([view isKindOfClass:[_AXAlertContentBackgroundView class]]) {
+                _AXAlertContentBackgroundView *_bgnView = (_AXAlertContentBackgroundView *)view;
+                _bgnView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.3].CGColor;
+                _bgnView.layer.borderWidth = 0.5;
+                [_bgnView.effectView setHidden:YES];
             }
+        }
+    } else {
+        for (int i = 0; i < _textFields.count; i++) {
+            _AXAlertContentBackgroundView *_bgnView = [self viewWithTag:i+1];
+            _bgnView.layer.borderColor = [UIColor colorWithWhite:0 alpha:0.3].CGColor;
+            _bgnView.layer.borderWidth = 0.5;
+            [_bgnView.effectView setHidden:YES];
         }
     }
 }
 
 - (void)enableVisualEffects {
-    for (UIView *view in self.stackView.arrangedSubviews) {
-        if ([view isKindOfClass:[_AXAlertContentBackgroundView class]]) {
-            view.layer.borderColor = [UIColor clearColor].CGColor;
-            view.layer.borderWidth = 0.0;
-            for (UIView *effectView in view.subviews) {
-                if ([effectView isKindOfClass:[UIVisualEffectView class]]) {
-                    [effectView setHidden:NO];
-                }
+    if ([AXAlertView usingAutolayout]) {
+        for (UIView *view in self.stackView.arrangedSubviews) {
+            if ([view isKindOfClass:[_AXAlertContentBackgroundView class]]) {
+                _AXAlertContentBackgroundView *_bgnView = (_AXAlertContentBackgroundView *)view;
+                _bgnView.layer.borderColor = [UIColor clearColor].CGColor;
+                _bgnView.layer.borderWidth = 0.0;
+                [_bgnView.effectView setHidden:NO];
             }
+        }
+    } else {
+        for (int i = 0; i < _textFields.count; i++) {
+            _AXAlertContentBackgroundView *_bgnView = [self viewWithTag:i+1];
+            _bgnView.layer.borderColor = [UIColor clearColor].CGColor;
+            _bgnView.layer.borderWidth = 0.0;
+            [_bgnView.effectView setHidden:NO];
         }
     }
 }
@@ -344,6 +468,8 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
     _padding = padding;
     if ([AXAlertView usingAutolayout]) {
         _stackView.spacing = _padding;
+    } else {
+        [self setNeedsLayout];
     }
 }
 
@@ -355,22 +481,22 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
 @end
 
 @interface AXAlertController () <AXAlertViewDelegate> {
-    BOOL _isBeingPresented;
-    BOOL _isViewDidAppear;
+    BOOL _isBeingPresented;// Whether the alert controller is being presented.
+    BOOL _isViewDidAppear;// Whether the view controller's view did appear.
     BOOL _animated;// Whether showing transition is animated or not.
     BOOL _isAlertShowsTranitionTriggered;// Whether the alert view has showed any once.
-    BOOL _isAlertShowsTranitionFinished;
+    BOOL _isAlertShowsTranitionFinished;// Whether the alert view did finish showing transition animation.
     
-    BOOL _translucent;
+    BOOL _translucent;// Tmp storage of the translucent of the alert view.
     BOOL _shouldExceptArea  __deprecated_msg("Using dimming content image instead.");
     /// Indicator is the keyboard alignment view is in animating or not. YES when animation is in processing, otherwise NO.
     BOOL _processingKeyboardAlignmentViewTransition;
     
     float _opacity; // Defaults to 0.4.
-    NSLayoutConstraint *__weak _heightOfKeyboardAlignment;
+    NSLayoutConstraint *__weak _heightOfKeyboardAlignment;// Height layout contraint of the keyboard alignment view.
     
-    AXAlertControllerStyle _style;
-    NSMutableArray<AXAlertAction *> *_actions;
+    AXAlertControllerStyle _style;// Style of the alert controller.
+    NSMutableArray<AXAlertAction *> *_actions;// Alert actions of the alert view.
 }
 /// Underlying view.
 @property(strong, nonatomic) _AXAlertControllerView *underlyingView;
@@ -483,6 +609,7 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
+    [self _setupContentImageOfDimmingView];// Update the dimming background content image.
     if (!_isViewDidAppear && !_isAlertShowsTranitionTriggered) {
         if (_style == AXAlertControllerStyleActionSheet) {
             [self _addContentViewToContainer];
@@ -493,7 +620,6 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
                 [_contentView.textFields.firstObject becomeFirstResponder];
             }
         }
-        [self _setupContentImageOfDimmingView];
     }
 }
 
@@ -609,7 +735,7 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
     _alertContentView.delegate = self;
     _alertContentView.customViewInset = UIEdgeInsetsMake(5, 15, 20, 15);
     _alertContentView.padding = 0;
-    _alertContentView.cornerRadius = 12.0;
+    _alertContentView.cornerRadius = [AXAlertView usingAutolayout]?12.0:6;
     _alertContentView.actionItemMargin = 0;
     _alertContentView.actionItemPadding = 0;
     _alertContentView.titleLabel.numberOfLines = 0;
@@ -640,7 +766,7 @@ AXAlertCustomViewHooks2(_AXAlertContentBackgroundView, UIView)
     _actionSheetContentView.customViewInset = UIEdgeInsetsMake(5, 15, 20, 15);
     _actionSheetContentView.padding = 0;
     _actionSheetContentView.hidesOnTouch = YES;
-    _actionSheetContentView.cornerRadius = 12.0;
+    _actionSheetContentView.cornerRadius = [AXAlertView usingAutolayout]?12.0:6;
     _actionSheetContentView.actionItemMargin = 0;
     _actionSheetContentView.actionItemPadding = 0;
     _actionSheetContentView.titleLabel.numberOfLines = 0;
