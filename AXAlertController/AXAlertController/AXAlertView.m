@@ -1966,6 +1966,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         } else if (!CGAffineTransformIsIdentity(_stackView.transform)) {
             _stackView.transform = CGAffineTransformIdentity;
             _customView.layer.mask = nil;
+        } else {
+            _customView.layer.mask = nil;
         }
     } else {
         if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.frame)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue], _actionConfiguration.preferedHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.frame)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue]-_padding-_customViewInset.bottom;
@@ -1981,6 +1983,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             for (UIView *_acView in _actionButtons) {
                 _acView.transform = CGAffineTransformIdentity;
             }
+        } else {
             _customView.layer.mask = nil;
         }
     }
