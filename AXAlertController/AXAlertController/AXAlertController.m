@@ -78,8 +78,6 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
 @property(strong, nonatomic) UIImageView *effectMasksView;
 /// Background color view.
 @property(strong, nonatomic) UIImageView *backgroundColorView;
-/// Overrides effect.
-@property(readwrite, nonatomic) UIBlurEffect *overridesEffect;
 /// Overrides light effect.
 @property(assign, nonatomic) BOOL overridesLightStyle;
 @end
@@ -94,8 +92,10 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
 @property(assign, nonatomic) CGFloat padding;
 /// Text fields.
 @property(copy, nonatomic) NSMutableArray<UITextField *> *textFields;
-/// Overrides effect.
-@property(strong, nonatomic) UIBlurEffect *overridesEffect;
+/// Translucent.
+@property(assign, nonatomic) BOOL translucent;
+/// Translucent style.
+@property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle;
 
 - (void)addTextFieldWithConfigurationHandler:(void (^)(UITextField * _Nonnull))configurationHandler;
 - (void)disableVisualEffects;
@@ -171,6 +171,7 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
 - (instancetype)init {
     if (self = [super init]) {
         self.clipsToBounds = YES;
+        self.overridesLightStyle = YES;
         [self addSubview:self.effectView];
         [self addSubview:self.backgroundColorView];
         if ([AXAlertView usingAutolayout]) {
@@ -221,20 +222,9 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     }
 }
 
-- (void)setOverridesEffect:(UIBlurEffect *)overridesEffect {
-    _overridesEffect = overridesEffect;
-    _effectView.effect = _overridesEffect;
-    [self setOverridesLightStyle:_overridesLightStyle];
-}
-
 - (void)setOverridesLightStyle:(BOOL)overridesLightStyle {
     _overridesLightStyle = overridesLightStyle;
-    if (_overridesLightStyle) {
-        _effectMasksView.layer.borderColor = [UIColor whiteColor].CGColor;
-    } else {
-        _effectMasksView.layer.borderColor = [UIColor blackColor].CGColor;
-    }
-    _effectMasksView.layer.borderWidth = 0.5;
+    [self _resetEffectView];
 }
 
 - (UIVisualEffectView *)effectView {
@@ -265,6 +255,25 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     _backgroundColorView.backgroundColor = [UIColor whiteColor];
     return _backgroundColorView;
 }
+
+- (void)_resetEffectView {
+    if (_effectView) {
+        [_effectView removeFromSuperview];
+    }
+    _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIVibrancyEffect effectForBlurEffect:[UIBlurEffect effectWithStyle:_overridesLightStyle?UIBlurEffectStyleExtraLight:UIBlurEffectStyleDark]]];
+    [_effectView.contentView addSubview:self.effectMasksView];
+    if ([AXAlertView usingAutolayout]) {
+        _effectView.translatesAutoresizingMaskIntoConstraints = NO;
+        _effectMasksView.translatesAutoresizingMaskIntoConstraints = NO;
+        [_effectView.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectMasksView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectMasksView)]];
+        [_effectView.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_effectMasksView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectMasksView)]];
+    }
+    [self insertSubview:_effectView atIndex:0];
+    if ([AXAlertView usingAutolayout]) {
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
+    }
+}
 @end
 @implementation _AXAlertControllerContentView
 #pragma mark - Life cycle.
@@ -288,7 +297,6 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
 
 - (void)initializer {
     _padding = 10.0;
-    _overridesEffect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight];
     _textFields = [NSMutableArray array];
     
     if ([AXAlertView usingAutolayout]) {
@@ -389,6 +397,32 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
         [self addSubview:_textBackgroundView];
         [_textFields addObject:textField];
         [self setNeedsLayout];
+    }
+}
+
+- (void)setTranslucent:(BOOL)translucent {
+    _translucent = translucent;
+    if (_translucent) {
+        [self enableVisualEffects];
+    } else {
+        [self disableVisualEffects];
+    }
+}
+
+- (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
+    _translucentStyle = translucentStyle;
+    if ([AXAlertView usingAutolayout]) {
+        for (UIView *view in self.stackView.arrangedSubviews) {
+            if ([view isKindOfClass:[_AXAlertContentBackgroundView class]]) {
+                _AXAlertContentBackgroundView *_bgnView = (_AXAlertContentBackgroundView *)view;
+                [_bgnView setOverridesLightStyle:_translucentStyle == AXAlertViewTranslucentLight];
+            }
+        }
+    } else {
+        for (int i = 0; i < _textFields.count; i++) {
+            _AXAlertContentBackgroundView *_bgnView = [self viewWithTag:i+1];
+            [_bgnView setOverridesLightStyle:_translucentStyle == AXAlertViewTranslucentLight];
+        }
     }
 }
 
@@ -559,6 +593,8 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     [_actionSheetContentView removeObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame"];
     [_alertContentView removeObserver:self forKeyPath:@"containerView.center"];
     [_actionSheetContentView removeObserver:self forKeyPath:@"containerView.center"];
+    [_alertContentView removeObserver:self forKeyPath:@"translucent"];
+    [_alertContentView removeObserver:self forKeyPath:@"translucentStyle"];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
@@ -568,6 +604,12 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
             // Replaced with:
         [self _setupContentImageOfDimmingView];
         // }
+    } else if ([keyPath isEqualToString:@"translucent"]) {
+        BOOL translucent = [change[NSKeyValueChangeNewKey] boolValue];
+        [self.contentView setTranslucent:translucent];
+    } else if ([keyPath isEqualToString:@"translucentStyle"]) {
+        NSUInteger style = [change[NSKeyValueChangeNewKey] integerValue];
+        [self.contentView setTranslucentStyle:style];
     } else [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
@@ -758,6 +800,8 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     
     [_alertContentView addObserver:self forKeyPath:[AXAlertView usingAutolayout]?@"containerView.bounds":@"containerView.frame" options:NSKeyValueObservingOptionNew context:NULL];
     [_alertContentView addObserver:self forKeyPath:@"containerView.center" options:NSKeyValueObservingOptionNew context:NULL];
+    [_alertContentView addObserver:self forKeyPath:@"translucent" options:NSKeyValueObservingOptionNew context:NULL];
+    [_alertContentView addObserver:self forKeyPath:@"translucentStyle" options:NSKeyValueObservingOptionNew context:NULL];
     return _alertContentView;
 }
 
@@ -823,7 +867,6 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
         if (!AX_ALERT_AVAILABLE_ON_PLATFORM(@"11.0.0")) {
             _translucent = self.alertView.translucent;
             self.alertView.translucent = NO;
-            [self.contentView disableVisualEffects];
         }
     }
 }
@@ -943,7 +986,6 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
 - (void)_updatedTranslucentState {
     if (_translucent && _style == AXAlertControllerStyleAlert) {
         [self.alertView setTranslucent:_translucent];
-        [self.contentView enableVisualEffects];
     }
 }
 
