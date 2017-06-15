@@ -45,7 +45,7 @@ AXAlertViewCustomViewHooks(_AXAlertContentFooterView)
 AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertViewDimmingView, UIImageView)
-AXObserverRemovingViewHooks(_AXAlertViewScrollView, UIScrollView, @[@"contentSize"])
+AXObserverRemovingViewHooks(_AXAlertScrollView, UIScrollView, @[@"contentSize"])
 AXAlertPlaceholderViewHooks(_AXAlertContentPlacehodlerView)
 
 static NSString * _kPlatform_info = @"";
@@ -116,7 +116,7 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
 /// Container view.
 @property(strong, nonatomic) UIView *containerView;
 /// Content container view.
-@property(strong, nonatomic) _AXAlertViewScrollView *contentContainerView;
+@property(strong, nonatomic) _AXAlertScrollView *contentContainerView;
 /// Effect flexilbe view.
 @property(strong, nonatomic) _AXAlertContentFlexibleView *effectFlexibleView;
 /// Blur effect view.
@@ -672,9 +672,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     return _containerView;
 }
 
-- (_AXAlertViewScrollView *)contentContainerView {
+- (_AXAlertScrollView *)contentContainerView {
     if (_contentContainerView) return _contentContainerView;
-    _contentContainerView = [[_AXAlertViewScrollView alloc] initWithFrame:CGRectZero];
+    _contentContainerView = [[_AXAlertScrollView alloc] initWithFrame:CGRectZero];
     _contentContainerView->_observer = self;
     _contentContainerView.backgroundColor = [UIColor clearColor];
     _contentContainerView.showsVerticalScrollIndicator = NO;
