@@ -44,7 +44,7 @@ AXAlertViewCustomViewHooks(_AXAlertContentHeaderView)
 AXAlertViewCustomViewHooks(_AXAlertContentFooterView)
 AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
-AXAlertViewCustomViewHooks2(_AXAlertViewDimmingView, UIImageView)
+AXAlertViewCustomViewHooks2(_AXAlertDimmingView, UIImageView)
 AXObserverRemovingViewHooks(_AXAlertScrollView, UIScrollView, @[@"contentSize"])
 AXAlertPlaceholderViewHooks(_AXAlertContentPlacehodlerView)
 
@@ -110,7 +110,7 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
     BOOL _needsReconfigureItems;
 }
 /// Content dimming view.
-@property(strong, nonatomic) _AXAlertViewDimmingView *dimmingView;
+@property(strong, nonatomic) _AXAlertDimmingView *dimmingView;
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
 /// Container view.
@@ -633,9 +633,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     return _containerView.backgroundColor;
 }
 
-- (_AXAlertViewDimmingView *)dimmingView {
+- (_AXAlertDimmingView *)dimmingView {
     if (_dimmingView) return _dimmingView;
-    _dimmingView = [_AXAlertViewDimmingView new];
+    _dimmingView = [_AXAlertDimmingView new];
     _dimmingView.backgroundColor = [UIColor clearColor];
     _dimmingView.contentMode = UIViewContentModeCenter;
     _dimmingView.translatesAutoresizingMaskIntoConstraints = NO;
