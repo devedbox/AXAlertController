@@ -526,6 +526,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         CGFloat height;
         CGFloat flag;
         [self _getHeightOfContentView:&height flag:&flag withContentSize:_contentContainerView.contentSize];
+        
+        _contentContainerView.scrollEnabled = height>=flag?YES:NO;
+        
         CGFloat heightOfContent = MAX(0, MIN(height, flag));
         // Update height of content scroll view.
         if (_heightOfContentView.constant != heightOfContent) {
