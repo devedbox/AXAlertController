@@ -41,11 +41,13 @@
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
-    [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
-        // textField.borderStyle = UITextBorderStyleRoundedRect;
-        // textField.font = [UIFont boldSystemFontOfSize:21];
-        textField.placeholder = @"Type text...";
-    }];
+    for (int i = 0; i < 1; i++) {
+        [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+            // textField.borderStyle = UITextBorderStyleRoundedRect;
+            // textField.font = [UIFont boldSystemFontOfSize:21];
+            textField.placeholder = @"Type text...";
+        }];
+    }
     [self presentViewController:alert animated:YES completion:^{
         
 //        for (UIView *view in alert.view.subviews) {
@@ -205,8 +207,14 @@
         config.font = [UIFont systemFontOfSize:17];
         config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
     }];
-    [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
-        textField.placeholder = @"Type text...";
+    for (int i = 0; i < 1; i++) {
+        [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+            textField.placeholder = @"Type text...";
+        }];
+    }
+    [alert configureImageViewWithHandler:^(UIImageView * _Nonnull imageView) {
+        imageView.contentMode = UIViewContentModeCenter;
+        imageView.image = [UIImage imageNamed:@"touch"];
     }];
     [self presentViewController:alert animated:YES completion:NULL];
     [self _delayUpdateAlertView:alert.alertView];
