@@ -586,6 +586,12 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     return alert;
 }
 
+- (void)configureImageViewWithHandler:(void (^)(UIImageView * _Nonnull))handler {
+    if (handler != NULL) {
+        handler(_contentView.imageView);
+    }
+}
+
 #pragma mark - Overrides.
 - (void)loadView {
     [super loadView];
@@ -739,7 +745,7 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     _alertContentView.actionItemMargin = 0;
     _alertContentView.actionItemPadding = 0;
     _alertContentView.titleLabel.numberOfLines = 0;
-    _alertContentView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
+    _alertContentView.preferedMargin = UIEdgeInsetsMake(0, 52, 0, 52);
     _alertContentView.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _alertContentView.titleLabel.textColor = [UIColor blackColor];
     AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
