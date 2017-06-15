@@ -42,6 +42,7 @@
 
 AXAlertViewCustomViewHooks(_AXAlertContentHeaderView)
 AXAlertViewCustomViewHooks(_AXAlertContentFooterView)
+AXAlertViewCustomViewHooks(_AXAlertContainerView)
 AXAlertViewCustomViewHooks2(_AXAlertContentSeparatorView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertContentFlexibleView, UIImageView)
 AXAlertViewCustomViewHooks2(_AXAlertDimmingView, UIImageView)
@@ -114,7 +115,7 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
 /// Title label.
 @property(strong, nonatomic) UILabel *titleLabel;
 /// Container view.
-@property(strong, nonatomic) UIView *containerView;
+@property(strong, nonatomic) _AXAlertContainerView *containerView;
 /// Content container view.
 @property(strong, nonatomic) _AXAlertScrollView *contentContainerView;
 /// Effect flexilbe view.
@@ -657,9 +658,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     return _titleLabel;
 }
 
-- (UIView *)containerView {
+- (_AXAlertContainerView *)containerView {
     if (_containerView) return _containerView;
-    _containerView = [[UIView alloc] initWithFrame:CGRectZero];
+    _containerView = [[_AXAlertContainerView alloc] initWithFrame:CGRectZero];
     _containerView.clipsToBounds = YES;
     _containerView.backgroundColor = [UIColor whiteColor];
     _containerView.layer.cornerRadius = _cornerRadius;
