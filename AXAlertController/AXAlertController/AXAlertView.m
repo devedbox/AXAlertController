@@ -522,6 +522,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         // Calculate the content size of the content container view.
         _contentContainerView.contentSize = CGSizeMake(CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right), heightOfContainer-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_customViewInset.top-_contentInset.bottom);
         _customView.frame = CGRectMake(_customViewInset.left, /*_customViewInset.top*/0, sizeOfCustomView.width, sizeOfCustomView.height-(_customViewInset.top+_customViewInset.bottom));
+    } else {
+        CGFloat height;
+        CGFloat flag;
+        [self _getHeightOfContentView:&height flag:&flag withContentSize:_contentContainerView.contentSize];
+        CGFloat heightOfContent = MAX(0, MIN(height, flag));
+        // Update height of content scroll view.
+        if (_heightOfContentView.constant != heightOfContent) {
+            [self _updateHeightConstraintsOfContentViewWithHeight:heightOfContent];
+        }
     }
     
     [self _updateExceptionAreaOfEffectView];
@@ -1894,8 +1903,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_updateHeightConstraintsOfContentViewWithHeight:(CGFloat)height {
     if (_heightOfContentView) {
         _heightOfContentView.constant = height;
-        [_contentContainerView setNeedsUpdateConstraints];
-        [_contentContainerView updateConstraintsIfNeeded];
     } else {
         NSLayoutConstraint *heightOfContent = [NSLayoutConstraint constraintWithItem:_contentContainerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:height];
         [_contentContainerView addConstraint:heightOfContent];
