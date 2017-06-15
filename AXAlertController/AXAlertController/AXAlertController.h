@@ -80,6 +80,7 @@ typedef void(^AXAlertActionHandler)(AXAlertAction *__weak _Nonnull action);
 @property(nonatomic, nullable) UIImage *image;
 
 + (instancetype)alertControllerWithTitle:(nullable NSString *)title message:(nullable NSString *)message image:(nullable UIImage *)image preferredStyle:(AXAlertControllerStyle)preferredStyle;
+- (void)configureImageViewWithHandler:(void (^ __nullable)(UIImageView *imageView))handler;
 @end
 
 @interface AXAlertController (TextField)
