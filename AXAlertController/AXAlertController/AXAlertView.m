@@ -324,7 +324,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         if ([[self class] usingAutolayout]) {
             if (_translucent) {
-                if (height >= flag) {
+                if (height >= flag && _actionItems.count > _horizontalLimits) {
                     if (_heightOfEffectFlexibleView && _equalHeightOfEffectFlexibleAndStack) {
                         [NSLayoutConstraint activateConstraints:@[_heightOfEffectFlexibleView]];
                         [NSLayoutConstraint deactivateConstraints:@[_equalHeightOfEffectFlexibleAndStack]];
@@ -1845,8 +1845,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _replaceFilterViewOfEffectViewWithWidth:.0];
     }
     
+    UIView * __block _filterView;
+    if ([[self class] usingAutolayout]) {
+        _filterView = _effectFilterView;
+    } else {
+        [self.effectView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            //!!!: Fixs _UIVisualEffectSubview class on the iOS 11.0 developer beta1.0.
+            if (/*[obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]*/[[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] '_UIVisualEffectFilterView' OR SELF MATCHES[cd] '_UIVisualEffectSubview'"] evaluateWithObject:NSStringFromClass(obj.class)]) {
+                _filterView = obj;
+            }
+        }];
+    }
     if (arg1 < 0.0) {
-        _effectMaskLayer = nil; _effectFilterView.layer.mask = nil; return;
+        _effectMaskLayer = nil; _filterView.layer.mask = nil; return;
     }
     
     CGFloat height = 0.0;
@@ -1891,16 +1902,24 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [maskLayrer setBackgroundColor:[UIColor whiteColor].CGColor];
         [maskLayrer setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
         [maskLayrer setBounds:frame];
-        _effectFilterView.layer.mask = maskLayrer;
+        _filterView.layer.mask = maskLayrer;
         _effectMaskLayer = maskLayrer;
     } else {
         [CATransaction begin];
         // [CATransaction setAnimationDuration:0.5];
         // [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn]];
-        [_effectFilterView.layer.mask setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
-        [_effectFilterView.layer.mask setBounds:frame];
+        [_filterView.layer.mask setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
+        [_filterView.layer.mask setBounds:frame];
         [CATransaction commit];
     }
+    
+    UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(frame), CGRectGetHeight(frame)-(_actionItems.count > _horizontalLimits ? .0 : arg1))];
+    CAShapeLayer *maskLayrer = _effectMaskLayer?:[CAShapeLayer layer];
+    maskLayrer.frame = frame;
+    maskLayrer.path = path.CGPath;
+    _filterView.layer.mask = nil;
+    _filterView.layer.mask = maskLayrer;
+    if (!_effectMaskLayer) _effectMaskLayer = maskLayrer;
 }
 
 - (void)_setupExceptionSeparatorLayerWidth:(CGFloat)arg1 {
@@ -2258,11 +2277,28 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }];
     if (_filterView) [_filterView removeFromSuperview];
     [self.effectFilterView removeFromSuperview];
-    [_effectView addSubview:_effectFilterView];
+    [_containerView insertSubview:_effectFilterView aboveSubview:_effectView];
     if ([[self class] usingAutolayout]) {
-        [_effectView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectFilterView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectFilterView)]];
-        [_effectView addConstraint:[NSLayoutConstraint constraintWithItem:_effectView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:_effectFilterView attribute:NSLayoutAttributeTop multiplier:1.0 constant:0.0]];
+        [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectFilterView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectFilterView)]];
+        [_containerView addConstraint:[NSLayoutConstraint constraintWithItem:_containerView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:_effectFilterView attribute:NSLayoutAttributeTop multiplier:1.0 constant:0.0]];
         if (_effectFlexibleView && _effectFlexibleView.superview) [_containerView addConstraint:[NSLayoutConstraint constraintWithItem:_effectFlexibleView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:_effectFilterView attribute:NSLayoutAttributeHeight multiplier:1.0 constant:width]];
+    } else {
+        CGFloat height = 0.0;
+        CGFloat _height = 0.0;
+        CGFloat _flag = 0.0;
+        [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
+        
+        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)/*+_customViewInset.top */+ _customViewInset.bottom;
+        if (_actionItems.count > _horizontalLimits && _height >= _flag) {
+            height -= CGRectGetHeight(_customView.frame);
+            if (_customView) {
+                height -= _customViewInset.bottom;
+            }
+        } else if (_height >= _flag) {
+            height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.frame));
+        }
+        
+        [_effectFilterView setFrame:CGRectMake(0, 0, CGRectGetWidth(_effectView.bounds), height-width)];
     }
 }
 
