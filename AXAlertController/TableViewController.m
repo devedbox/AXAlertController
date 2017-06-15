@@ -214,7 +214,7 @@
     }
     [alert configureImageViewWithHandler:^(UIImageView * _Nonnull imageView) {
         imageView.contentMode = UIViewContentModeCenter;
-        imageView.image = [UIImage imageNamed:@"touch"];
+        imageView.image = [self resizedTouchImage];
     }];
     [self presentViewController:alert animated:YES completion:NULL];
     [self _delayUpdateAlertView:alert.alertView];
@@ -284,5 +284,19 @@
         // alertView.customView = nil;
         // alertView.verticalOffset = 100;
     });
+}
+
+- (UIImage *)resizedTouchImage {
+    UIGraphicsBeginImageContextWithOptions(CGSizeMake(44.0, 44.0), NO, [UIScreen mainScreen].scale);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextSaveGState(context);
+    CGContextTranslateCTM(context, 0, 44.0);
+    CGContextScaleCTM(context, 1.0, -1);
+    CGContextSetFillColorWithColor(context, [UIColor orangeColor].CGColor);
+    CGContextDrawImage(context, CGRectMake(0, 0, 44.0, 44.0), [UIImage imageNamed:@"touch"].CGImage);
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    CGContextRestoreGState(context);
+    UIGraphicsEndImageContext();
+    return image;
 }
 @end
