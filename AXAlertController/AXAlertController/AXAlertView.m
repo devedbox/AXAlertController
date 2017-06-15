@@ -54,6 +54,11 @@ CGFloat const kAXAlertVertivalOffsetCenter = 0.0;
 CGFloat const kAXAlertVertivalOffsetPinToTop = CGFLOAT_MIN;
 CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
 
+@interface _AXVisualEffectFilterView: UIView
+@property(assign, nonatomic) BOOL translucent;
+@property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle;
+@end
+
 @interface AXAlertView () <UIScrollViewDelegate>
 {
     @private
@@ -122,6 +127,8 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
 @property(strong, nonatomic) _AXAlertContentFlexibleView *effectFlexibleView;
 /// Blur effect view.
 @property(strong, nonatomic) UIVisualEffectView *effectView;
+/// Effect filter view.
+@property(strong, nonatomic) _AXVisualEffectFilterView *effectFilterView;
 /// Effect flexible view.
 @property(strong, nonatomic) _AXAlertContentFlexibleView *stackFlexibleView;
 /// Stack view.
@@ -164,6 +171,34 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
 static CGFloat UIEdgeInsetsGetHeight(UIEdgeInsets insets) { return insets.top + insets.bottom; }
 /// Get the 'width' of the inset by adding left and right.
 static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + insets.right; }
+
+@implementation _AXVisualEffectFilterView
+- (void)setTranslucent:(BOOL)translucent {
+    _translucent = translucent;
+    [self _setBackgroundColor];
+}
+
+- (void)setTranslucentStyle:(AXAlertViewTranslucentStyle )translucentStyle {
+    _translucentStyle = translucentStyle;
+    [self _setBackgroundColor];
+}
+
+- (void)_setBackgroundColor {
+    if (_translucent) {
+        if (_translucentStyle == AXAlertViewTranslucentLight) {
+            [self setBackgroundColor:[UIColor colorWithWhite:0.97 alpha:0.8]];
+        } else {
+            [self setBackgroundColor:[UIColor colorWithWhite:0.11 alpha:0.73]];
+        }
+    } else {
+        if (_translucentStyle == AXAlertViewTranslucentLight) {
+            [self setBackgroundColor:[UIColor whiteColor]];
+        } else {
+            [self setBackgroundColor:[UIColor blackColor]];
+        }
+    }
+}
+@end
 
 @implementation AXAlertView
 
@@ -710,6 +745,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     return _effectView;
 }
 
+- (_AXVisualEffectFilterView *)effectFilterView {
+    if (_effectFilterView) return _effectFilterView;
+    _effectFilterView = [_AXVisualEffectFilterView new];
+    if ([[self class] usingAutolayout]) {
+        [_effectFilterView setTranslatesAutoresizingMaskIntoConstraints:NO];
+    } else {
+        [_effectFilterView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleBottomMargin];
+    }
+    return _effectFilterView;
+}
+
 - (_AXAlertContentFlexibleView *)stackFlexibleView {
     if (_stackFlexibleView) return _stackFlexibleView;
     _stackFlexibleView = [_AXAlertContentFlexibleView new];
@@ -810,6 +856,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setTranslucent:(BOOL)translucent {
     _translucent = translucent;
     
+    [_effectFilterView setTranslucent:translucent];
     if (_translucent) {
         if ([[self class] usingAutolayout]) {
             [self.containerView insertSubview:self.effectFlexibleView atIndex:0];
@@ -857,6 +904,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
     _translucentStyle = translucentStyle;
     
+    [_effectFilterView setTranslucentStyle:translucentStyle];
     [self setTranslucent:_translucent];
     // Set up hooked view if needed.
     if (_contentContainerView.scrollEnabled) [self _setupContentHookedView];
@@ -1689,6 +1737,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [_containerView addConstraints:@[leadingOfEffectView, trailingOfEffectView, topOfEffectView, bottomOfEffectAndTopOfStack, leadingOfStack, trailingOfStack, bottomOfStack]];
     [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
     [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
+    
+    // Replace the filter view of effect view.
+    [self _replaceFilterViewOfEffectViewWithWidth:0.0];
 }
 
 - (void)_updateConfigurationOfItemAtIndex:(NSUInteger)index {
@@ -1786,19 +1837,16 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)_setExceptionAllowedWidth:(CGFloat)arg1 {
-    UIView * __block _filterView;
-    UIView * __block _backdropView;
-    [self.effectView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        //!!!: Fixs _UIVisualEffectSubview class on the iOS 11.0 developer beta1.0.
-        if (/*[obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]*/[[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] '_UIVisualEffectFilterView' OR SELF MATCHES[cd] '_UIVisualEffectSubview'"] evaluateWithObject:NSStringFromClass(obj.class)]) {
-            _filterView = obj;
-        } else if ([obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectBackdropView")]) {
-            _backdropView = obj;
-        }
-    }];
+    if (_actionItems.count <= _horizontalLimits) {
+        [self _replaceFilterViewOfEffectViewWithWidth:arg1];
+        _effectFilterView.layer.mask = nil;
+        return;
+    } else {
+        [self _replaceFilterViewOfEffectViewWithWidth:.0];
+    }
     
     if (arg1 < 0.0) {
-        _effectMaskLayer = nil; _filterView.layer.mask = nil; return;
+        _effectMaskLayer = nil; _effectFilterView.layer.mask = nil; return;
     }
     
     CGFloat height = 0.0;
@@ -1843,14 +1891,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [maskLayrer setBackgroundColor:[UIColor whiteColor].CGColor];
         [maskLayrer setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
         [maskLayrer setBounds:frame];
-        _filterView.layer.mask = maskLayrer;
+        _effectFilterView.layer.mask = maskLayrer;
         _effectMaskLayer = maskLayrer;
     } else {
         [CATransaction begin];
         // [CATransaction setAnimationDuration:0.5];
         // [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn]];
-        [_filterView.layer.mask setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
-        [_filterView.layer.mask setBounds:frame];
+        [_effectFilterView.layer.mask setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
+        [_effectFilterView.layer.mask setBounds:frame];
         [CATransaction commit];
     }
 }
@@ -2197,6 +2245,24 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     UIImage *image = [self _dimmingKnockoutImageOfFrameOfContainerView];
     if (image != nil) {
         _dimmingView.image = image;
+    }
+}
+
+- (void)_replaceFilterViewOfEffectViewWithWidth:(CGFloat)width {
+    UIView * __block _filterView;
+    [self.effectView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        //!!!: Fixs _UIVisualEffectSubview class on the iOS 11.0 developer beta1.0.
+        if (/*[obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]*/[[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] '_UIVisualEffectFilterView' OR SELF MATCHES[cd] '_UIVisualEffectSubview'"] evaluateWithObject:NSStringFromClass(obj.class)]) {
+            _filterView = obj;
+        }
+    }];
+    if (_filterView) [_filterView removeFromSuperview];
+    [self.effectFilterView removeFromSuperview];
+    [_effectView addSubview:_effectFilterView];
+    if ([[self class] usingAutolayout]) {
+        [_effectView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectFilterView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectFilterView)]];
+        [_effectView addConstraint:[NSLayoutConstraint constraintWithItem:_effectView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:_effectFilterView attribute:NSLayoutAttributeTop multiplier:1.0 constant:0.0]];
+        if (_effectFlexibleView && _effectFlexibleView.superview) [_containerView addConstraint:[NSLayoutConstraint constraintWithItem:_effectFlexibleView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:_effectFilterView attribute:NSLayoutAttributeHeight multiplier:1.0 constant:width]];
     }
 }
 
