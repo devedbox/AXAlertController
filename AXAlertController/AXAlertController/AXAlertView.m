@@ -1022,7 +1022,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 #pragma mark - Actions
 - (void)handleDeviceOrientationDidChangeNotification:(NSNotification *)aNote {
     // BOOL animated = [[[aNote userInfo] objectForKey:@"UIDeviceOrientationRotateAnimatedUserInfoKey"] boolValue];
-    [self _handleDeviceOrientationDidChangeWithoutAnimated];
+    // [self _handleDeviceOrientationDidChangeWithoutAnimated];
+    [self _handleDeviceOrientationDidChangeByAnimated];
 }
 
 - (void)handleActionButtonDidClick:(UIButton *_Nonnull)sender {
@@ -1352,7 +1353,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     // [self set_shouldExceptContentBackground:NO];
     // [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.3];
     
-    [self _layoutSubviews];
+    if (animated) [UIView animateWithDuration:0.25 animations:^{
+        [self _layoutSubviews];
+    }]; else [self _layoutSubviews];
     // [self _setupActionItems];
     // Replaced with:
     [self _layoutActionButtons:NO];
