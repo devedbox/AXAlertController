@@ -1906,7 +1906,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _effectMaskLayer = maskLayrer;
     } else {
         [CATransaction begin];
-        // [CATransaction setAnimationDuration:0.5];
+        [CATransaction setAnimationDuration:0.0];// Disabled the animation duration.
         // [CATransaction setAnimationTimingFunction:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn]];
         [_filterView.layer.mask setPosition:CGPointMake(CGRectGetWidth(frame)*.5, 0)];
         [_filterView.layer.mask setBounds:frame];
