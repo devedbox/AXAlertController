@@ -99,6 +99,7 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
     NSLayoutConstraint *__weak _bottomOfStackView;// Bottom contraint of stack view to the content view.
     NSLayoutConstraint *__weak _widthOfStackView;// Width contraint of stack view to the container view.
     
+    NSLayoutConstraint *__weak _widthOfContentView;// Width contraint of the content view.
     NSLayoutConstraint *__weak _heightOfContentView;// Height contraint of the content view.
     
     NSLayoutConstraint * _equalHeightOfEffectFlexibleAndStack; // Equal height contraint of effect flexible view and stack view.
@@ -304,8 +305,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
     if ([keyPath isEqualToString:@"contentSize"]) {
         CGSize contentSize = [change[NSKeyValueChangeNewKey] CGSizeValue];
-        CGFloat height;
-        CGFloat flag;
+        CGFloat height = 0.0;
+        CGFloat flag = 0.0;
         [self _getHeightOfContentView:&height flag:&flag withContentSize:contentSize];
         
         _contentContainerView.scrollEnabled = height>=flag?YES:NO;
@@ -559,8 +560,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _contentContainerView.contentSize = CGSizeMake(CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right), heightOfContainer-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_customViewInset.top-_contentInset.bottom);
         _customView.frame = CGRectMake(_customViewInset.left, /*_customViewInset.top*/0, sizeOfCustomView.width, sizeOfCustomView.height-(_customViewInset.top+_customViewInset.bottom));
     } else {
-        CGFloat height;
-        CGFloat flag;
+        CGFloat height = 0.0;
+        CGFloat flag = 0.0;
         [self _getHeightOfContentView:&height flag:&flag withContentSize:_contentContainerView.contentSize];
         
         _contentContainerView.scrollEnabled = height>=flag?YES:NO;
@@ -920,6 +921,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _leadingOfContent.constant = -_contentInset.left;
         _trailingOfContent.constant = _contentInset.right;
         _bottomOfContent.constant = _contentInset.bottom;
+        _widthOfContentView.constant = UIEdgeInsetsGetWidth(_contentInset);
         _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
     } else if (!_customView) {
         [self _layoutSubviews];
@@ -1572,6 +1574,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _leadingOfContent = leadingOfContentView;
     _trailingOfContent = trailingOfContentView;
     _bottomOfContent = bottomOfContentView;
+    _widthOfContentView = widthOfContentView;
+}
+
+- (CGFloat)_constantOfHeightOfContentView {
+    CGFloat heightOfTitle = .0;
+    if (_titleLabel.numberOfLines == 0) {
+        heightOfTitle = ceil(_titleLabel.font.pointSize);
+    } else {
+        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
+        heightOfTitle = ceil(size.height);
+    }
+    
+    return UIEdgeInsetsGetHeight(_preferedMargin)+(heightOfTitle+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
 }
 
 - (void)_addContraintsOfCustomViewAndStackViewToContentView {
@@ -1980,10 +1995,12 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)_updateHeightConstraintsOfContentView {
-    CGFloat height;
-    [self _getHeightOfContentView:&height flag:NULL];
-    
-    [self _updateHeightConstraintsOfContentViewWithHeight:height];
+    CGFloat height = 0.0;
+    CGFloat flag = 0.0;
+    [self _getHeightOfContentView:&height flag:&flag];
+    CGFloat heightOfContent = MAX(0, MIN(height, flag));
+    // Update height of content scroll view.
+    [self _updateHeightConstraintsOfContentViewWithHeight:heightOfContent];
 }
 
 - (void)_updateHeightConstraintsOfContentViewWithHeight:(CGFloat)height {
@@ -2002,18 +2019,29 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag withContentSize:(CGSize)contentSize {
     CGFloat _height = contentSize.height;
-    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-(CGRectGetHeight(_titleLabel.bounds)+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
     
-    CGFloat _flag = _maxAllowed;
-    _height = MIN(_height, _flag);
+    CGFloat heightOfTitle = .0;
+    if (_titleLabel.numberOfLines == 0) {
+        heightOfTitle = ceil(_titleLabel.font.pointSize);
+    } else {
+        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
+        heightOfTitle = ceil(size.height);
+    }
+    
+    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-(heightOfTitle+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
+    
+    CGFloat _flag = MAX(0, _maxAllowed);
+    // _height = MIN(_height, _flag);
     if (height != NULL) *height = _height;
     if (flag != NULL) *flag = _flag;
 }
 
 - (void)_updateFramesOfHookedVeiwsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
     [self _setupContentHookedView];
-    
-    if (_actionItems.count > _horizontalLimits) {
+    CGFloat _height = 0.0;
+    CGFloat _flag = 0.0;
+    [self _getHeightOfContentView:&_height flag:&_flag];
+    if (_actionItems.count > _horizontalLimits && _height >= _flag) {
         if (contentOffset.y >= scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)) { // Handle the footer view.
             _contentFooterView.hidden = NO;
             
