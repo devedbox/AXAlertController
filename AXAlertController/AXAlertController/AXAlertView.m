@@ -1426,6 +1426,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self set_shouldExceptContentBackground:YES];
 }
 
+#pragma mark - Constraints.
+
++ (BOOL)usingAutolayout { /*return NO;*/
+    if (_kPlatform_info.length > 0) {
+        return [_kPlatform_info isEqualToString:@"autolayout_true"];
+    }
+    if (AX_ALERT_AVAILABLE_ON_PLATFORM([NSString stringWithFormat:@"%@.0.0", @(9000/1000)])) {
+        _kPlatform_info = @"autolayout_true";  return YES;
+    } else {
+        _kPlatform_info = @"autolayout_false"; return NO;
+    }
+}
+
 - (void)_addContraintsOfContainerToSelf {
     NSLayoutConstraint *leadingOfContainer =
     [NSLayoutConstraint constraintWithItem:self
@@ -1751,6 +1764,147 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self _replaceFilterViewOfEffectViewWithWidth:0.0];
 }
 
+- (void)_updateHeightConstraintsOfTitleLabelIfNeeded {
+    CGFloat heightOfTitle = .0;
+    if (_titleLabel.numberOfLines == 0) {
+        heightOfTitle = ceil(_titleLabel.font.lineHeight);
+    } else {
+        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
+        heightOfTitle = ceil(size.height);
+    }
+    if (_heightOfTitleLabel) {
+        if (_heightOfTitleLabel.constant != heightOfTitle) _heightOfTitleLabel.constant = heightOfTitle;
+    } else {
+        NSLayoutConstraint *heightOfTitleLabel =
+        [NSLayoutConstraint constraintWithItem:_titleLabel
+                                     attribute:NSLayoutAttributeHeight
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:nil
+                                     attribute:NSLayoutAttributeNotAnAttribute
+                                    multiplier:1.0 constant:heightOfTitle];
+        [_titleLabel addConstraint:heightOfTitleLabel];
+        _heightOfTitleLabel = heightOfTitleLabel;
+    }
+}
+
+- (void)_updateHeightConstraintsOfContentView {
+    CGFloat height = 0.0;
+    CGFloat flag = 0.0;
+    [self _getHeightOfContentView:&height flag:&flag];
+    CGFloat heightOfContent = MAX(0, MIN(height, flag));
+    // Update height of content scroll view.
+    [self _updateHeightConstraintsOfContentViewWithHeight:heightOfContent];
+}
+
+- (void)_updateHeightConstraintsOfContentViewWithHeight:(CGFloat)height {
+    if (_heightOfContentView) {
+        _heightOfContentView.constant = height;
+        [self setNeedsUpdateConstraints];
+    } else {
+        NSLayoutConstraint *heightOfContent = [NSLayoutConstraint constraintWithItem:_contentContainerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:height];
+        [_contentContainerView addConstraint:heightOfContent];
+        _heightOfContentView = heightOfContent;
+    }
+}
+
+/// Updating the contraints of container if needed. Configurations for the max alowed width.
+- (void)_updateContraintsOfContainer {
+    if (_maxAllowedWidth <= CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin)) {
+        [NSLayoutConstraint deactivateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
+        [NSLayoutConstraint activateConstraints:@[_widthOfContainer, _centerXOfContainer]];
+    } else {
+        [NSLayoutConstraint deactivateConstraints:@[_widthOfContainer, _centerXOfContainer]];
+        [NSLayoutConstraint activateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
+    }
+}
+
+- (void)_updatePositionContraintsOfContainer {
+    if (_verticalOffset == kAXAlertVertivalOffsetPinToTop) {
+        if (_centerYOfContainer) [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
+        
+        if (_topOfContainer) {
+            [self removeConstraint:_topOfContainer];
+        }
+        NSLayoutConstraint *topOfContainer =
+        [NSLayoutConstraint constraintWithItem:self
+                                     attribute:NSLayoutAttributeTop
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_containerView
+                                     attribute:NSLayoutAttributeTop
+                                    multiplier:1.0
+                                      constant:-_preferedMargin.top];
+        [self addConstraint:topOfContainer];
+        _topOfContainer = topOfContainer;
+    } else if (_verticalOffset == kAXAlertVertivalOffsetPinToBottom) {
+        if (_centerYOfContainer) [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
+        
+        if (_bottomOfContainer) {
+            [self removeConstraint:_bottomOfContainer];
+        }
+        NSLayoutConstraint *bottomOfContainer =
+        [NSLayoutConstraint constraintWithItem:self
+                                     attribute:NSLayoutAttributeBottom
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:_containerView
+                                     attribute:NSLayoutAttributeBottom
+                                    multiplier:1.0
+                                      constant:_preferedMargin.bottom];
+        [self addConstraint:bottomOfContainer];
+        _bottomOfContainer = bottomOfContainer;
+    } else {
+        // [self _reconfigureVerticalPositionConstraintsOfContainer];
+        if (_topOfContainer) [self removeConstraint:_topOfContainer];
+        if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
+        if (!_centerYOfContainer) {
+            NSLayoutConstraint *centerYOfContainer =
+            [NSLayoutConstraint constraintWithItem:self
+                                         attribute:NSLayoutAttributeCenterY
+                                         relatedBy:NSLayoutRelationEqual
+                                            toItem:_containerView
+                                         attribute:NSLayoutAttributeCenterY
+                                        multiplier:1.0
+                                          constant:0.0];
+            [self addConstraint:centerYOfContainer];
+            _centerXOfContainer = centerYOfContainer;
+        }
+        [NSLayoutConstraint activateConstraints:@[_centerYOfContainer]];
+        CGFloat height = 0.0;
+        CGFloat flag = 0.0;
+        [self _getHeightOfContentView:&height flag:&flag];
+        if (height < flag) {
+            _centerYOfContainer.constant = -MIN(flag-height, _verticalOffset);
+        }
+    }
+}
+
+- (void)_reconfigureVerticalPositionConstraintsOfContainer __deprecated {
+    if (_topOfContainer) [self removeConstraint:_topOfContainer];
+    if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
+    NSLayoutConstraint *bottomOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeBottom
+                                 relatedBy:NSLayoutRelationGreaterThanOrEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeBottom
+                                multiplier:1.0
+                                  constant:_preferedMargin.bottom];
+    [self addConstraint:bottomOfContainer];
+    _bottomOfContainer = bottomOfContainer;
+    NSLayoutConstraint *topOfContainer =
+    [NSLayoutConstraint constraintWithItem:self
+                                 attribute:NSLayoutAttributeTop
+                                 relatedBy:NSLayoutRelationGreaterThanOrEqual
+                                    toItem:_containerView
+                                 attribute:NSLayoutAttributeTop
+                                multiplier:1.0
+                                  constant:-_preferedMargin.top];
+    [self addConstraint:topOfContainer];
+    _topOfContainer = topOfContainer;
+    [self updateConstraints];
+}
+
+#pragma mark - Action item.
+
 - (void)_updateConfigurationOfItemAtIndex:(NSUInteger)index {
     // Get the button item from the content container view.
     _AXTranslucentButton *buttonItem = [_contentContainerView viewWithTag:index+1];
@@ -1844,6 +1998,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     UIGraphicsEndImageContext();
     return image;
 }
+
+#pragma mark - Exception area.
 
 - (void)_setExceptionAllowedWidth:(CGFloat)arg1 {
     if (_actionItems.count <= _horizontalLimits) {
@@ -1950,297 +2106,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (!_singleSeparator) _singleSeparator = separator;
 }
 
-- (void)_setupContentHookedView {
-    if (_translucent) {
-        if (!_contentHeaderView) _contentHeaderView = [_AXAlertContentHeaderView new];
-        if (!_contentFooterView) _contentFooterView = [_AXAlertContentFooterView new];
-        
-        if (_translucentStyle == AXAlertViewTranslucentLight) {
-            _contentHeaderView.backgroundColor = [UIColor colorWithWhite:0.97 alpha:0.8];
-            _contentFooterView.backgroundColor = [UIColor colorWithWhite:0.97 alpha:0.8];
-        } else {
-            _contentHeaderView.backgroundColor = [UIColor colorWithWhite:0.11 alpha:0.73];
-            _contentFooterView.backgroundColor = [UIColor colorWithWhite:0.11 alpha:0.73];
-        }
-        
-        [_contentContainerView insertSubview:_contentFooterView atIndex:0];
-        [_contentContainerView insertSubview:_contentHeaderView atIndex:0];
-    } else {
-        [_contentHeaderView removeFromSuperview];
-        [_contentFooterView removeFromSuperview];
-    }
-}
-
-- (void)_updateHeightConstraintsOfTitleLabelIfNeeded {
-    CGFloat heightOfTitle = .0;
-    if (_titleLabel.numberOfLines == 0) {
-        heightOfTitle = ceil(_titleLabel.font.lineHeight);
-    } else {
-        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
-        heightOfTitle = ceil(size.height);
-    }
-    if (_heightOfTitleLabel) {
-        if (_heightOfTitleLabel.constant != heightOfTitle) _heightOfTitleLabel.constant = heightOfTitle;
-    } else {
-        NSLayoutConstraint *heightOfTitleLabel =
-        [NSLayoutConstraint constraintWithItem:_titleLabel
-                                     attribute:NSLayoutAttributeHeight
-                                     relatedBy:NSLayoutRelationEqual
-                                        toItem:nil
-                                     attribute:NSLayoutAttributeNotAnAttribute
-                                    multiplier:1.0 constant:heightOfTitle];
-        [_titleLabel addConstraint:heightOfTitleLabel];
-        _heightOfTitleLabel = heightOfTitleLabel;
-    }
-}
-
-- (void)_updateHeightConstraintsOfContentView {
-    CGFloat height = 0.0;
-    CGFloat flag = 0.0;
-    [self _getHeightOfContentView:&height flag:&flag];
-    CGFloat heightOfContent = MAX(0, MIN(height, flag));
-    // Update height of content scroll view.
-    [self _updateHeightConstraintsOfContentViewWithHeight:heightOfContent];
-}
-
-- (void)_updateHeightConstraintsOfContentViewWithHeight:(CGFloat)height {
-    if (_heightOfContentView) {
-        _heightOfContentView.constant = height;
-        [self setNeedsUpdateConstraints];
-    } else {
-        NSLayoutConstraint *heightOfContent = [NSLayoutConstraint constraintWithItem:_contentContainerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:height];
-        [_contentContainerView addConstraint:heightOfContent];
-        _heightOfContentView = heightOfContent;
-    }
-}
-
-- (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag {
-    [self _getHeightOfContentView:height flag:flag withContentSize:_contentContainerView.contentSize];
-}
-
-- (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag withContentSize:(CGSize)contentSize {
-    CGFloat _height = contentSize.height;
-    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-(CGRectGetHeight(_titleLabel.bounds)+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
-    
-    CGFloat _flag = MAX(0, _maxAllowed);
-    // _height = MIN(_height, _flag);
-    if (height != NULL) *height = _height;
-    if (flag != NULL) *flag = _flag;
-}
-
-- (void)_updateFramesOfHookedVeiwsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
-    [self _setupContentHookedView];
-    CGFloat _height = 0.0;
-    CGFloat _flag = 0.0;
-    [self _getHeightOfContentView:&_height flag:&_flag];
-    if (_actionItems.count > _horizontalLimits && _height >= _flag) {
-        if (contentOffset.y >= scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)) { // Handle the footer view.
-            _contentFooterView.hidden = NO;
-            
-            CGFloat height = contentOffset.y+CGRectGetHeight(scrollView.bounds) - scrollView.contentSize.height;
-            [_contentFooterView setFrame:CGRectMake(0, scrollView.contentSize.height, CGRectGetWidth(scrollView.bounds), height)];
-        } else if (contentOffset.y <= CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding) {
-            _contentHeaderView.hidden = NO;
-            
-            CGFloat height = -contentOffset.y+CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding;
-            [_contentHeaderView setFrame:CGRectMake(0, contentOffset.y, CGRectGetWidth(scrollView.bounds), height)];
-            [scrollView sendSubviewToBack:_contentHeaderView];
-        } else {
-            _contentHeaderView.hidden = YES;
-            _contentFooterView.hidden = YES;
-        }
-    } else {
-        _contentHeaderView.hidden = YES;
-        _contentFooterView.hidden = YES;
-    }
-}
-
-- (void)_updateTransformOfActionItemsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
-    CGFloat _height = 0.0;
-    CGFloat _flag = 0.0;
-    [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
-    
-    CGFloat visibleHeight = 0.0;
-    void(^maskCustomView)(CGFloat) = ^(CGFloat height) {
-        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, contentOffset.y, CGRectGetWidth(_customView.bounds), height)];
-        if (!_customView.layer.mask) {
-            CAShapeLayer *maskLayer = [CAShapeLayer layer];
-            maskLayer.path = path.CGPath;
-            _customView.layer.mask = maskLayer;
-        } else {
-            ((CAShapeLayer *)_customView.layer.mask).path = path.CGPath;
-        }
-    };
-    
-    if ([[self class] usingAutolayout]) {
-        visibleHeight = CGRectGetHeight(scrollView.bounds)-CGRectGetHeight(_stackView.bounds)-_padding-_customViewInset.bottom;
-        
-        if (_actionItems.count <= _horizontalLimits && _height >= _flag) {
-            _stackView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y-(scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)));
-            maskCustomView(visibleHeight);
-        } else if (!CGAffineTransformIsIdentity(_stackView.transform)) {
-            _stackView.transform = CGAffineTransformIdentity;
-            _customView.layer.mask = nil;
-        } else {
-            _customView.layer.mask = nil;
-        }
-    } else {
-        if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.bounds)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue], _actionConfiguration.preferedHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.bounds)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue]-_padding-_customViewInset.bottom;
-        
-        if (_actionItems.count <= _horizontalLimits && _height >= _flag) {
-            for (UIView *_acView in _actionButtons) {
-                CGRect frame = _acView.frame;
-                frame.origin.y = CGRectGetHeight(scrollView.bounds)+scrollView.contentOffset.y-CGRectGetHeight(frame);
-                _acView.frame = frame;
-            }
-            maskCustomView(visibleHeight);
-        } else if (!CGAffineTransformIsIdentity(((UIView *)[NSSet setWithArray:_actionButtons].anyObject).transform)) {
-            for (UIView *_acView in _actionButtons) {
-                _acView.transform = CGAffineTransformIdentity;
-            }
-        } else {
-            _customView.layer.mask = nil;
-        }
-    }
-}
-
-+ (BOOL)usingAutolayout { /*return NO;*/
-    if (_kPlatform_info.length > 0) {
-        return [_kPlatform_info isEqualToString:@"autolayout_true"];
-    }
-    if (AX_ALERT_AVAILABLE_ON_PLATFORM([NSString stringWithFormat:@"%@.0.0", @(9000/1000)])) {
-        _kPlatform_info = @"autolayout_true";  return YES;
-    } else {
-        _kPlatform_info = @"autolayout_false"; return NO;
-    }
-}
-/// Updating the contraints of container if needed. Configurations for the max alowed width.
-- (void)_updateContraintsOfContainer {
-    if (_maxAllowedWidth <= CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin)) {
-        [NSLayoutConstraint deactivateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
-        [NSLayoutConstraint activateConstraints:@[_widthOfContainer, _centerXOfContainer]];
-    } else {
-        [NSLayoutConstraint deactivateConstraints:@[_widthOfContainer, _centerXOfContainer]];
-        [NSLayoutConstraint activateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
-    }
-}
-/// Updating exception area of effect view by remask the layer of the filter view of the effect view.
-- (void)_updateExceptionAreaOfEffectView {
-    if (_actionButtons.count > _horizontalLimits) {
-        if (_translucent) {
-            [self _setExceptionAllowedWidth:0.5];
-        } [_singleSeparator setHidden:YES];
-    } else {
-        if (_translucent) {
-            [self _setExceptionAllowedWidth:_showsSeparators?0.5:0.0];
-            [_singleSeparator setHidden:YES];
-        } else {
-            if (_showsSeparators) [self _setupExceptionSeparatorLayerWidth:0.5]; else {
-                [_singleSeparator setHidden:YES];
-            }
-        }
-    }
-}
-/// - Updating frames of hooked views if translucent.
-/// - Updating transform of action item buttons.
-- (void)_updateSettingsOfContentScrollView {
-    [self _updateSettingsOfScrollView:_contentContainerView];
-}
-- (void)_updateSettingsOfScrollView:(UIScrollView *)scrollView {
-    CGPoint contentOffset = scrollView.contentOffset;
-    // Handle content hooked views.
-    if (_translucent) {
-        [self _updateFramesOfHookedVeiwsWithContentOffset:contentOffset ofScrollView:scrollView];
-    }
-    // Pin the stack view of needed.
-    [self _updateTransformOfActionItemsWithContentOffset:contentOffset ofScrollView:scrollView];
-}
-
-- (void)_updatePositionContraintsOfContainer {
-    if (_verticalOffset == kAXAlertVertivalOffsetPinToTop) {
-        if (_centerYOfContainer) [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
-        
-        if (_topOfContainer) {
-            [self removeConstraint:_topOfContainer];
-        }
-        NSLayoutConstraint *topOfContainer =
-        [NSLayoutConstraint constraintWithItem:self
-                                     attribute:NSLayoutAttributeTop
-                                     relatedBy:NSLayoutRelationEqual
-                                        toItem:_containerView
-                                     attribute:NSLayoutAttributeTop
-                                    multiplier:1.0
-                                      constant:-_preferedMargin.top];
-        [self addConstraint:topOfContainer];
-        _topOfContainer = topOfContainer;
-    } else if (_verticalOffset == kAXAlertVertivalOffsetPinToBottom) {
-        if (_centerYOfContainer) [NSLayoutConstraint deactivateConstraints:@[_centerYOfContainer]];
-        
-        if (_bottomOfContainer) {
-            [self removeConstraint:_bottomOfContainer];
-        }
-        NSLayoutConstraint *bottomOfContainer =
-        [NSLayoutConstraint constraintWithItem:self
-                                     attribute:NSLayoutAttributeBottom
-                                     relatedBy:NSLayoutRelationEqual
-                                        toItem:_containerView
-                                     attribute:NSLayoutAttributeBottom
-                                    multiplier:1.0
-                                      constant:_preferedMargin.bottom];
-        [self addConstraint:bottomOfContainer];
-        _bottomOfContainer = bottomOfContainer;
-    } else {
-        // [self _reconfigureVerticalPositionConstraintsOfContainer];
-        if (_topOfContainer) [self removeConstraint:_topOfContainer];
-        if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
-        if (!_centerYOfContainer) {
-            NSLayoutConstraint *centerYOfContainer =
-            [NSLayoutConstraint constraintWithItem:self
-                                         attribute:NSLayoutAttributeCenterY
-                                         relatedBy:NSLayoutRelationEqual
-                                            toItem:_containerView
-                                         attribute:NSLayoutAttributeCenterY
-                                        multiplier:1.0
-                                          constant:0.0];
-            [self addConstraint:centerYOfContainer];
-            _centerXOfContainer = centerYOfContainer;
-        }
-        [NSLayoutConstraint activateConstraints:@[_centerYOfContainer]];
-        CGFloat height = 0.0;
-        CGFloat flag = 0.0;
-        [self _getHeightOfContentView:&height flag:&flag];
-        if (height < flag) {
-            _centerYOfContainer.constant = -MIN(flag-height, _verticalOffset);
-        }
-    }
-}
-
-- (void)_reconfigureVerticalPositionConstraintsOfContainer __deprecated {
-    if (_topOfContainer) [self removeConstraint:_topOfContainer];
-    if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
-    NSLayoutConstraint *bottomOfContainer =
-    [NSLayoutConstraint constraintWithItem:self
-                                 attribute:NSLayoutAttributeBottom
-                                 relatedBy:NSLayoutRelationGreaterThanOrEqual
-                                    toItem:_containerView
-                                 attribute:NSLayoutAttributeBottom
-                                multiplier:1.0
-                                  constant:_preferedMargin.bottom];
-    [self addConstraint:bottomOfContainer];
-    _bottomOfContainer = bottomOfContainer;
-    NSLayoutConstraint *topOfContainer =
-    [NSLayoutConstraint constraintWithItem:self
-                                 attribute:NSLayoutAttributeTop
-                                 relatedBy:NSLayoutRelationGreaterThanOrEqual
-                                    toItem:_containerView
-                                 attribute:NSLayoutAttributeTop
-                                multiplier:1.0
-                                  constant:-_preferedMargin.top];
-    [self addConstraint:topOfContainer];
-    _topOfContainer = topOfContainer;
-    [self updateConstraints];
-}
-
 - (UIImage *)_dimmingKnockoutImageOfFrameOfContainerView {
     return [[self class] _dimmingKnockoutImageOfExceptionRect:self.containerView.frame cornerRadius:_cornerRadius inRect:self.bounds opacity:_opacity];
 }
@@ -2322,6 +2187,153 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         [_effectFilterView setFrame:CGRectMake(0, 0, CGRectGetWidth(_effectView.bounds), height-width)];
     }
+}
+
+/// Updating exception area of effect view by remask the layer of the filter view of the effect view.
+- (void)_updateExceptionAreaOfEffectView {
+    if (_actionButtons.count > _horizontalLimits) {
+        if (_translucent) {
+            [self _setExceptionAllowedWidth:0.5];
+        } [_singleSeparator setHidden:YES];
+    } else {
+        if (_translucent) {
+            [self _setExceptionAllowedWidth:_showsSeparators?0.5:0.0];
+            [_singleSeparator setHidden:YES];
+        } else {
+            if (_showsSeparators) [self _setupExceptionSeparatorLayerWidth:0.5]; else {
+                [_singleSeparator setHidden:YES];
+            }
+        }
+    }
+}
+
+#pragma mark - Content Hooked View.
+
+- (void)_setupContentHookedView {
+    if (_translucent) {
+        if (!_contentHeaderView) _contentHeaderView = [_AXAlertContentHeaderView new];
+        if (!_contentFooterView) _contentFooterView = [_AXAlertContentFooterView new];
+        
+        if (_translucentStyle == AXAlertViewTranslucentLight) {
+            _contentHeaderView.backgroundColor = [UIColor colorWithWhite:0.97 alpha:0.8];
+            _contentFooterView.backgroundColor = [UIColor colorWithWhite:0.97 alpha:0.8];
+        } else {
+            _contentHeaderView.backgroundColor = [UIColor colorWithWhite:0.11 alpha:0.73];
+            _contentFooterView.backgroundColor = [UIColor colorWithWhite:0.11 alpha:0.73];
+        }
+        
+        [_contentContainerView insertSubview:_contentFooterView atIndex:0];
+        [_contentContainerView insertSubview:_contentHeaderView atIndex:0];
+    } else {
+        [_contentHeaderView removeFromSuperview];
+        [_contentFooterView removeFromSuperview];
+    }
+}
+
+- (void)_updateFramesOfHookedVeiwsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
+    [self _setupContentHookedView];
+    CGFloat _height = 0.0;
+    CGFloat _flag = 0.0;
+    [self _getHeightOfContentView:&_height flag:&_flag];
+    if (_actionItems.count > _horizontalLimits && _height >= _flag) {
+        if (contentOffset.y >= scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)) { // Handle the footer view.
+            _contentFooterView.hidden = NO;
+            
+            CGFloat height = contentOffset.y+CGRectGetHeight(scrollView.bounds) - scrollView.contentSize.height;
+            [_contentFooterView setFrame:CGRectMake(0, scrollView.contentSize.height, CGRectGetWidth(scrollView.bounds), height)];
+        } else if (contentOffset.y <= CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding) {
+            _contentHeaderView.hidden = NO;
+            
+            CGFloat height = -contentOffset.y+CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding;
+            [_contentHeaderView setFrame:CGRectMake(0, contentOffset.y, CGRectGetWidth(scrollView.bounds), height)];
+            [scrollView sendSubviewToBack:_contentHeaderView];
+        } else {
+            _contentHeaderView.hidden = YES;
+            _contentFooterView.hidden = YES;
+        }
+    } else {
+        _contentHeaderView.hidden = YES;
+        _contentFooterView.hidden = YES;
+    }
+}
+
+#pragma mark - Content Scroll View.
+
+- (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag {
+    [self _getHeightOfContentView:height flag:flag withContentSize:_contentContainerView.contentSize];
+}
+
+- (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag withContentSize:(CGSize)contentSize {
+    CGFloat _height = contentSize.height;
+    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-(CGRectGetHeight(_titleLabel.bounds)+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
+    
+    CGFloat _flag = MAX(0, _maxAllowed);
+    // _height = MIN(_height, _flag);
+    if (height != NULL) *height = _height;
+    if (flag != NULL) *flag = _flag;
+}
+
+- (void)_updateTransformOfActionItemsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
+    CGFloat _height = 0.0;
+    CGFloat _flag = 0.0;
+    [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
+    
+    CGFloat visibleHeight = 0.0;
+    void(^maskCustomView)(CGFloat) = ^(CGFloat height) {
+        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, contentOffset.y, CGRectGetWidth(_customView.bounds), height)];
+        if (!_customView.layer.mask) {
+            CAShapeLayer *maskLayer = [CAShapeLayer layer];
+            maskLayer.path = path.CGPath;
+            _customView.layer.mask = maskLayer;
+        } else {
+            ((CAShapeLayer *)_customView.layer.mask).path = path.CGPath;
+        }
+    };
+    
+    if ([[self class] usingAutolayout]) {
+        visibleHeight = CGRectGetHeight(scrollView.bounds)-CGRectGetHeight(_stackView.bounds)-_padding-_customViewInset.bottom;
+        
+        if (_actionItems.count <= _horizontalLimits && _height >= _flag) {
+            _stackView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y-(scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)));
+            maskCustomView(visibleHeight);
+        } else if (!CGAffineTransformIsIdentity(_stackView.transform)) {
+            _stackView.transform = CGAffineTransformIdentity;
+            _customView.layer.mask = nil;
+        } else {
+            _customView.layer.mask = nil;
+        }
+    } else {
+        if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.bounds)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue], _actionConfiguration.preferedHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.bounds)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue]-_padding-_customViewInset.bottom;
+        
+        if (_actionItems.count <= _horizontalLimits && _height >= _flag) {
+            for (UIView *_acView in _actionButtons) {
+                CGRect frame = _acView.frame;
+                frame.origin.y = CGRectGetHeight(scrollView.bounds)+scrollView.contentOffset.y-CGRectGetHeight(frame);
+                _acView.frame = frame;
+            }
+            maskCustomView(visibleHeight);
+        } else if (!CGAffineTransformIsIdentity(((UIView *)[NSSet setWithArray:_actionButtons].anyObject).transform)) {
+            for (UIView *_acView in _actionButtons) {
+                _acView.transform = CGAffineTransformIdentity;
+            }
+        } else {
+            _customView.layer.mask = nil;
+        }
+    }
+}
+/// - Updating frames of hooked views if translucent.
+/// - Updating transform of action item buttons.
+- (void)_updateSettingsOfContentScrollView {
+    [self _updateSettingsOfScrollView:_contentContainerView];
+}
+- (void)_updateSettingsOfScrollView:(UIScrollView *)scrollView {
+    CGPoint contentOffset = scrollView.contentOffset;
+    // Handle content hooked views.
+    if (_translucent) {
+        [self _updateFramesOfHookedVeiwsWithContentOffset:contentOffset ofScrollView:scrollView];
+    }
+    // Pin the stack view of needed.
+    [self _updateTransformOfActionItemsWithContentOffset:contentOffset ofScrollView:scrollView];
 }
 
 #pragma mark - UIScrollViewDelegate.
