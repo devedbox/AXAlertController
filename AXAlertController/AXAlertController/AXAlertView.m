@@ -99,7 +99,6 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
     NSLayoutConstraint *__weak _bottomOfStackView;// Bottom contraint of stack view to the content view.
     NSLayoutConstraint *__weak _widthOfStackView;// Width contraint of stack view to the container view.
     
-    NSLayoutConstraint *__weak _widthOfContentView;// Width contraint of the content view.
     NSLayoutConstraint *__weak _heightOfContentView;// Height contraint of the content view.
     
     NSLayoutConstraint * _equalHeightOfEffectFlexibleAndStack; // Equal height contraint of effect flexible view and stack view.
@@ -921,7 +920,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _leadingOfContent.constant = -_contentInset.left;
         _trailingOfContent.constant = _contentInset.right;
         _bottomOfContent.constant = _contentInset.bottom;
-        _widthOfContentView.constant = UIEdgeInsetsGetWidth(_contentInset);
         _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
     } else if (!_customView) {
         [self _layoutSubviews];
@@ -1561,14 +1559,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeBottom
                                 multiplier:1.0
                                   constant:_contentInset.bottom];
-    NSLayoutConstraint *widthOfContentView =
-    [NSLayoutConstraint constraintWithItem:_containerView
-                                 attribute:NSLayoutAttributeWidth
-                                 relatedBy:NSLayoutRelationEqual
-                                    toItem:_contentContainerView
-                                 attribute:NSLayoutAttributeWidth
-                                multiplier:1.0
-                                  constant:UIEdgeInsetsGetWidth(_contentInset)];
     
     [_containerView addConstraints:@[leadingOfTitleLabel, trailingOfTitleLabel, topOfTitleLabel, bottomOfTitleLabelAndTopOfContentView, leadingOfContentView, trailingOfContentView, bottomOfContentView]];
     [_titleLabel setContentHuggingPriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
@@ -1582,19 +1572,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _leadingOfContent = leadingOfContentView;
     _trailingOfContent = trailingOfContentView;
     _bottomOfContent = bottomOfContentView;
-    _widthOfContentView = widthOfContentView;
-}
-
-- (CGFloat)_constantOfHeightOfContentView {
-    CGFloat heightOfTitle = .0;
-    if (_titleLabel.numberOfLines == 0) {
-        heightOfTitle = ceil(_titleLabel.font.pointSize);
-    } else {
-        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
-        heightOfTitle = ceil(size.height);
-    }
-    
-    return UIEdgeInsetsGetHeight(_preferedMargin)+(heightOfTitle+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
 }
 
 - (void)_addContraintsOfCustomViewAndStackViewToContentView {
