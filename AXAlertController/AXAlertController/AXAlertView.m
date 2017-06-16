@@ -1306,7 +1306,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 _stackView.spacing = _actionItemPadding;
             }
         } else {
-            buttonWidth = (CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2-(_actionItemPadding)*(_actionButtons.count-1))/_actionButtons.count;
+            buttonWidth = (CGRectGetWidth(_contentContainerView.bounds)-_actionItemMargin*2-(_actionItemPadding)*(_actionButtons.count-1))/_actionButtons.count;
         }
         
         for (NSInteger i = 0; i < _actionButtons.count; i++) {
@@ -1330,7 +1330,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                     [_stackView addArrangedSubview:object];
                 }
             } else {
-                [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
+                [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
                 [self.contentContainerView addSubview:object];
             }
             
@@ -1880,18 +1880,18 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             // _stackView.transform = transform;
         }
     } else {
-        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)/*+_customViewInset.top */+ _customViewInset.bottom;
+        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.bounds)/*+_customViewInset.top */+ _customViewInset.bottom;
         if (_actionItems.count > _horizontalLimits && _height >= _flag) {
-            height -= CGRectGetHeight(_customView.frame);
+            height -= CGRectGetHeight(_customView.bounds);
             if (_customView) {
                 height -= _customViewInset.bottom;
             }
         } else if (_height >= _flag) {
-            height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.frame));
+            height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.bounds));
         }
     }
 
-    CGRect frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), height);
+    CGRect frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.bounds), height);
     
     if (_actionItems.count <= _horizontalLimits) {
         frame.size.height -= arg1;
@@ -1936,14 +1936,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds)-_contentInset.bottom;
         }
     } else {
-        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)+ _customViewInset.bottom;
+        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.bounds)+ _customViewInset.bottom;
         if (_actionItems.count > _horizontalLimits) {
-            height -= CGRectGetHeight(_customView.frame);
+            height -= CGRectGetHeight(_customView.bounds);
             if (_customView) {
                 height -= _customViewInset.bottom;
             }
         } else if (_height >= _flag) {
-            height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.frame));
+            height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.bounds));
         }
     }
     
@@ -1951,7 +1951,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [separator setHidden:NO];
     [separator setBackgroundColor:[UIColor colorWithWhite:0 alpha:0.3]];
     if (separator.superview != _containerView) [_containerView insertSubview:separator atIndex:0];
-    CGRect frameOfSingleSeparator = CGRectMake(0, height-arg1, CGRectGetWidth(_containerView.frame), arg1);
+    CGRect frameOfSingleSeparator = CGRectMake(0, height-arg1, CGRectGetWidth(_containerView.bounds), arg1);
     if (!CGRectEqualToRect(frameOfSingleSeparator, separator.frame)) {
         [separator setFrame:frameOfSingleSeparator];
     }
@@ -2011,17 +2011,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)_updateFramesOfHookedVeiwsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
+    [self _setupContentHookedView];
+    
     if (_actionItems.count > _horizontalLimits) {
-        if (contentOffset.y >= scrollView.contentSize.height-CGRectGetHeight(scrollView.frame)) { // Handle the footer view.
+        if (contentOffset.y >= scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)) { // Handle the footer view.
             _contentFooterView.hidden = NO;
             
-            CGFloat height = contentOffset.y+CGRectGetHeight(scrollView.frame) - scrollView.contentSize.height;
-            [_contentFooterView setFrame:CGRectMake(0, scrollView.contentSize.height, CGRectGetWidth(scrollView.frame), height)];
-        } else if (contentOffset.y <= CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding) {
+            CGFloat height = contentOffset.y+CGRectGetHeight(scrollView.bounds) - scrollView.contentSize.height;
+            [_contentFooterView setFrame:CGRectMake(0, scrollView.contentSize.height, CGRectGetWidth(scrollView.bounds), height)];
+        } else if (contentOffset.y <= CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding) {
             _contentHeaderView.hidden = NO;
             
-            CGFloat height = -contentOffset.y+CGRectGetHeight(_customView.frame)+_customViewInset.bottom+_padding;
-            [_contentHeaderView setFrame:CGRectMake(0, contentOffset.y, CGRectGetWidth(scrollView.frame), height)];
+            CGFloat height = -contentOffset.y+CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding;
+            [_contentHeaderView setFrame:CGRectMake(0, contentOffset.y, CGRectGetWidth(scrollView.bounds), height)];
             [scrollView sendSubviewToBack:_contentHeaderView];
         } else {
             _contentHeaderView.hidden = YES;
@@ -2040,7 +2042,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     CGFloat visibleHeight = 0.0;
     void(^maskCustomView)(CGFloat) = ^(CGFloat height) {
-        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, contentOffset.y, CGRectGetWidth(_customView.frame), height)];
+        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, contentOffset.y, CGRectGetWidth(_customView.bounds), height)];
         if (!_customView.layer.mask) {
             CAShapeLayer *maskLayer = [CAShapeLayer layer];
             maskLayer.path = path.CGPath;
@@ -2063,12 +2065,12 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _customView.layer.mask = nil;
         }
     } else {
-        if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.frame)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue], _actionConfiguration.preferedHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.frame)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue]-_padding-_customViewInset.bottom;
+        if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.bounds)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue], _actionConfiguration.preferedHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.bounds)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue]-_padding-_customViewInset.bottom;
         
         if (_actionItems.count <= _horizontalLimits && _height >= _flag) {
             for (UIView *_acView in _actionButtons) {
                 CGRect frame = _acView.frame;
-                frame.origin.y = CGRectGetHeight(scrollView.frame)+scrollView.contentOffset.y-CGRectGetHeight(frame);
+                frame.origin.y = CGRectGetHeight(scrollView.bounds)+scrollView.contentOffset.y-CGRectGetHeight(frame);
                 _acView.frame = frame;
             }
             maskCustomView(visibleHeight);
@@ -2288,14 +2290,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         CGFloat _flag = 0.0;
         [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
         
-        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.frame)/*+_customViewInset.top */+ _customViewInset.bottom;
+        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.bounds)/*+_customViewInset.top */+ _customViewInset.bottom;
         if (_actionItems.count > _horizontalLimits && _height >= _flag) {
-            height -= CGRectGetHeight(_customView.frame);
+            height -= CGRectGetHeight(_customView.bounds);
             if (_customView) {
                 height -= _customViewInset.bottom;
             }
         } else if (_height >= _flag) {
-            height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.frame));
+            height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.bounds));
         }
         
         [_effectFilterView setFrame:CGRectMake(0, 0, CGRectGetWidth(_effectView.bounds), height-width)];
@@ -2418,25 +2420,25 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (!_maskLayer) return;
     switch ([_arg2 integerValue]) {
         case 0: {// Top.
-            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, [_arg1 floatValue], CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-[_arg1 floatValue])];
+            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, [_arg1 floatValue], CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds)-[_arg1 floatValue])];
             _maskLayer.path = path.CGPath;
             self.layer.mask = _maskLayer;
             [self setContentEdgeInsets:UIEdgeInsetsMake([_arg1 floatValue], 0, 0, 0)];
         } break;
         case 1: {// Left.
-            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake([_arg1 floatValue], 0, CGRectGetWidth(self.frame)-[_arg1 floatValue], CGRectGetHeight(self.frame))];
+            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake([_arg1 floatValue], 0, CGRectGetWidth(self.bounds)-[_arg1 floatValue], CGRectGetHeight(self.bounds))];
             _maskLayer.path = path.CGPath;
             self.layer.mask = _maskLayer;
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, [_arg1 floatValue], 0, 0)];
         } break;
         case 2: {// Bottom.
-            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame)-[_arg1 floatValue])];
+            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.bounds), CGRectGetHeight(self.bounds)-[_arg1 floatValue])];
             _maskLayer.path = path.CGPath;
             self.layer.mask = _maskLayer;
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, [_arg1 floatValue], 0)];
         } break;
         case 3: {// Right.
-            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.frame)-[_arg1 floatValue], CGRectGetHeight(self.frame))];
+            UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, 0, CGRectGetWidth(self.bounds)-[_arg1 floatValue], CGRectGetHeight(self.bounds))];
             _maskLayer.path = path.CGPath;
             self.layer.mask = _maskLayer;
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, 0, [_arg1 floatValue])];
@@ -2465,19 +2467,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (!_singleSeparator || _singleSeparator.hidden) return;
     switch ([_arg2 integerValue]) {
         case 0: {// Top.
-            [_singleSeparator setFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), [_arg1 floatValue])];
+            [_singleSeparator setFrame:CGRectMake(0, 0, CGRectGetWidth(self.bounds), [_arg1 floatValue])];
             [self setContentEdgeInsets:UIEdgeInsetsMake([_arg1 floatValue], 0, 0, 0)];
         } break;
         case 1: {// Left.
-            [_singleSeparator setFrame:CGRectMake(0, 0, [_arg1 floatValue], CGRectGetHeight(self.frame))];
+            [_singleSeparator setFrame:CGRectMake(0, 0, [_arg1 floatValue], CGRectGetHeight(self.bounds))];
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, [_arg1 floatValue], 0, 0)];
         } break;
         case 2: {// Bottom.
-            [_singleSeparator setFrame:CGRectMake(0, CGRectGetHeight(self.frame)-[_arg1 floatValue], CGRectGetWidth(self.frame), [_arg1 floatValue])];
+            [_singleSeparator setFrame:CGRectMake(0, CGRectGetHeight(self.bounds)-[_arg1 floatValue], CGRectGetWidth(self.bounds), [_arg1 floatValue])];
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, [_arg1 floatValue], 0)];
         } break;
         case 3: {// Right.
-            [_singleSeparator setFrame:CGRectMake(CGRectGetWidth(self.frame)-[_arg1 floatValue], 0, [_arg1 floatValue], CGRectGetHeight(self.frame))];
+            [_singleSeparator setFrame:CGRectMake(CGRectGetWidth(self.bounds)-[_arg1 floatValue], 0, [_arg1 floatValue], CGRectGetHeight(self.bounds))];
             [self setContentEdgeInsets:UIEdgeInsetsMake(0, 0, 0, [_arg1 floatValue])];
         } break;
         default: [_singleSeparator removeFromSuperview]; [self setContentEdgeInsets:UIEdgeInsetsZero]; return;
