@@ -1561,6 +1561,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeBottom
                                 multiplier:1.0
                                   constant:_contentInset.bottom];
+    NSLayoutConstraint *widthOfContentView =
+    [NSLayoutConstraint constraintWithItem:_containerView
+                                 attribute:NSLayoutAttributeWidth
+                                 relatedBy:NSLayoutRelationEqual
+                                    toItem:_contentContainerView
+                                 attribute:NSLayoutAttributeWidth
+                                multiplier:1.0
+                                  constant:UIEdgeInsetsGetWidth(_contentInset)];
     
     [_containerView addConstraints:@[leadingOfTitleLabel, trailingOfTitleLabel, topOfTitleLabel, bottomOfTitleLabelAndTopOfContentView, leadingOfContentView, trailingOfContentView, bottomOfContentView]];
     [_titleLabel setContentHuggingPriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
