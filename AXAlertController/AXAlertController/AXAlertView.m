@@ -1854,17 +1854,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _replaceFilterViewOfEffectViewWithWidth:.0];
     }
     
-    UIView * __block _filterView;
-    if ([[self class] usingAutolayout]) {
-        _filterView = _effectFilterView;
-    } else {
-        [self.effectView.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            //!!!: Fixs _UIVisualEffectSubview class on the iOS 11.0 developer beta1.0.
-            if (/*[obj isMemberOfClass:NSClassFromString(@"_UIVisualEffectFilterView")]*/[[NSPredicate predicateWithFormat:@"SELF MATCHES[cd] '_UIVisualEffectFilterView' OR SELF MATCHES[cd] '_UIVisualEffectSubview'"] evaluateWithObject:NSStringFromClass(obj.class)]) {
-                _filterView = obj;
-            }
-        }];
-    }
+    UIView *_filterView = _effectFilterView;
+    
     if (arg1 < 0.0) {
         _effectMaskLayer = nil; _filterView.layer.mask = nil; return;
     }
@@ -1879,17 +1870,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView])+_contentContainerView.contentOffset.y;
         } else {
             height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds)-_contentInset.bottom;
-            // CGAffineTransform transform = _stackView.transform;
-            // _stackView.transform = CGAffineTransformIdentity;
-            // if (_height >= _flag) {
-                // height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView])-(_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.frame));
-            // } else {
-                // height = CGRectGetMinY([_containerView convertRect:_stackView.frame fromView:_contentContainerView]);
-            // }
-            // _stackView.transform = transform;
         }
     } else {
-        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.bounds)/*+_customViewInset.top */+ _customViewInset.bottom;
+        height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.bounds) + _customViewInset.bottom;
         if (_actionItems.count > _horizontalLimits && _height >= _flag) {
             height -= CGRectGetHeight(_customView.bounds);
             if (_customView) {
