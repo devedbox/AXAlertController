@@ -1974,7 +1974,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_updateHeightConstraintsOfTitleLabelIfNeeded {
     CGFloat heightOfTitle = .0;
     if (_titleLabel.numberOfLines == 0) {
-        heightOfTitle = ceil(_titleLabel.font.pointSize);
+        heightOfTitle = ceil(_titleLabel.font.lineHeight);
     } else {
         CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
         heightOfTitle = ceil(size.height);
@@ -2006,6 +2006,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)_updateHeightConstraintsOfContentViewWithHeight:(CGFloat)height {
     if (_heightOfContentView) {
         _heightOfContentView.constant = height;
+        [self setNeedsUpdateConstraints];
     } else {
         NSLayoutConstraint *heightOfContent = [NSLayoutConstraint constraintWithItem:_contentContainerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:height];
         [_contentContainerView addConstraint:heightOfContent];
@@ -2019,16 +2020,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag withContentSize:(CGSize)contentSize {
     CGFloat _height = contentSize.height;
-    
-    CGFloat heightOfTitle = .0;
-    if (_titleLabel.numberOfLines == 0) {
-        heightOfTitle = ceil(_titleLabel.font.pointSize);
-    } else {
-        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
-        heightOfTitle = ceil(size.height);
-    }
-    
-    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-(heightOfTitle+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
+    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-(CGRectGetHeight(_titleLabel.bounds)+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
     
     CGFloat _flag = MAX(0, _maxAllowed);
     // _height = MIN(_height, _flag);
