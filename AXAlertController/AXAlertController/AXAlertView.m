@@ -84,6 +84,7 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
     NSLayoutConstraint *__weak _leadingOfTitleLabel;// Leading contraint of the title label to container view.
     NSLayoutConstraint *__weak _trailingOfTitleLabel;// Trailing contraint of the title label to container view.
     NSLayoutConstraint *__weak _topOfTitleLabel;// Top contraint of the title label to container view.
+    NSLayoutConstraint *__weak _heightOfTitleLabel;// Height contraint of the title label.
     NSLayoutConstraint *__weak _bottomOfTitleAndTopOfContent;// Bottom contraint of title label and top contraint of content view to the container view.
     NSLayoutConstraint *__weak _leadingOfContent;// Leading contraint of the content view to the container view.
     NSLayoutConstraint *__weak _trailingOfContent;// Trailing contraint of the content view to the container view.
@@ -280,6 +281,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _addContraintsOfCustomViewAndStackViewToContentView];
         
         [_containerView addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:NULL];
+        [_titleLabel addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionNew context:NULL];
         [_contentContainerView addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:@"_content"];
     }
     
@@ -297,6 +299,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [_contentContainerView removeObserver:self forKeyPath:@"contentSize"];
     if ([[self class] usingAutolayout]) {
         [_containerView removeObserver:self forKeyPath:@"bounds"];
+        [_titleLabel removeObserver:self forKeyPath:@"text"];
         [_contentContainerView removeObserver:self forKeyPath:@"bounds"];
     }
 }
@@ -365,6 +368,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         // [self setNeedsDisplay];
         // Replaced with:
         [self _setupContentImageOfDimmingView];
+    } else if ([keyPath isEqualToString:@"text"]) {
+        // Update height constraint of the title label.
+        [self _updateHeightConstraintsOfTitleLabelIfNeeded];
     } else if ([keyPath isEqualToString:@"bounds"]) {
         if (context != NULL) {// Content scroll view.
             [self _updateSettingsOfContentScrollView];
@@ -434,9 +440,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (![[self class] usingAutolayout]) {
         // Get the current frame of SELF.
         CGRect currentFrame = self.frame;
+        CGFloat widthOfContainer = MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth);
         // Initialize a CGSize struct of custom view and title label using the current frame and prefered magin and the insets.
-        CGSize sizeOfCustomView = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth) - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_customViewInset), 0);
-        CGSize sizeOfTitleLabel = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth) - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset), 0);
+        CGSize sizeOfCustomView = CGSizeMake(widthOfContainer - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_customViewInset), 0);
+        CGSize sizeOfTitleLabel = CGSizeMake(widthOfContainer - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset), 0);
         // Calculate size of title label.
         if (_titleLabel.numberOfLines == 1) {// If number of lines of the title label.
             // Size to fit text content.
@@ -513,7 +520,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         if (heightOfContainer > CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)) { // Too large to show.
             rect_container.origin.y = _preferedMargin.top;
-            rect_container.size = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin));
+            rect_container.size = CGSizeMake(widthOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin));
             _containerView.frame = rect_container;
             // Enabled the scroll of the content container view.
             _contentContainerView.scrollEnabled = YES;
@@ -530,7 +537,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5+_verticalOffset;
             }
             
-            rect_container.size = CGSizeMake(MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
+            rect_container.size = CGSizeMake(widthOfContainer, MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
             _containerView.frame = rect_container;
             // Disable the scroll of the content container view.
             _contentContainerView.scrollEnabled = NO;
@@ -570,6 +577,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         if (_heightOfContentView.constant != heightOfContent) {
             [self _updateHeightConstraintsOfContentViewWithHeight:heightOfContent];
         }
+        // Update height of title label if needed.
+        [self _updateHeightConstraintsOfTitleLabelIfNeeded];
     }
     
     [self _updateExceptionAreaOfEffectView];
@@ -1561,8 +1570,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                   constant:_contentInset.bottom];
     
     [_containerView addConstraints:@[leadingOfTitleLabel, trailingOfTitleLabel, topOfTitleLabel, bottomOfTitleLabelAndTopOfContentView, leadingOfContentView, trailingOfContentView, bottomOfContentView]];
-    [_titleLabel setContentHuggingPriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
-    [_titleLabel setContentCompressionResistancePriority:UILayoutPriorityDefaultHigh forAxis:UILayoutConstraintAxisVertical];
+    // [_titleLabel setContentHuggingPriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
+    // [_titleLabel setContentCompressionResistancePriority:UILayoutPriorityDefaultHigh forAxis:UILayoutConstraintAxisVertical];
     
     // Add references to the contraints.
     _leadingOfTitleLabel = leadingOfTitleLabel;
@@ -1979,6 +1988,29 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
 }
 
+- (void)_updateHeightConstraintsOfTitleLabelIfNeeded {
+    CGFloat heightOfTitle = .0;
+    if (_titleLabel.numberOfLines == 0) {
+        heightOfTitle = ceil(_titleLabel.font.pointSize);
+    } else {
+        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
+        heightOfTitle = ceil(size.height);
+    }
+    if (_heightOfTitleLabel) {
+        if (_heightOfTitleLabel.constant != heightOfTitle) _heightOfTitleLabel.constant = heightOfTitle;
+    } else {
+        NSLayoutConstraint *heightOfTitleLabel =
+        [NSLayoutConstraint constraintWithItem:_titleLabel
+                                     attribute:NSLayoutAttributeHeight
+                                     relatedBy:NSLayoutRelationEqual
+                                        toItem:nil
+                                     attribute:NSLayoutAttributeNotAnAttribute
+                                    multiplier:1.0 constant:heightOfTitle];
+        [_titleLabel addConstraint:heightOfTitleLabel];
+        _heightOfTitleLabel = heightOfTitleLabel;
+    }
+}
+
 - (void)_updateHeightConstraintsOfContentView {
     CGFloat height = 0.0;
     CGFloat flag = 0.0;
@@ -2009,7 +2041,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (_titleLabel.numberOfLines == 0) {
         heightOfTitle = ceil(_titleLabel.font.pointSize);
     } else {
-        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
+        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
         heightOfTitle = ceil(size.height);
     }
     
