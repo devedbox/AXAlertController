@@ -787,7 +787,7 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     _alertContentView.actionItemMargin = 0;
     _alertContentView.actionItemPadding = 0;
     _alertContentView.titleLabel.numberOfLines = 0;
-    _alertContentView.preferedMargin = UIEdgeInsetsMake(0, 52, 0, 52);
+    _alertContentView.preferedMargin = UIEdgeInsetsMake(0, 25, 0, 25);
     _alertContentView.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _alertContentView.titleLabel.textColor = [UIColor blackColor];
     AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
