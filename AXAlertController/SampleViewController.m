@@ -39,6 +39,9 @@
         case 1: {// With image.
             [self showWithImage:cell];
         } break;
+        case 2: {// With single textfield.
+            [self showWithSingleTextfield:cell];
+        } break;
         default:
             break;
     }
@@ -67,6 +70,30 @@
     [alert configureImageViewWithHandler:^(UIImageView * _Nonnull imageView) {
         imageView.contentMode = UIViewContentModeCenter;
         imageView.image = [self _resizedTouchImage];
+    }];
+    [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+        config.preferedHeight = 44.0;
+        config.backgroundColor = [UIColor whiteColor];
+        config.font = [UIFont boldSystemFontOfSize:17];
+        config.cornerRadius = .0;
+        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+    }];
+    [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+        config.font = [UIFont systemFontOfSize:17];
+        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+    }];
+    
+    [self presentViewController:alert animated:YES completion:NULL];
+}
+
+- (IBAction)showWithSingleTextfield:(id)sender {
+    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
+    [alert configureImageViewWithHandler:^(UIImageView * _Nonnull imageView) {
+        imageView.contentMode = UIViewContentModeCenter;
+        imageView.image = [self _resizedTouchImage];
+    }];
+    [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+        textField.placeholder = @"Type text...";
     }];
     [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.preferedHeight = 44.0;
