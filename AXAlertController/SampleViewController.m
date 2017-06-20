@@ -13,6 +13,45 @@
 
 @end
 
+@interface SampleTableViewCell: UITableViewCell {
+    UIView *_highlightedView;
+}
+@end
+@implementation SampleTableViewCell
+- (void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated {
+    [super setHighlighted:highlighted animated:animated];
+    
+    if (!_highlightedView) {
+        _highlightedView = [UIView new];
+        _highlightedView.backgroundColor = [UIColor colorWithWhite:0.98 alpha:0.77];
+    }
+    [_highlightedView setFrame:self.bounds];
+    
+    if (highlighted) {
+        [self insertSubview:_highlightedView atIndex:0];
+        if (animated) {
+            _highlightedView.alpha = 0.0;
+            [UIView animateWithDuration:0.25 animations:^{
+                _highlightedView.alpha = 1.0;
+            }];
+        }
+    } else {
+        if (animated) {
+            [UIView animateWithDuration:0.25 animations:^{
+                _highlightedView.alpha = 0.0;
+            } completion:^(BOOL finished) {
+                if (finished) {
+                    [_highlightedView removeFromSuperview];
+                    _highlightedView.alpha = 1.0;
+                }
+            }];
+        } else {
+            [_highlightedView removeFromSuperview];
+        }
+    }
+}
+@end
+
 @implementation SampleViewController
 
 - (void)viewDidLoad {
