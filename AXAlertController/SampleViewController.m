@@ -45,6 +45,9 @@
         case 3: {// With image and single textfield.
             [self showWithImageAndSingleTextfield:cell];
         } break;
+        case 4: {// Scrollable Content.
+            [self showScrollableContent:cell];
+        } break;
         default:
             break;
     }
@@ -117,6 +120,27 @@
     }];
     [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
         textField.placeholder = @"Type text...";
+    }];
+    [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+        config.preferedHeight = 44.0;
+        config.backgroundColor = [UIColor whiteColor];
+        config.font = [UIFont boldSystemFontOfSize:17];
+        config.cornerRadius = .0;
+        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+    }];
+    [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+        config.font = [UIFont systemFontOfSize:17];
+        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+    }];
+    
+    [self presentViewController:alert animated:YES completion:NULL];
+}
+
+- (IBAction)showScrollableContent:(id)sender {
+    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
+    [alert configureImageViewWithHandler:^(UIImageView * _Nonnull imageView) {
+        imageView.contentMode = UIViewContentModeScaleAspectFill;
+        imageView.image = [UIImage imageNamed:@"content_image"];
     }];
     [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.preferedHeight = 44.0;
