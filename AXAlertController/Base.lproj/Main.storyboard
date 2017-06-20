@@ -166,9 +166,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="vEf-yp-rJ5">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="vEf-yp-rJ5">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.063650138676166534" green="0.85574883222579956" blue="0.63883382081985474" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="8" id="Y8J-G3-MUc"/>
                                                         <constraint firstAttribute="height" constant="8" id="jCh-fZ-qas"/>
@@ -221,9 +221,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Xom-tT-l02">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="Xom-tT-l02">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.16078431372549018" green="0.85098039215686272" blue="0.64313725490196072" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="8" id="Kdw-28-tZB"/>
                                                         <constraint firstAttribute="width" constant="8" id="sAu-UQ-Igu"/>
@@ -276,9 +276,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="foF-G6-upl">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="foF-G6-upl">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.16078431372549018" green="0.85098039215686272" blue="0.64313725490196072" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="8" id="eIz-W7-p0T"/>
                                                         <constraint firstAttribute="width" constant="8" id="rhB-Lo-TKa"/>
@@ -331,9 +331,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="8wk-1X-VXG">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="8wk-1X-VXG">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.16078431372549018" green="0.85098039215686272" blue="0.64313725490196072" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="8" id="RJJ-w5-atF"/>
                                                         <constraint firstAttribute="height" constant="8" id="XMB-Ct-2Sp"/>
@@ -386,9 +386,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="0gj-V4-Wac">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="0gj-V4-Wac">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.16078431369999999" green="0.85098039219999999" blue="0.64313725489999995" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="8" id="WGi-FU-1ml"/>
                                                         <constraint firstAttribute="height" constant="8" id="ePl-LI-x4o"/>
@@ -441,9 +441,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="bdT-cW-tJ6">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="bdT-cW-tJ6">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.16078431369999999" green="0.85098039219999999" blue="0.64313725489999995" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="8" id="8cf-AU-A1k"/>
                                                         <constraint firstAttribute="width" constant="8" id="9Gs-Aq-7je"/>
@@ -496,9 +496,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="gIX-gF-17U">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="gIX-gF-17U">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.16078431369999999" green="0.85098039219999999" blue="0.64313725489999995" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="width" constant="8" id="VEG-VF-QOi"/>
                                                         <constraint firstAttribute="height" constant="8" id="fHF-ri-KBZ"/>
@@ -551,9 +551,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="uAW-mI-HJ2">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="uAW-mI-HJ2">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.16078431372549018" green="0.85098039215686272" blue="0.64313725490196072" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="8" id="DKG-Xk-dbJ"/>
                                                         <constraint firstAttribute="width" constant="8" id="Hqs-PE-LC6"/>
@@ -606,9 +606,9 @@
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="UVc-E7-UIR">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="state" translatesAutoresizingMaskIntoConstraints="NO" id="UVc-E7-UIR">
                                                     <rect key="frame" x="316" y="18" width="8" height="8"/>
-                                                    <color key="backgroundColor" red="0.16078431372549018" green="0.85098039215686272" blue="0.64313725490196072" alpha="1" colorSpace="calibratedRGB"/>
+                                                    <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="8" id="Uek-bl-nz9"/>
                                                         <constraint firstAttribute="width" constant="8" id="fRD-Qz-gk5"/>
@@ -679,4 +679,7 @@
             <point key="canvasLocation" x="-2343" y="823"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="state" width="44" height="44"/>
+    </resources>
 </document>
