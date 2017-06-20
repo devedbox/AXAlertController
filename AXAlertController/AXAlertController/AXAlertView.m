@@ -54,6 +54,13 @@ CGFloat const kAXAlertVertivalOffsetCenter = 0.0;
 CGFloat const kAXAlertVertivalOffsetPinToTop = CGFLOAT_MIN;
 CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
 
+#ifndef kAXAlertViewDefaultLightEffectFilterColor
+#define kAXAlertViewDefaultLightEffectFilterColor [UIColor colorWithWhite:0.97 alpha:0.8]
+#endif
+#ifndef kAXAlertViewDefaultDarkEffectFilterColor
+#define kAXAlertViewDefaultDarkEffectFilterColor [UIColor colorWithWhite:0.11 alpha:0.73]
+#endif
+
 @interface _AXVisualEffectFilterView: UIView
 @property(assign, nonatomic) BOOL translucent;
 @property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle;
@@ -74,7 +81,7 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
     // Contraints.
     NSLayoutConstraint * _leadingOfContainer; // Leading contraint of the container view to self.
     NSLayoutConstraint * _trailingOfContainer; // Trailing contraint of the container view to self.
-    NSLayoutConstraint *__weak _heightOfContainer; // Height contraint of the container view to self.
+    NSLayoutConstraint * _heightOfContainer; // Height contraint of the container view to self.
     NSLayoutConstraint *__weak _topOfContainer; // Top contraint of the container view to self.
     NSLayoutConstraint *__weak _bottomOfContainer;// Bottom contraint of the container view to self.
     NSLayoutConstraint * _centerXOfContainer;// Center x contraint of the container view to self.
@@ -102,8 +109,9 @@ CGFloat const kAXAlertVertivalOffsetPinToBottom = CGFLOAT_MAX;
     
     NSLayoutConstraint *__weak _heightOfContentView;// Height contraint of the content view.
     
-    NSLayoutConstraint * _equalHeightOfEffectFlexibleAndStack; // Equal height contraint of effect flexible view and stack view.
-    NSLayoutConstraint * _heightOfEffectFlexibleView;// Height contraint of the flexible view to the effect view.
+    NSLayoutConstraint *__weak _equalHeightOfEffectFlexibleAndStack; // Equal height contraint of effect flexible view and stack view.
+    NSLayoutConstraint *__weak _heightOfStackFlexibleView;// Height contraint of the flexible view to the stack view.
+    NSLayoutConstraint *__weak _heightOfEffectFlexibleView;// Height contraint of the flexible view to the effect view.
     
     /// Mask layer of the effect view.
     CAShapeLayer *_effectMaskLayer;
@@ -226,6 +234,40 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)initializer {
+    // Initialize all the properties.
+    [self _setupDefaultValueOfProperties];
+    // Add dimmng view and contraints to self.
+    [self _setupDimmingView];
+    // Handle all subviews:
+    //
+    [self addSubview:self.containerView];
+    [self.containerView addSubview:self.contentContainerView];
+    [self.containerView addSubview:self.titleLabel];
+    
+    if ([[self class] usingAutolayout]) {
+        [self.contentContainerView addSubview:self.stackView];
+        
+        // Add contraints to self of container view.
+        [self _addContraintsOfContainerToSelf];
+        // Add contraints to self of the views.
+        [self _addContraintsOfTitleLabelAndContentViewToContainerView];
+        // Add contraints to custom and stack view.
+        [self _addContraintsOfCustomViewAndStackViewToContentView];
+        
+        [_containerView addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:NULL];
+        [_titleLabel addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionNew context:NULL];
+        [_contentContainerView addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:@"_content"];
+    }
+    
+    [_contentContainerView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:NULL];
+    
+    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
+    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
+    [self addGestureRecognizer:tap];
+}
+
+- (void)_setupDefaultValueOfProperties {
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     self.userInteractionEnabled = YES;
     // self.contentMode = UIViewContentModeCenter;
@@ -260,37 +302,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     __shouldExceptContentBackground = YES;
     
     super.backgroundColor = [UIColor clearColor];
+}
+
+- (void)_setupDimmingView {
     // Add dimming view.
     [self addSubview:self.dimmingView];
     // Add contraints of dimming view.
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_dimmingView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_dimmingView)]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_dimmingView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_dimmingView)]];
-    
-    [self addSubview:self.containerView];
-    [self.containerView addSubview:self.contentContainerView];
-    [self.containerView addSubview:self.titleLabel];
-    
-    if ([[self class] usingAutolayout]) {
-        [self.contentContainerView addSubview:self.stackView];
-        
-        // Add contraints to self of container view.
-        [self _addContraintsOfContainerToSelf];
-        // Add contraints to self of the views.
-        [self _addContraintsOfTitleLabelAndContentViewToContainerView];
-        // Add contraints to custom and stack view.
-        [self _addContraintsOfCustomViewAndStackViewToContentView];
-        
-        [_containerView addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:NULL];
-        [_titleLabel addObserver:self forKeyPath:@"text" options:NSKeyValueObservingOptionNew context:NULL];
-        [_contentContainerView addObserver:self forKeyPath:@"bounds" options:NSKeyValueObservingOptionNew context:@"_content"];
-    }
-    
-    [_contentContainerView addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew context:NULL];
-    
-    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleDeviceOrientationDidChangeNotification:) name:UIDeviceOrientationDidChangeNotification object:nil];
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTapGesture:)];
-    [self addGestureRecognizer:tap];
 }
 
 - (void)dealloc {
@@ -307,70 +326,21 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
     if ([keyPath isEqualToString:@"contentSize"]) {
         CGSize contentSize = [change[NSKeyValueChangeNewKey] CGSizeValue];
-        CGFloat height = 0.0;
-        CGFloat flag = 0.0;
-        [self _getHeightOfContentView:&height flag:&flag withContentSize:contentSize];
+        CGFloat heightOfScrollContent = 0.0;
+        CGFloat maxAllowedHeightOfScrollContent = 0.0;
+        [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent withContentSize:contentSize];
         
-        _contentContainerView.scrollEnabled = height>=flag?YES:NO;
-        if (_translucent) {
-            if (height>=flag ) {
-                [self _setupContentHookedView];
-                [self _updateSettingsOfContentScrollView];
-                // [self _updateFramesOfHookedVeiwsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
-                // Update transform information of the action buttons.
-                // [self _updateTransformOfActionItemsWithContentOffset:_contentContainerView.contentOffset ofScrollView:_contentContainerView];
-            } else {
-                [_contentHeaderView removeFromSuperview];
-                [_contentFooterView removeFromSuperview];
-            }
-        }
+        // Enable or disable the scroll property.
+        _contentContainerView.scrollEnabled = ((heightOfScrollContent>=maxAllowedHeightOfScrollContent)?YES:NO);
+        [self _updateSettingsOfContentScrollView];
         
         if ([[self class] usingAutolayout]) {
-            if (_translucent) {
-                if (height >= flag && _actionItems.count > _horizontalLimits) {
-                    if (_heightOfEffectFlexibleView && _equalHeightOfEffectFlexibleAndStack) {
-                        [NSLayoutConstraint activateConstraints:@[_heightOfEffectFlexibleView]];
-                        [NSLayoutConstraint deactivateConstraints:@[_equalHeightOfEffectFlexibleAndStack]];
-                    }
-                    
-                    NSLayoutConstraint *heightOfStack =
-                    [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
-                                                 attribute:NSLayoutAttributeHeight
-                                                 relatedBy:NSLayoutRelationEqual
-                                                    toItem:nil attribute:NSLayoutAttributeNotAnAttribute
-                                                multiplier:1.0 constant:0.0];
-                    [_stackFlexibleView removeConstraints:_stackFlexibleView.constraints];
-                    [_stackFlexibleView addConstraint:heightOfStack];
-                    _heightOfEffectFlexibleView = heightOfStack;
-                } else {
-                    if (_heightOfEffectFlexibleView && _equalHeightOfEffectFlexibleAndStack) {
-                        [NSLayoutConstraint activateConstraints:@[_equalHeightOfEffectFlexibleAndStack]];
-                        [NSLayoutConstraint deactivateConstraints:@[_heightOfEffectFlexibleView]];
-                    }
-                    
-                    NSLayoutConstraint *equalOfStack =
-                    [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
-                                                 attribute:NSLayoutAttributeHeight
-                                                 relatedBy:NSLayoutRelationEqual
-                                                    toItem:_stackView
-                                                 attribute:NSLayoutAttributeHeight
-                                                multiplier:1.0 constant:0.0];
-                    [_stackFlexibleView removeConstraints:_stackFlexibleView.constraints];
-                    if (_equalHeightOfEffectFlexibleAndStack) [_containerView removeConstraint:_equalHeightOfEffectFlexibleAndStack];
-                    [_containerView addConstraint:equalOfStack];
-                    _equalHeightOfEffectFlexibleAndStack = equalOfStack;
-                }
-            }
-            // Update height of content scroll view.
-            [self _updateHeightConstraintsOfContentViewWithHeight:MAX(0, MIN(height, flag))];
+            [self setNeedsUpdateConstraints];
         }
-        
-        // [self setNeedsDisplay];
-        // Replaced with:
-        [self _setupContentImageOfDimmingView];
     } else if ([keyPath isEqualToString:@"text"]) {
-        // Update height constraint of the title label.
-        [self _updateHeightConstraintsOfTitleLabelIfNeeded];
+        if ([[self class] usingAutolayout]) {
+            [self setNeedsUpdateConstraints];
+        }
     } else if ([keyPath isEqualToString:@"bounds"]) {
         if (context != NULL) {// Content scroll view.
             [self _updateSettingsOfContentScrollView];
@@ -378,7 +348,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             // Update exception area of the effect view if bounds of the container view has changed.
             [self _updateExceptionAreaOfEffectView];
             // Update contraints of container view when bounds have changed.
-            [self _updateContraintsOfContainer];
+            // [self _updateContraintsOfContainer];
             // Redraw the exception background.
             // [self setNeedsDisplay];
             // Replaced with:
@@ -406,31 +376,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
 }
 
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect {
-    // Drawing code
-    [super drawRect:rect];
-    // [self _setupContentImageOfDimmingView];
-    /* Using content dimming view instead.
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    CGPathRef outterPath = CGPathCreateWithRect(self.frame, nil);
-    CGContextAddPath(context, outterPath);
-    CGContextSetFillColorWithColor(context, [UIColor colorWithWhite:0 alpha:_opacity].CGColor);
-    CGContextFillPath(context);
+- (void)updateConstraints {
+    if (![[self class] usingAutolayout]) {
+        [super updateConstraints];
+        return;
+    }
     
-    CGPathRelease(outterPath);
-    if (!__shouldExceptContentBackground) return;
+    [self _updateHeightConstraintsOfContainerIfNecessary];
+    [self _updateHeightConstraintsOfTitleLabelIfNecessary];
     
-    CGRect rectOfContainerView = self.containerView.frame;
-    if (CGRectGetWidth(rectOfContainerView) < _cornerRadius*2 || CGRectGetHeight(rectOfContainerView) < _cornerRadius*2) return;
-    CGPathRef innerPath = CGPathCreateWithRoundedRect(rectOfContainerView, _cornerRadius, _cornerRadius, nil);
-    CGContextAddPath(context, innerPath);
-    CGContextSetBlendMode(context, kCGBlendModeClear);
-    CGContextFillPath(context);
+    [self _updateContraintsOfContainer];
+    [self _updateConstraintsOfFlexibleView];
     
-    CGPathRelease(innerPath);
-     */
+    [super updateConstraints];
 }
 
 - (void)layoutSubviews {
@@ -566,19 +524,22 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _contentContainerView.contentSize = CGSizeMake(CGRectGetWidth(rect_container)-(_contentInset.left+_contentInset.right), heightOfContainer-sizeOfTitleLabel.height-_contentInset.top-_titleInset.top-_titleInset.bottom-_padding-_customViewInset.top-_contentInset.bottom);
         _customView.frame = CGRectMake(_customViewInset.left, /*_customViewInset.top*/0, sizeOfCustomView.width, sizeOfCustomView.height-(_customViewInset.top+_customViewInset.bottom));
     } else {
-        CGFloat height = 0.0;
-        CGFloat flag = 0.0;
-        [self _getHeightOfContentView:&height flag:&flag withContentSize:_contentContainerView.contentSize];
+        CGFloat heightOfScrollContent = 0.0;
+        CGFloat maxAllowedHeightOfScrollContent = 0.0;
+        [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent];
         
-        _contentContainerView.scrollEnabled = height>=flag?YES:NO;
-        
-        CGFloat heightOfContent = MAX(0, MIN(height, flag));
-        // Update height of content scroll view.
-        if (_heightOfContentView.constant != heightOfContent) {
-            [self _updateHeightConstraintsOfContentViewWithHeight:heightOfContent];
+        if (heightOfScrollContent != 0.0 && maxAllowedHeightOfScrollContent != 0.0) {
+            _contentContainerView.scrollEnabled = ((heightOfScrollContent>=maxAllowedHeightOfScrollContent)?YES:NO);
         }
+        
+        // CGFloat heightOfContent = MAX(0, MIN(height, flag));
+        // Update height of content scroll view.
+        // if (_heightOfContentView.constant != heightOfContent) {
+        // [self _updateHeightConstraintsOfContentViewWithHeight:heightOfContent];
+        // }
+        // [self _updateHeightConstraintsOfContainerIfNecessary];
         // Update height of title label if needed.
-        [self _updateHeightConstraintsOfTitleLabelIfNeeded];
+        // [self _updateHeightConstraintsOfTitleLabelIfNecessary];
     }
     
     [self _updateExceptionAreaOfEffectView];
@@ -590,6 +551,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     // Replaced with:
     [self _setupContentImageOfDimmingView];
 }
+
 #pragma mark - Public method
 - (void)setActions:(AXAlertViewAction *)actions, ... {
     va_list args;
@@ -1079,8 +1041,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 #pragma mark - Actions
 - (void)handleDeviceOrientationDidChangeNotification:(NSNotification *)aNote {
     // BOOL animated = [[[aNote userInfo] objectForKey:@"UIDeviceOrientationRotateAnimatedUserInfoKey"] boolValue];
-    // [self _handleDeviceOrientationDidChangeWithoutAnimated];
-    [self _handleDeviceOrientationDidChangeByAnimated];
+    [self _handleDeviceOrientationDidChangeWithoutAnimated];
+    // [self _handleDeviceOrientationDidChangeByAnimated];
 }
 
 - (void)handleActionButtonDidClick:(UIButton *_Nonnull)sender {
@@ -1398,24 +1360,20 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         }]; else {
             [self _updateSettingsOfContentScrollView];
         }
-    } else {
-        if (animated) [UIView animateWithDuration:0.25 animations:^{
-            [self _updateContraintsOfContainer];
-        }]; else {
-            [self _updateContraintsOfContainer];
-        }
-    }
-    
-    // Using dimming content image instead:
-    // [self set_shouldExceptContentBackground:NO];
-    // [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.3];
-    
-    if (animated) [UIView animateWithDuration:0.25 animations:^{
+        // Using dimming content image instead:
+        // [self set_shouldExceptContentBackground:NO];
+        // [self performSelector:@selector(_enabled_shouldExceptContentBackground) withObject:nil afterDelay:0.3];
         [self _layoutSubviews];
-    }]; else [self _layoutSubviews];
-    // [self _setupActionItems];
-    // Replaced with:
-    [self _layoutActionButtons:NO];
+        // [self _setupActionItems];
+        // Replaced with:
+        [self _layoutActionButtons:NO];
+    } /* else {
+        [self setNeedsUpdateConstraints];
+        [self updateConstraintsIfNeeded];
+        if (animated) [UIView animateWithDuration:0.25 animations:^{
+            [self layoutIfNeeded];
+        }];
+    } */
 }
 
 - (void)_disable_shouldExceptContentBackground __deprecated_msg("Using dimming contet image instead.") {
@@ -1428,7 +1386,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 #pragma mark - Constraints.
 
-+ (BOOL)usingAutolayout { /*return NO;*/
++ (BOOL)usingAutolayout { // return NO;
     if (_kPlatform_info.length > 0) {
         return [_kPlatform_info isEqualToString:@"autolayout_true"];
     }
@@ -1456,14 +1414,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeTrailing
                                 multiplier:1.0
                                   constant:_preferedMargin.right];
-    NSLayoutConstraint *heightOfContainer =
-    [NSLayoutConstraint constraintWithItem:_containerView
-                                 attribute:NSLayoutAttributeHeight
-                                 relatedBy:NSLayoutRelationEqual
-                                    toItem:nil
-                                 attribute:NSLayoutAttributeNotAnAttribute
-                                multiplier:1.0
-                                  constant:_preferedHeight];
     NSLayoutConstraint *widthOfContainer =
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeWidth
@@ -1472,8 +1422,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeNotAnAttribute
                                 multiplier:1.0
                                   constant:_maxAllowedWidth];
-    heightOfContainer.priority = UILayoutPriorityDefaultLow;
-    heightOfContainer.active = NO;
     NSLayoutConstraint *centerYOfContainer =
     [NSLayoutConstraint constraintWithItem:self
                                  attribute:NSLayoutAttributeCenterY
@@ -1498,6 +1446,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0
                                   constant:-_preferedMargin.top];
+    topOfContainer.priority = UILayoutPriorityDefaultHigh;
     NSLayoutConstraint *bottomOfContainer =
     [NSLayoutConstraint constraintWithItem:self
                                  attribute:NSLayoutAttributeBottom
@@ -1506,19 +1455,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeBottom
                                 multiplier:1.0
                                   constant:_preferedMargin.bottom];
-    [self addConstraints:@[leadingOfContainer, trailingOfContainer/*, heightOfContainer*/, centerYOfContainer, /* topOfContainer, bottomOfContainer*/centerXOfContainer, widthOfContainer]];
-    
-    [_containerView setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisVertical];
+    bottomOfContainer.priority = UILayoutPriorityDefaultHigh;
+    [self addConstraints:@[leadingOfContainer, trailingOfContainer, centerYOfContainer, centerXOfContainer, widthOfContainer, topOfContainer, bottomOfContainer]];
     
     // Add references to the contraints.
     _leadingOfContainer = leadingOfContainer;
     _trailingOfContainer = trailingOfContainer;
-    _heightOfContainer = heightOfContainer;
-    _topOfContainer = topOfContainer;
-    _bottomOfContainer = bottomOfContainer;
     _centerXOfContainer = centerXOfContainer;
     _widthOfContainer = widthOfContainer;
     _centerYOfContainer = centerYOfContainer;
+    _topOfContainer = topOfContainer;
+    _bottomOfContainer = bottomOfContainer;
     
     [self _updateContraintsOfContainer];
 }
@@ -1548,7 +1495,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0
                                   constant:-_contentInset.top-_titleInset.top];
-    
     NSLayoutConstraint *bottomOfTitleLabelAndTopOfContentView =
     [NSLayoutConstraint constraintWithItem:_titleLabel
                                  attribute:NSLayoutAttributeBottom
@@ -1583,8 +1529,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                   constant:_contentInset.bottom];
     
     [_containerView addConstraints:@[leadingOfTitleLabel, trailingOfTitleLabel, topOfTitleLabel, bottomOfTitleLabelAndTopOfContentView, leadingOfContentView, trailingOfContentView, bottomOfContentView]];
-    // [_titleLabel setContentHuggingPriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
-    // [_titleLabel setContentCompressionResistancePriority:UILayoutPriorityDefaultHigh forAxis:UILayoutConstraintAxisVertical];
     
     // Add references to the contraints.
     _leadingOfTitleLabel = leadingOfTitleLabel;
@@ -1594,6 +1538,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _leadingOfContent = leadingOfContentView;
     _trailingOfContent = trailingOfContentView;
     _bottomOfContent = bottomOfContentView;
+    
+    [self _updateHeightConstraintsOfTitleLabelIfNecessary];
 }
 
 - (void)_addContraintsOfCustomViewAndStackViewToContentView {
@@ -1696,9 +1642,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     
     [_containerView addConstraint:widthOfStackView];
     _widthOfStackView = widthOfStackView;
-    
-    [_contentContainerView setContentHuggingPriority:UILayoutPriorityFittingSizeLevel forAxis:UILayoutConstraintAxisVertical];
-    [_contentContainerView setContentCompressionResistancePriority:UILayoutPriorityDefaultHigh forAxis:UILayoutConstraintAxisVertical];
 }
 
 - (void)_addContraintsOfEffectViewToContainerView {
@@ -1747,31 +1690,42 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  relatedBy:NSLayoutRelationEqual
                                     toItem:_stackFlexibleView
                                  attribute:NSLayoutAttributeTrailing
-                                multiplier:1.0 constant:0.0];
+                                multiplier:1.0
+                                  constant:0.0];
     NSLayoutConstraint *bottomOfStack =
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeBottom
                                  relatedBy:NSLayoutRelationEqual
                                     toItem:_stackFlexibleView
                                  attribute:NSLayoutAttributeBottom
-                                multiplier:1.0 constant:0.0];
+                                multiplier:1.0
+                                  constant:0.0];
     
     [_containerView addConstraints:@[leadingOfEffectView, trailingOfEffectView, topOfEffectView, bottomOfEffectAndTopOfStack, leadingOfStack, trailingOfStack, bottomOfStack]];
     [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
     [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_effectView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectView)]];
     
+    [self _updateConstraintsOfFlexibleView];
     // Replace the filter view of effect view.
     [self _replaceFilterViewOfEffectViewWithWidth:0.0];
 }
 
-- (void)_updateHeightConstraintsOfTitleLabelIfNeeded {
+- (CGFloat)_calculatedHeightOfTitleLabel {
     CGFloat heightOfTitle = .0;
+    
+    if (!_titleLabel.text.length) return .0;
+    
     if (_titleLabel.numberOfLines == 0) {
         heightOfTitle = ceil(_titleLabel.font.lineHeight);
     } else {
         CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
         heightOfTitle = ceil(size.height);
     }
+    return heightOfTitle;
+}
+
+- (void)_updateHeightConstraintsOfTitleLabelIfNecessary {
+    CGFloat heightOfTitle = [self _calculatedHeightOfTitleLabel];
     if (_heightOfTitleLabel) {
         if (_heightOfTitleLabel.constant != heightOfTitle) _heightOfTitleLabel.constant = heightOfTitle;
     } else {
@@ -1781,13 +1735,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                      relatedBy:NSLayoutRelationEqual
                                         toItem:nil
                                      attribute:NSLayoutAttributeNotAnAttribute
-                                    multiplier:1.0 constant:heightOfTitle];
+                                    multiplier:1.0
+                                      constant:heightOfTitle];
         [_titleLabel addConstraint:heightOfTitleLabel];
         _heightOfTitleLabel = heightOfTitleLabel;
     }
 }
 
-- (void)_updateHeightConstraintsOfContentView {
+- (void)_updateHeightConstraintsOfContentView __deprecated_msg("Invaid context, Managing height constraint of container view instead.") {
     CGFloat height = 0.0;
     CGFloat flag = 0.0;
     [self _getHeightOfContentView:&height flag:&flag];
@@ -1796,14 +1751,44 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self _updateHeightConstraintsOfContentViewWithHeight:heightOfContent];
 }
 
-- (void)_updateHeightConstraintsOfContentViewWithHeight:(CGFloat)height {
+- (void)_updateHeightConstraintsOfContentViewWithHeight:(CGFloat)height __deprecated_msg("Invaid context, Managing height constraint of container view instead.") {
     if (_heightOfContentView) {
         _heightOfContentView.constant = height;
-        [self setNeedsUpdateConstraints];
     } else {
         NSLayoutConstraint *heightOfContent = [NSLayoutConstraint constraintWithItem:_contentContainerView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:height];
         [_contentContainerView addConstraint:heightOfContent];
         _heightOfContentView = heightOfContent;
+    }
+}
+
+- (void)_updateHeightConstraintsOfContainerIfNecessary {
+    CGFloat _heightOfScrollContent = 0.0;
+    CGFloat _maxAllowedHeightOfScrollContent = 0.0;
+    [self _getHeightOfContentView:&_heightOfScrollContent flag:&_maxAllowedHeightOfScrollContent];
+    
+    if (_heightOfScrollContent == 0 || _maxAllowedHeightOfScrollContent == 0) return;
+    
+    CGFloat _heightOfContainerContent = _heightOfScrollContent + ([self _calculatedHeightOfTitleLabel]+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
+    
+    if (_heightOfContainer != nil) {
+        if (!_heightOfContainer.active) {
+            [NSLayoutConstraint activateConstraints:@[_heightOfContainer]];
+        }
+        if (_heightOfContainer.constant != _heightOfContainerContent) {
+            _heightOfContainer.constant = _heightOfContainerContent;
+        }
+    } else {
+        NSLayoutConstraint *heightOfContainer =
+        [NSLayoutConstraint constraintWithItem:_containerView
+                                     attribute:NSLayoutAttributeHeight
+                                     relatedBy:NSLayoutRelationLessThanOrEqual
+                                        toItem:nil
+                                     attribute:NSLayoutAttributeNotAnAttribute
+                                    multiplier:1.0
+                                      constant:_heightOfContainerContent];
+        // heightOfContainer.priority = UILayoutPriorityDefaultHigh;
+        [_containerView addConstraint:heightOfContainer];
+        _heightOfContainer = heightOfContainer;
     }
 }
 
@@ -1852,9 +1837,6 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self addConstraint:bottomOfContainer];
         _bottomOfContainer = bottomOfContainer;
     } else {
-        // [self _reconfigureVerticalPositionConstraintsOfContainer];
-        if (_topOfContainer) [self removeConstraint:_topOfContainer];
-        if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
         if (!_centerYOfContainer) {
             NSLayoutConstraint *centerYOfContainer =
             [NSLayoutConstraint constraintWithItem:self
@@ -1865,19 +1847,66 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                         multiplier:1.0
                                           constant:0.0];
             [self addConstraint:centerYOfContainer];
-            _centerXOfContainer = centerYOfContainer;
+            _centerYOfContainer = centerYOfContainer;
+        } else if (!_centerYOfContainer.active) {
+            [NSLayoutConstraint activateConstraints:@[_centerYOfContainer]];
         }
-        [NSLayoutConstraint activateConstraints:@[_centerYOfContainer]];
-        CGFloat height = 0.0;
-        CGFloat flag = 0.0;
-        [self _getHeightOfContentView:&height flag:&flag];
-        if (height < flag) {
-            _centerYOfContainer.constant = -MIN(flag-height, _verticalOffset);
+        [self _reconfigureVerticalPositionConstraintsOfContainer];
+        
+        CGFloat heightOfScrollContent = 0.0;
+        CGFloat maxAllowedHeightOfContent = 0.0;
+        [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfContent];
+        if (heightOfScrollContent < maxAllowedHeightOfContent) {
+            _centerYOfContainer.constant = -MIN(maxAllowedHeightOfContent-heightOfScrollContent, _verticalOffset);
         }
     }
 }
 
-- (void)_reconfigureVerticalPositionConstraintsOfContainer __deprecated {
+- (void)_updateConstraintsOfFlexibleView {
+    if (_translucent) {
+        CGFloat heightOfScrollContent = 0.0;
+        CGFloat maxAllowedHeightOfScrollContent = 0.0;
+        CGFloat maxAllowedHeightOfStackFlexibleView = 0.0;
+        [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent];
+        
+        if (heightOfScrollContent == 0 || maxAllowedHeightOfScrollContent == 0) return;
+        
+        if (heightOfScrollContent >= maxAllowedHeightOfScrollContent) {
+            maxAllowedHeightOfStackFlexibleView = CGRectGetHeight(self.bounds)-(CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView])+_contentContainerView.contentOffset.y);
+        } else {
+            maxAllowedHeightOfStackFlexibleView = MAX(0.0, maxAllowedHeightOfScrollContent-CGRectGetHeight(_customView.bounds));
+        }
+        
+        if (!_equalHeightOfEffectFlexibleAndStack) {
+            NSLayoutConstraint *equalOfStack =
+            [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
+                                         attribute:NSLayoutAttributeHeight
+                                         relatedBy:NSLayoutRelationEqual
+                                            toItem:self.stackView
+                                         attribute:NSLayoutAttributeHeight
+                                        multiplier:1.0 constant:0.0];
+            equalOfStack.priority = UILayoutPriorityDefaultLow;
+            [_containerView addConstraint:equalOfStack];
+            _equalHeightOfEffectFlexibleAndStack = equalOfStack;
+        } if (_heightOfStackFlexibleView) {
+            if (_heightOfStackFlexibleView.constant != maxAllowedHeightOfStackFlexibleView) {
+                _heightOfStackFlexibleView.constant = maxAllowedHeightOfStackFlexibleView;
+            }
+        } else {
+            NSLayoutConstraint *heightOfStack =
+            [NSLayoutConstraint constraintWithItem:self.stackFlexibleView
+                                         attribute:NSLayoutAttributeHeight
+                                         relatedBy:NSLayoutRelationEqual
+                                            toItem:nil attribute:NSLayoutAttributeNotAnAttribute
+                                        multiplier:1.0 constant:maxAllowedHeightOfStackFlexibleView];
+            heightOfStack.priority = UILayoutPriorityFittingSizeLevel;
+            [_stackFlexibleView addConstraint:heightOfStack];
+            _heightOfStackFlexibleView = heightOfStack;
+        }
+    }
+}
+
+- (void)_reconfigureVerticalPositionConstraintsOfContainer {
     if (_topOfContainer) [self removeConstraint:_topOfContainer];
     if (_bottomOfContainer) [self removeConstraint:_bottomOfContainer];
     NSLayoutConstraint *bottomOfContainer =
@@ -1888,6 +1917,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeBottom
                                 multiplier:1.0
                                   constant:_preferedMargin.bottom];
+    bottomOfContainer.priority = UILayoutPriorityDefaultHigh;
     [self addConstraint:bottomOfContainer];
     _bottomOfContainer = bottomOfContainer;
     NSLayoutConstraint *topOfContainer =
@@ -1898,9 +1928,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0
                                   constant:-_preferedMargin.top];
+    topOfContainer.priority = UILayoutPriorityDefaultHigh;
     [self addConstraint:topOfContainer];
     _topOfContainer = topOfContainer;
-    [self updateConstraints];
 }
 
 #pragma mark - Action item.
@@ -2002,48 +2032,55 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 #pragma mark - Exception area.
 
 - (void)_setExceptionAllowedWidth:(CGFloat)arg1 {
-    if (_actionItems.count <= _horizontalLimits) {
-        [self _replaceFilterViewOfEffectViewWithWidth:arg1];
-        _effectFilterView.layer.mask = nil;
-        return;
-    } else {
-        [self _replaceFilterViewOfEffectViewWithWidth:.0];
-    }
+    CGFloat heightOfScrollContent = 0.0;
+    CGFloat maxAllowedHeightOfScrollContent = 0.0;
+    [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent];
+    
+    if (heightOfScrollContent == 0 || maxAllowedHeightOfScrollContent == 0) return;
     
     UIView *_filterView = _effectFilterView;
+    
+    if (heightOfScrollContent >= maxAllowedHeightOfScrollContent) {
+        [self _replaceFilterViewOfEffectViewWithWidth:(_actionItems.count > _horizontalLimits?0.0:arg1)];
+        
+        if (_actionItems.count <= _horizontalLimits) {
+            [_filterView.layer setMask:nil];
+            return;
+        }
+    } else {
+        [self _replaceFilterViewOfEffectViewWithWidth:(_actionItems.count > _horizontalLimits?0.0:arg1)];
+        [_filterView.layer setMask:nil]; return;
+    }
     
     if (arg1 < 0.0) {
         _effectMaskLayer = nil; _filterView.layer.mask = nil; return;
     }
     
     CGFloat height = 0.0;
-    CGFloat _height = 0.0;
-    CGFloat _flag = 0.0;
-    [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
     
     if ([[self class] usingAutolayout]) {
-        if (_actionItems.count > _horizontalLimits && _height >= _flag) {
+        if (/*_actionItems.count > _horizontalLimits && */heightOfScrollContent >= maxAllowedHeightOfScrollContent) {
             height = CGRectGetMinY([_containerView convertRect:_customView.frame fromView:_contentContainerView])+_contentContainerView.contentOffset.y;
         } else {
             height = CGRectGetHeight(_containerView.bounds)-CGRectGetHeight(_stackView.bounds)-_contentInset.bottom;
         }
     } else {
         height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.bounds) + _customViewInset.bottom;
-        if (_actionItems.count > _horizontalLimits && _height >= _flag) {
+        if (_actionItems.count > _horizontalLimits && heightOfScrollContent >= maxAllowedHeightOfScrollContent) {
             height -= CGRectGetHeight(_customView.bounds);
             if (_customView) {
                 height -= _customViewInset.bottom;
             }
-        } else if (_height >= _flag) {
+        } else if (heightOfScrollContent >= maxAllowedHeightOfScrollContent) {
             height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.bounds));
         }
     }
 
     CGRect frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.bounds), height);
     
-    if (_actionItems.count <= _horizontalLimits) {
-        frame.size.height -= arg1;
-    }
+    // if (_actionItems.count <= _horizontalLimits) {
+        // frame.size.height -= arg1;
+    // }
     if (!_effectMaskLayer) {
         CAShapeLayer *maskLayrer = [CAShapeLayer layer];
         [maskLayrer setAnchorPoint:CGPointMake(0.5, 0)];
@@ -2164,24 +2201,29 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }];
     if (_filterView) [_filterView removeFromSuperview];
     [self.effectFilterView removeFromSuperview];
+    [_effectFilterView setTranslucentStyle:_translucentStyle];
+    [_effectFilterView setTranslucent:_translucent];
     [_containerView insertSubview:_effectFilterView aboveSubview:_effectView];
     if ([[self class] usingAutolayout]) {
         [_containerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_effectFilterView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_effectFilterView)]];
         [_containerView addConstraint:[NSLayoutConstraint constraintWithItem:_containerView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:_effectFilterView attribute:NSLayoutAttributeTop multiplier:1.0 constant:0.0]];
         if (_effectFlexibleView && _effectFlexibleView.superview) [_containerView addConstraint:[NSLayoutConstraint constraintWithItem:_effectFlexibleView attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:_effectFilterView attribute:NSLayoutAttributeHeight multiplier:1.0 constant:width]];
+        NSLayoutConstraint *titleLabelAlignment = [NSLayoutConstraint constraintWithItem:_titleLabel attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationLessThanOrEqual toItem:_effectFilterView attribute:NSLayoutAttributeBottom multiplier:1.0 constant:-(_titleInset.bottom+_customViewInset.top+_padding)];
+        titleLabelAlignment.priority = UILayoutPriorityDefaultHigh;
+        [_containerView addConstraint:titleLabelAlignment];
     } else {
         CGFloat height = 0.0;
-        CGFloat _height = 0.0;
-        CGFloat _flag = 0.0;
-        [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
+        CGFloat heightOfScrollContent = 0.0;
+        CGFloat maxAllowedHeightOfScrollContent = 0.0;
+        [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent withContentSize:_contentContainerView.contentSize];
         
         height = CGRectGetMinY(_contentContainerView.frame)+_padding+CGRectGetHeight(_customView.bounds)/*+_customViewInset.top */+ _customViewInset.bottom;
-        if (_actionItems.count > _horizontalLimits && _height >= _flag) {
+        if (_actionItems.count > _horizontalLimits && heightOfScrollContent >= maxAllowedHeightOfScrollContent) {
             height -= CGRectGetHeight(_customView.bounds);
             if (_customView) {
                 height -= _customViewInset.bottom;
             }
-        } else if (_height >= _flag) {
+        } else if (heightOfScrollContent >= maxAllowedHeightOfScrollContent) {
             height -= (_contentContainerView.contentSize.height-CGRectGetHeight(_contentContainerView.bounds));
         }
         
@@ -2232,16 +2274,19 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)_updateFramesOfHookedVeiwsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
     [self _setupContentHookedView];
-    CGFloat _height = 0.0;
-    CGFloat _flag = 0.0;
-    [self _getHeightOfContentView:&_height flag:&_flag];
-    if (_actionItems.count > _horizontalLimits && _height >= _flag) {
+    CGFloat heightOfScrollContent = 0.0;
+    CGFloat maxAllowedHeightOfScrollContent = 0.0;
+    [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent];
+    
+    if (heightOfScrollContent == 0.0 || maxAllowedHeightOfScrollContent == 0.0) return;
+    
+    if (heightOfScrollContent >= maxAllowedHeightOfScrollContent && _actionItems.count > _horizontalLimits) { // Scroll enabled.
         if (contentOffset.y >= scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)) { // Handle the footer view.
             _contentFooterView.hidden = NO;
             
             CGFloat height = contentOffset.y+CGRectGetHeight(scrollView.bounds) - scrollView.contentSize.height;
             [_contentFooterView setFrame:CGRectMake(0, scrollView.contentSize.height, CGRectGetWidth(scrollView.bounds), height)];
-        } else if (contentOffset.y <= CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding) {
+        } else if (contentOffset.y <= CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding) { // Handle the header view.
             _contentHeaderView.hidden = NO;
             
             CGFloat height = -contentOffset.y+CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding;
@@ -2258,44 +2303,48 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 #pragma mark - Content Scroll View.
-
+/// Get the height params of the content scroll view.
+/// @param height height of content size.
+/// @param max allowed height of content size of the content scroll view.
+///
 - (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag {
     [self _getHeightOfContentView:height flag:flag withContentSize:_contentContainerView.contentSize];
 }
 
 - (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag withContentSize:(CGSize)contentSize {
-    CGFloat _height = contentSize.height;
-    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-(CGRectGetHeight(_titleLabel.bounds)+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
+    CGFloat _height = MAX(contentSize.height, 0.0);
+    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-([self _calculatedHeightOfTitleLabel]+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
     
-    CGFloat _flag = MAX(0, _maxAllowed);
+    CGFloat _flag = MAX(0.0, _maxAllowed);
     // _height = MIN(_height, _flag);
     if (height != NULL) *height = _height;
     if (flag != NULL) *flag = _flag;
 }
 
 - (void)_updateTransformOfActionItemsWithContentOffset:(CGPoint)contentOffset ofScrollView:(UIScrollView *)scrollView {
-    CGFloat _height = 0.0;
-    CGFloat _flag = 0.0;
-    [self _getHeightOfContentView:&_height flag:&_flag withContentSize:_contentContainerView.contentSize];
+    CGFloat heightOfScrollContent = 0.0;
+    CGFloat maxAllowedHeightOfScrollContent = 0.0;
+    [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent withContentSize:_contentContainerView.contentSize];
+    
+    if (heightOfScrollContent == 0.0 || maxAllowedHeightOfScrollContent == 0.0) return;
     
     CGFloat visibleHeight = 0.0;
-    void(^maskCustomView)(CGFloat) = ^(CGFloat height) {
-        UIBezierPath *path = [UIBezierPath bezierPathWithRect:CGRectMake(0, contentOffset.y, CGRectGetWidth(_customView.bounds), height)];
-        if (!_customView.layer.mask) {
-            CAShapeLayer *maskLayer = [CAShapeLayer layer];
-            maskLayer.path = path.CGPath;
-            _customView.layer.mask = maskLayer;
-        } else {
-            ((CAShapeLayer *)_customView.layer.mask).path = path.CGPath;
-        }
+    void(^maskView)(UIView*, CGFloat) = ^(UIView *view, CGFloat height) {
+        CGRect frame = CGRectMake(0, 0, CGRectGetWidth(view.bounds), height+contentOffset.y);
+        CAShapeLayer *maskLayer = [CAShapeLayer layer];
+        maskLayer.anchorPoint = CGPointMake(0.5, 0.0);
+        [maskLayer setBackgroundColor:[UIColor whiteColor].CGColor];
+        [maskLayer setPosition:CGPointMake(CGRectGetWidth(frame)*.5, frame.origin.y)];
+        [maskLayer setBounds:CGRectMake(0, 0, CGRectGetWidth(frame), CGRectGetHeight(frame))];
+        view.layer.mask = maskLayer;
     };
     
     if ([[self class] usingAutolayout]) {
         visibleHeight = CGRectGetHeight(scrollView.bounds)-CGRectGetHeight(_stackView.bounds)-_padding-_customViewInset.bottom;
         
-        if (_actionItems.count <= _horizontalLimits && _height >= _flag) {
+        if (heightOfScrollContent >= maxAllowedHeightOfScrollContent && _actionItems.count <= _horizontalLimits) { // Scroll enabled.
+            maskView(_customView, visibleHeight);
             _stackView.transform = CGAffineTransformMakeTranslation(0, contentOffset.y-(scrollView.contentSize.height-CGRectGetHeight(scrollView.bounds)));
-            maskCustomView(visibleHeight);
         } else if (!CGAffineTransformIsIdentity(_stackView.transform)) {
             _stackView.transform = CGAffineTransformIdentity;
             _customView.layer.mask = nil;
@@ -2305,17 +2354,18 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     } else {
         if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.bounds)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue], _actionConfiguration.preferedHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.bounds)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue]-_padding-_customViewInset.bottom;
         
-        if (_actionItems.count <= _horizontalLimits && _height >= _flag) {
+        if (heightOfScrollContent >= maxAllowedHeightOfScrollContent && _actionItems.count <= _horizontalLimits) {
+            maskView(_customView, visibleHeight);
             for (UIView *_acView in _actionButtons) {
                 CGRect frame = _acView.frame;
                 frame.origin.y = CGRectGetHeight(scrollView.bounds)+scrollView.contentOffset.y-CGRectGetHeight(frame);
                 _acView.frame = frame;
             }
-            maskCustomView(visibleHeight);
         } else if (!CGAffineTransformIsIdentity(((UIView *)[NSSet setWithArray:_actionButtons].anyObject).transform)) {
             for (UIView *_acView in _actionButtons) {
                 _acView.transform = CGAffineTransformIdentity;
             }
+            _customView.layer.mask = nil;
         } else {
             _customView.layer.mask = nil;
         }
