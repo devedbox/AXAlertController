@@ -41,7 +41,7 @@
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:UIAlertControllerStyleAlert];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:NULL]];
     [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:NULL]];
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 15; i++) {
         [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
             // textField.borderStyle = UITextBorderStyleRoundedRect;
             // textField.font = [UIFont boldSystemFontOfSize:21];
@@ -203,10 +203,12 @@
         config.cornerRadius = .0;
         config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
     }];
-    [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
-        config.font = [UIFont systemFontOfSize:17];
-        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
-    }];
+    for (int i = 0; i < 1; i++) {
+        [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+            config.font = [UIFont systemFontOfSize:17];
+            config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+        }];
+    }
     for (int i = 0; i < 1; i++) {
         [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
             textField.placeholder = @"Type text...";
