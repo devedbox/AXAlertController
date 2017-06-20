@@ -18,6 +18,7 @@
 		DCA857BE1EE698CB0008E9A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857B11EE698CB0008E9A4 /* main.m */; };
 		DCA857BF1EE698CB0008E9A4 /* TableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857B31EE698CB0008E9A4 /* TableViewController.m */; };
 		DCA857C01EE698CB0008E9A4 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857B51EE698CB0008E9A4 /* ViewController.m */; };
+		DCF5FA4E1EF90B0E009CE969 /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DCF5FA4D1EF90B0E009CE969 /* SampleViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,8 @@
 		DCA857B31EE698CB0008E9A4 /* TableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TableViewController.m; sourceTree = "<group>"; };
 		DCA857B41EE698CB0008E9A4 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		DCA857B51EE698CB0008E9A4 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		DCF5FA4C1EF90B0E009CE969 /* SampleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SampleViewController.h; sourceTree = "<group>"; };
+		DCF5FA4D1EF90B0E009CE969 /* SampleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SampleViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +93,8 @@
 				DCA857A31EE698CB0008E9A4 /* AppDelegate.m */,
 				DCA857B21EE698CB0008E9A4 /* TableViewController.h */,
 				DCA857B31EE698CB0008E9A4 /* TableViewController.m */,
+				DCF5FA4C1EF90B0E009CE969 /* SampleViewController.h */,
+				DCF5FA4D1EF90B0E009CE969 /* SampleViewController.m */,
 				DCA857A51EE698CB0008E9A4 /* AXAlertController */,
 				DCA857A41EE698CB0008E9A4 /* Assets.xcassets */,
 				DCA857AC1EE698CB0008E9A4 /* LaunchScreen.storyboard */,
@@ -249,6 +254,7 @@
 			files = (
 				DCA857C01EE698CB0008E9A4 /* ViewController.m in Sources */,
 				DCA857BE1EE698CB0008E9A4 /* main.m in Sources */,
+				DCF5FA4E1EF90B0E009CE969 /* SampleViewController.m in Sources */,
 				DCA857BF1EE698CB0008E9A4 /* TableViewController.m in Sources */,
 				DCA857BA1EE698CB0008E9A4 /* AXAlertView.m in Sources */,
 				DCA857B81EE698CB0008E9A4 /* AXActionSheet.m in Sources */,
