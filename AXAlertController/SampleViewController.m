@@ -35,6 +35,19 @@
 
 #pragma mark - Actions.
 - (IBAction)showNormal:(id)sender {
+    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+        config.preferedHeight = 44.0;
+        config.backgroundColor = [UIColor whiteColor];
+        config.font = [UIFont boldSystemFontOfSize:17];
+        config.cornerRadius = .0;
+        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+    }];
+    [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+        config.font = [UIFont systemFontOfSize:17];
+        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+    }];
     
+    [self presentViewController:alert animated:YES completion:NULL];
 }
 @end
