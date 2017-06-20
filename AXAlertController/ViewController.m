@@ -21,7 +21,7 @@
 @end
 
 @implementation ViewController
-
+/*
 static void test() {
     int x = 10;
     dispatch_block_t _block = ^() {
@@ -32,7 +32,7 @@ static void test() {
     dispatch_block_t block = [_block copy];
     block();
     NSLog(@"%@", block);
-}
+} */
 
 - (void)loadView {
     [super loadView];
