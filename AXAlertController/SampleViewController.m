@@ -84,13 +84,16 @@
         case 3: {// With image and single textfield.
             [self showWithImageAndSingleTextfield:cell];
         } break;
-        case 4: {// With multiple actions.
+        case 4: {
+            [self showWithMultipleTextfields:cell];
+        } break;
+        case 5: {// With multiple actions.
             [self showWithMultipleActions:cell];
         } break;
-        case 5: {// Scrollable image content.
+        case 6: {// Scrollable image content.
             [self showScrollableImageContent:cell];
         } break;
-        case 6: {// Scrollable message content.
+        case 7: {// Scrollable message content.
             [self showScrollableMessageContent:cell];
         } break;
         default:
@@ -132,6 +135,20 @@
         textField.placeholder = @"Type text...";
     }];
     
+    [self presentViewController:alert animated:YES completion:NULL];
+}
+
+- (IBAction)showWithMultipleTextfields:(id)sender {
+    AXAlertController *alert = [self _normalAlertController];
+    [alert configureImageViewWithHandler:^(UIImageView * _Nonnull imageView) {
+        imageView.contentMode = UIViewContentModeCenter;
+        imageView.image = [self _resizedTouchImage];
+    }];
+    for (int i = 0; i < 5; i++) {
+        [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+            textField.placeholder = @"Type text...";
+        }];
+    }
     [self presentViewController:alert animated:YES completion:NULL];
 }
 
