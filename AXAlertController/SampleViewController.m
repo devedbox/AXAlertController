@@ -90,10 +90,13 @@
         case 5: {// With multiple actions.
             [self showWithMultipleActions:cell];
         } break;
-        case 6: {// Scrollable image content.
+        case 6: {// With multiple textfields and actions.
+            [self showWithMultipleTextfieldsAndActions:cell];
+        } break;
+        case 7: {// Scrollable image content.
             [self showScrollableImageContent:cell];
         } break;
-        case 7: {// Scrollable message content.
+        case 8: {// Scrollable message content.
             [self showScrollableMessageContent:cell];
         } break;
         default:
@@ -162,6 +165,26 @@
         textField.placeholder = @"Type text...";
     }];
     for (int i = 0; i<4; i++) {
+        [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+            config.font = [UIFont systemFontOfSize:17];
+            config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+        }];
+    }
+    [self presentViewController:alert animated:YES completion:NULL];
+}
+
+- (IBAction)showWithMultipleTextfieldsAndActions:(id)sender {
+    AXAlertController *alert = [self _normalAlertController];
+    [alert configureImageViewWithHandler:^(UIImageView * _Nonnull imageView) {
+        imageView.contentMode = UIViewContentModeCenter;
+        imageView.image = [self _resizedTouchImage];
+    }];
+    for (int i = 0; i < 3; i++) {
+        [alert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
+            textField.placeholder = @"Type text...";
+        }];
+    }
+    for (int i = 0; i < 3; i++) {
         [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
             config.font = [UIFont systemFontOfSize:17];
             config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
