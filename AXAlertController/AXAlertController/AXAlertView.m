@@ -200,11 +200,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             [self setBackgroundColor:[UIColor colorWithWhite:0.11 alpha:0.73]];
         }
     } else {
-        if (_translucentStyle == AXAlertViewTranslucentLight) {
-            [self setBackgroundColor:[UIColor whiteColor]];
-        } else {
-            [self setBackgroundColor:[UIColor blackColor]];
-        }
+        [self setBackgroundColor:[UIColor clearColor]];
     }
 }
 @end
