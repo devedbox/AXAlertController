@@ -200,7 +200,13 @@
             config.translucentStyle = _settings.actionTranslucentStyle;
             
             config.font = [UIFont systemFontOfSize:17];
-            config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+            if (_settings.actionTranslucentStyle == AXAlertViewTranslucentDark) {
+                config.backgroundColor = [UIColor grayColor];
+                config.tintColor = [UIColor whiteColor];
+            } else {
+                config.backgroundColor = [UIColor whiteColor];
+                config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+            }
         }];
     }
     [self presentViewController:alert animated:YES completion:NULL];
@@ -223,7 +229,13 @@
             config.translucentStyle = _settings.actionTranslucentStyle;
             
             config.font = [UIFont systemFontOfSize:17];
-            config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+            if (_settings.actionTranslucentStyle == AXAlertViewTranslucentDark) {
+                config.backgroundColor = [UIColor grayColor];
+                config.tintColor = [UIColor whiteColor];
+            } else {
+                config.backgroundColor = [UIColor whiteColor];
+                config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+            }
         }];
     }
     [self presentViewController:alert animated:YES completion:NULL];
@@ -258,6 +270,15 @@
     // Set up alert.
     alert.alertView.translucent = _settings.translucent;
     alert.alertView.translucentStyle = _settings.translucentStyle;
+    if (_settings.translucentStyle == AXAlertViewTranslucentDark) {
+        alert.alertView.backgroundColor = [UIColor grayColor];
+        alert.alertView.titleColor = [UIColor whiteColor];
+        [alert setValue:[UIColor whiteColor] forKeyPath:@"contentView.contentLabel.textColor"];
+    } else {
+        alert.alertView.backgroundColor = [UIColor whiteColor];
+        alert.alertView.titleColor = [UIColor blackColor];
+        [alert setValue:[UIColor darkTextColor] forKeyPath:@"contentView.contentLabel.textColor"];
+    }
     alert.alertView.hidesOnTouch = _settings.hidesOnTouch;
     alert.alertView.showsSeparators = _settings.showsSeparators;
     alert.alertView.padding = _settings.padding;
@@ -277,17 +298,28 @@
         config.translucentStyle = _settings.actionTranslucentStyle;
         
         config.preferedHeight = 44.0;
-        config.backgroundColor = [UIColor whiteColor];
+        if (_settings.actionTranslucentStyle == AXAlertViewTranslucentDark) {
+            config.backgroundColor = [UIColor grayColor];
+            config.tintColor = [UIColor whiteColor];
+        } else {
+            config.backgroundColor = [UIColor whiteColor];
+            config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+        }
         config.font = [UIFont boldSystemFontOfSize:17];
         config.cornerRadius = .0;
-        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
     }];
     [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.translucent = _settings.actionTranslucent;
         config.translucentStyle = _settings.actionTranslucentStyle;
         
         config.font = [UIFont systemFontOfSize:17];
-        config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+        if (_settings.actionTranslucentStyle == AXAlertViewTranslucentDark) {
+            config.backgroundColor = [UIColor grayColor];
+            config.tintColor = [UIColor whiteColor];
+        } else {
+            config.backgroundColor = [UIColor whiteColor];
+            config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+        }
     }];
     return alert;
 }
