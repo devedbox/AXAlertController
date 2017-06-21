@@ -7,10 +7,12 @@
 //
 
 #import "SampleViewController.h"
+#import "SettingViewController.h"
 #import "AXAlertController.h"
 
-@interface SampleViewController ()
-
+@interface SampleViewController () <SettingViewControllerDelegate>
+/// Setting model.
+@property(strong, nonatomic) SettingModel *settings;
 @end
 
 @interface SampleTableViewCell: UITableViewCell {
@@ -66,6 +68,34 @@
     UIView *backgroundView = [[UIImageView alloc] initWithImage:image];
     backgroundView.contentMode = UIViewContentModeScaleAspectFill;
     self.tableView.backgroundView = backgroundView;
+    
+    _settings = [SettingModel new];
+    _settings.translucent = YES;
+    _settings.translucentStyle = AXAlertViewTranslucentLight;
+    _settings.hidesOnTouch = NO;
+    _settings.showsSeparators = YES;
+    _settings.padding = 0.0;
+    _settings.verticalOffset = 0.0;
+    _settings.opacity = 0.0;
+    _settings.maxAllowedWidth = 270;
+    _settings.cornerRadius = 12.0;
+    _settings.actionTranslucent = YES;
+    _settings.actionTranslucentStyle = AXAlertViewTranslucentLight;
+    _settings.actionPadding = 0.0;
+    _settings.actionMargin = 0.0;
+    _settings.preferedMargin = UIEdgeInsetsMake(0, 25, 0, 25);
+    _settings.contentInset = UIEdgeInsetsZero;
+    _settings.customViewInset = UIEdgeInsetsMake(5, 15, 20, 15);
+    _settings.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    if ([segue.identifier isEqualToString:@"settings"]) {
+        SettingViewController *settingViewController = (SettingViewController *)(((UINavigationController *)segue.destinationViewController).topViewController);
+        settingViewController.delegate = self;
+    }
+    
+    [super prepareForSegue:segue sender:sender];
 }
 #pragma mark - UITableViewDelegate.
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -209,10 +239,37 @@
     
     [self presentViewController:alert animated:YES completion:NULL];
 }
+
+#pragma mark - SettingViewControllerDelegate.
+- (SettingModel *)originalSettingModel { return _settings; }
+- (void)settingViewControllerDidFinishConfiguring:(SettingModel *)settingModel {
+    _settings = settingModel;
+}
+
 #pragma mark - Private.
 - (AXAlertController *)_normalAlertController {
     AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
+    // Set up alert.
+    alert.alertView.translucent = _settings.translucent;
+    alert.alertView.translucentStyle = _settings.translucentStyle;
+    alert.alertView.hidesOnTouch = _settings.hidesOnTouch;
+    alert.alertView.showsSeparators = _settings.showsSeparators;
+    alert.alertView.padding = _settings.padding;
+    alert.alertView.verticalOffset = _settings.verticalOffset;
+    alert.alertView.opacity = _settings.opacity;
+    alert.alertView.maxAllowedWidth = _settings.maxAllowedWidth;
+    alert.alertView.cornerRadius = _settings.cornerRadius;
+    alert.alertView.actionItemPadding = _settings.actionPadding;
+    alert.alertView.actionItemMargin = _settings.actionMargin;
+    alert.alertView.preferedMargin = _settings.preferedMargin;
+    alert.alertView.contentInset = _settings.contentInset;
+    alert.alertView.customViewInset = _settings.customViewInset;
+    alert.alertView.titleInset = _settings.titleInset;
+    
     [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+        config.translucent = _settings.actionTranslucent;
+        config.translucentStyle = _settings.actionTranslucentStyle;
+        
         config.preferedHeight = 44.0;
         config.backgroundColor = [UIColor whiteColor];
         config.font = [UIFont boldSystemFontOfSize:17];
@@ -220,6 +277,9 @@
         config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
     }];
     [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+        config.translucent = _settings.actionTranslucent;
+        config.translucentStyle = _settings.actionTranslucentStyle;
+        
         config.font = [UIFont systemFontOfSize:17];
         config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
     }];

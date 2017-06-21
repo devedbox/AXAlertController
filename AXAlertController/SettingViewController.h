@@ -9,7 +9,15 @@
 #import <UIKit/UIKit.h>
 #import "AXAlertController.h"
 
+@class SettingViewController;
+@class SettingModel;
+@protocol SettingViewControllerDelegate
+- (SettingModel *)originalSettingModel;
+- (void)settingViewControllerDidFinishConfiguring:(SettingModel *)settingModel;
+@end
+
 @interface SettingViewController : UITableViewController
+@property(assign, nonatomic) id<SettingViewControllerDelegate> delegate;
 @end
 
 @interface SettingModel: NSObject

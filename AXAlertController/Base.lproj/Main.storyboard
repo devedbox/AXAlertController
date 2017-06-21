@@ -660,7 +660,7 @@
                     <navigationItem key="navigationItem" title="AXAlertController" id="nIO-7t-n0x">
                         <barButtonItem key="rightBarButtonItem" image="more" id="6CC-Cb-PQk">
                             <connections>
-                                <segue destination="eIq-V8-cMo" kind="showDetail" id="4eV-HB-P7g"/>
+                                <segue destination="eIq-V8-cMo" kind="showDetail" identifier="settings" id="4eV-HB-P7g"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
@@ -722,8 +722,8 @@
                                                 <segmentedControl opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="255" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="Jbb-iq-0l6">
                                                     <rect key="frame" x="269" y="7" width="91" height="29"/>
                                                     <segments>
-                                                        <segment title="Dark"/>
                                                         <segment title="Light"/>
+                                                        <segment title="Dark"/>
                                                     </segments>
                                                 </segmentedControl>
                                             </subviews>
@@ -1144,8 +1144,8 @@
                                                 <segmentedControl opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="255" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="US7-Dd-Sy6">
                                                     <rect key="frame" x="269" y="7" width="91" height="29"/>
                                                     <segments>
-                                                        <segment title="Dark"/>
                                                         <segment title="Light"/>
+                                                        <segment title="Dark"/>
                                                     </segments>
                                                 </segmentedControl>
                                             </subviews>

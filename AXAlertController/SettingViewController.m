@@ -12,6 +12,8 @@
 @end
 
 @interface SettingViewController ()
+/// Setting model.
+@property(strong, nonatomic) SettingModel *settings;
 /// Translucent of alert.
 @property(weak, nonatomic) IBOutlet UISwitch *alertTranslucentSwitch;
 /// Hides on touch.
@@ -111,6 +113,70 @@
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(done:)];
+    
+    if (_delegate) {
+        _settings = [_delegate originalSettingModel];
+    } else {
+        _settings = [SettingModel new];
+    }
+    
+    [_alertTranslucentSwitch setOn:_settings.translucent];
+    [_alertTranslucentStyleControl setSelectedSegmentIndex:_settings.translucentStyle];
+    [_hidesOnTouchSwitch setOn:_settings.hidesOnTouch];
+    [_showsSeparatorsSwitch setOn:_settings.showsSeparators];
+    [_paddingSlider setValue:_settings.padding];
+    [_paddingSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_verticalOffsetSlider setValue:_settings.verticalOffset];
+    [_verticalOffsetSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_opacitySlider setValue:_settings.opacity];
+    [_opacitySlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_maxAllowedWidthSlider setValue:_settings.maxAllowedWidth];
+    [_maxAllowedWidthSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_cornerRadiusSlider setValue:_settings.cornerRadius];
+    [_cornerRadiusSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    
+    [_actionTranslucentSwitch setOn:_settings.actionTranslucent];
+    [_actionTranslucentStyleControl setSelectedSegmentIndex:_settings.actionTranslucentStyle];
+    [_actionPaddingSlider setValue:_settings.actionPadding];
+    [_actionPaddingSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_actionMarginSlider setValue:_settings.actionMargin];
+    [_actionMarginSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    
+    [_preferedMarginTopSlider setValue:_settings.preferedMargin.top];
+    [_preferedMarginTopSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_preferedMarginLeftSlider setValue:_settings.preferedMargin.left];
+    [_preferedMarginLeftSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_preferedMarginBottomSlider setValue:_settings.preferedMargin.bottom];
+    [_preferedMarginBottomSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_preferedMarginRightSlider setValue:_settings.preferedMargin.right];
+    [_preferedMarginRightSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    
+    [_contentInsetTopSlider setValue:_settings.contentInset.top];
+    [_contentInsetTopSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_contentInsetLeftSlider setValue:_settings.contentInset.left];
+    [_contentInsetLeftSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_contentInsetBottomSlider setValue:_settings.contentInset.bottom];
+    [_contentInsetBottomSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_contentInsetRightSlider setValue:_settings.contentInset.right];
+    [_contentInsetRightSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    
+    [_customInsetTopSlider setValue:_settings.customViewInset.top];
+    [_customInsetTopSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_customInsetLeftSlider setValue:_settings.customViewInset.left];
+    [_customInsetLeftSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_customInsetBottomSlider setValue:_settings.customViewInset.bottom];
+    [_customInsetBottomSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_customInsetRightSlider setValue:_settings.customViewInset.right];
+    [_customInsetRightSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    
+    [_titleInsetTopSlider setValue:_settings.titleInset.top];
+    [_titleInsetTopSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_titleInsetLeftSlider setValue:_settings.titleInset.left];
+    [_titleInsetLeftSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_titleInsetBottomSlider setValue:_settings.titleInset.bottom];
+    [_titleInsetBottomSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_titleInsetRightSlider setValue:_settings.titleInset.right];
+    [_titleInsetRightSlider sendActionsForControlEvents:UIControlEventValueChanged];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -120,6 +186,29 @@
 
 #pragma mark - Actions.
 - (IBAction)done:(id)sender {
+    if (_delegate) {
+        _settings.translucent = _alertTranslucentSwitch.isOn;
+        _settings.translucentStyle = _alertTranslucentStyleControl.selectedSegmentIndex;
+        _settings.hidesOnTouch = _hidesOnTouchSwitch.isOn;
+        _settings.showsSeparators = _showsSeparatorsSwitch.isOn;
+        _settings.padding = _paddingSlider.value;
+        _settings.verticalOffset = _verticalOffsetSlider.value;
+        _settings.opacity = _opacitySlider.value;
+        _settings.maxAllowedWidth = _maxAllowedWidthSlider.value;
+        _settings.cornerRadius = _cornerRadiusSlider.value;
+        
+        _settings.actionTranslucent = _actionTranslucentSwitch.isOn;
+        _settings.actionTranslucentStyle = _actionTranslucentStyleControl.selectedSegmentIndex;
+        _settings.actionPadding = _actionPaddingSlider.value;
+        _settings.actionMargin = _actionMarginSlider.value;
+        
+        _settings.preferedMargin = UIEdgeInsetsMake(_preferedMarginTopSlider.value, _preferedMarginLeftSlider.value, _preferedMarginBottomSlider.value, _preferedMarginRightSlider.value);
+        _settings.contentInset = UIEdgeInsetsMake(_contentInsetTopSlider.value, _contentInsetLeftSlider.value, _contentInsetBottomSlider.value, _contentInsetRightSlider.value);
+        _settings.customViewInset = UIEdgeInsetsMake(_customInsetTopSlider.value, _customInsetLeftSlider.value, _customInsetBottomSlider.value, _customInsetRightSlider.value);
+        _settings.titleInset = UIEdgeInsetsMake(_titleInsetTopSlider.value, _titleInsetLeftSlider.value, _titleInsetBottomSlider.value, _titleInsetRightSlider.value);
+        
+        [_delegate settingViewControllerDidFinishConfiguring:_settings];
+    }
     [self dismissViewControllerAnimated:YES completion:NULL];
 }
 
