@@ -84,7 +84,7 @@
         case 3: {// With image and single textfield.
             [self showWithImageAndSingleTextfield:cell];
         } break;
-        case 4: {
+        case 4: {// With multiple text fields.
             [self showWithMultipleTextfields:cell];
         } break;
         case 5: {// With multiple actions.
