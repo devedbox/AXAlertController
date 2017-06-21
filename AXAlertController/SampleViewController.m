@@ -196,6 +196,9 @@
     }];
     for (int i = 0; i<4; i++) {
         [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+            config.translucent = _settings.actionTranslucent;
+            config.translucentStyle = _settings.actionTranslucentStyle;
+            
             config.font = [UIFont systemFontOfSize:17];
             config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
         }];
@@ -216,6 +219,9 @@
     }
     for (int i = 0; i < 3; i++) {
         [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+            config.translucent = _settings.actionTranslucent;
+            config.translucentStyle = _settings.actionTranslucentStyle;
+            
             config.font = [UIFont systemFontOfSize:17];
             config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
         }];
