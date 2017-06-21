@@ -47,6 +47,12 @@
 /// Padding slider.
 @property(weak, nonatomic) IBOutlet UISlider *actionMarginSlider;
 @property(weak, nonatomic) IBOutlet UILabel *actionMarginValueLabel;
+/// Corner radius slider.
+@property(weak, nonatomic) IBOutlet UISlider *actionCornerRadiusSlider;
+@property(weak, nonatomic) IBOutlet UILabel *actionCornerRadiusValueLabel;
+/// Height slider.
+@property(weak, nonatomic) IBOutlet UISlider *actionHeightSlider;
+@property(weak, nonatomic) IBOutlet UILabel *actionHeightValueLabel;
 #pragma mark - Prefered margin.
 /// Content top slider.
 @property(weak, nonatomic) IBOutlet UISlider *preferedMarginTopSlider;
@@ -141,6 +147,10 @@
     [_actionPaddingSlider sendActionsForControlEvents:UIControlEventValueChanged];
     [_actionMarginSlider setValue:_settings.actionMargin];
     [_actionMarginSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_actionCornerRadiusSlider setValue:_settings.actionCornerRadius];
+    [_actionCornerRadiusSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_actionHeightSlider setValue:_settings.actionHeight];
+    [_actionHeightSlider sendActionsForControlEvents:UIControlEventValueChanged];
     
     [_preferedMarginTopSlider setValue:_settings.preferedMargin.top];
     [_preferedMarginTopSlider sendActionsForControlEvents:UIControlEventValueChanged];
@@ -201,6 +211,8 @@
         _settings.actionTranslucentStyle = _actionTranslucentStyleControl.selectedSegmentIndex;
         _settings.actionPadding = _actionPaddingSlider.value;
         _settings.actionMargin = _actionMarginSlider.value;
+        _settings.actionCornerRadius = _actionCornerRadiusSlider.value;
+        _settings.actionHeight = _actionHeightSlider.value;
         
         _settings.preferedMargin = UIEdgeInsetsMake(_preferedMarginTopSlider.value, _preferedMarginLeftSlider.value, _preferedMarginBottomSlider.value, _preferedMarginRightSlider.value);
         _settings.contentInset = UIEdgeInsetsMake(_contentInsetTopSlider.value, _contentInsetLeftSlider.value, _contentInsetBottomSlider.value, _contentInsetRightSlider.value);
@@ -238,6 +250,16 @@
 
 - (IBAction)handleActionMarginSlider:(UISlider *)sender {
     [_actionMarginValueLabel setText:[NSString stringWithFormat:@"%.2f", sender.value]];
+}
+
+- (IBAction)handleActionCornerRadiusSlider:(UISlider *)sender {
+    [_actionCornerRadiusValueLabel setText:[NSString stringWithFormat:@"%.2f", sender.value]];
+}
+
+- (IBAction)handleActionHeightSlider:(UISlider *)sender {
+    [_actionCornerRadiusSlider setMaximumValue:sender.value];
+    [_actionCornerRadiusSlider sendActionsForControlEvents:UIControlEventValueChanged];
+    [_actionHeightValueLabel setText:[NSString stringWithFormat:@"%.2f", sender.value]];
 }
 
 #pragma mark - Prefered Margin.

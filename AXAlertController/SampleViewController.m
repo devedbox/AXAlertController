@@ -190,6 +190,9 @@
                 config.backgroundColor = [UIColor whiteColor];
                 config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
             }
+            
+            config.cornerRadius = _settings.actionCornerRadius;
+            config.preferedHeight = _settings.actionHeight;
         }];
     }
     [self presentViewController:alert animated:YES completion:NULL];
@@ -219,6 +222,9 @@
                 config.backgroundColor = [UIColor whiteColor];
                 config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
             }
+            
+            config.cornerRadius = _settings.actionCornerRadius;
+            config.preferedHeight = _settings.actionHeight;
         }];
     }
     [self presentViewController:alert animated:YES completion:NULL];
@@ -263,6 +269,8 @@
     _settings.actionTranslucentStyle = AXAlertViewTranslucentLight;
     _settings.actionPadding = 0.0;
     _settings.actionMargin = 0.0;
+    _settings.actionCornerRadius = 0.0;
+    _settings.actionHeight = 44.0;
     _settings.preferedMargin = UIEdgeInsetsMake(0, 25, 0, 25);
     _settings.contentInset = UIEdgeInsetsZero;
     _settings.customViewInset = UIEdgeInsetsMake(5, 15, 20, 15);
@@ -301,7 +309,6 @@
         config.translucent = _settings.actionTranslucent;
         config.translucentStyle = _settings.actionTranslucentStyle;
         
-        config.preferedHeight = 44.0;
         if (_settings.actionTranslucentStyle == AXAlertViewTranslucentDark) {
             config.backgroundColor = [UIColor grayColor];
             config.tintColor = [UIColor whiteColor];
@@ -310,7 +317,9 @@
             config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
         }
         config.font = [UIFont boldSystemFontOfSize:17];
-        config.cornerRadius = .0;
+        
+        config.cornerRadius = _settings.actionCornerRadius;
+        config.preferedHeight = _settings.actionHeight;
     }];
     [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.translucent = _settings.actionTranslucent;
@@ -324,6 +333,9 @@
             config.backgroundColor = [UIColor whiteColor];
             config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
         }
+        
+        config.cornerRadius = _settings.actionCornerRadius;
+        config.preferedHeight = _settings.actionHeight;
     }];
     return alert;
 }
