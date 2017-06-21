@@ -69,24 +69,7 @@
     backgroundView.contentMode = UIViewContentModeScaleAspectFill;
     self.tableView.backgroundView = backgroundView;
     
-    _settings = [SettingModel new];
-    _settings.translucent = YES;
-    _settings.translucentStyle = AXAlertViewTranslucentLight;
-    _settings.hidesOnTouch = NO;
-    _settings.showsSeparators = YES;
-    _settings.padding = 0.0;
-    _settings.verticalOffset = 0.0;
-    _settings.opacity = 0.0;
-    _settings.maxAllowedWidth = 270;
-    _settings.cornerRadius = 12.0;
-    _settings.actionTranslucent = YES;
-    _settings.actionTranslucentStyle = AXAlertViewTranslucentLight;
-    _settings.actionPadding = 0.0;
-    _settings.actionMargin = 0.0;
-    _settings.preferedMargin = UIEdgeInsetsMake(0, 25, 0, 25);
-    _settings.contentInset = UIEdgeInsetsZero;
-    _settings.customViewInset = UIEdgeInsetsMake(5, 15, 20, 15);
-    _settings.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
+    [self _resetSettings:nil];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
@@ -265,6 +248,27 @@
 }
 
 #pragma mark - Private.
+- (IBAction)_resetSettings:(id)sender {
+    _settings = [SettingModel new];
+    _settings.translucent = YES;
+    _settings.translucentStyle = AXAlertViewTranslucentLight;
+    _settings.hidesOnTouch = NO;
+    _settings.showsSeparators = YES;
+    _settings.padding = 0.0;
+    _settings.verticalOffset = 0.0;
+    _settings.opacity = 0.0;
+    _settings.maxAllowedWidth = 270;
+    _settings.cornerRadius = 12.0;
+    _settings.actionTranslucent = YES;
+    _settings.actionTranslucentStyle = AXAlertViewTranslucentLight;
+    _settings.actionPadding = 0.0;
+    _settings.actionMargin = 0.0;
+    _settings.preferedMargin = UIEdgeInsetsMake(0, 25, 0, 25);
+    _settings.contentInset = UIEdgeInsetsZero;
+    _settings.customViewInset = UIEdgeInsetsMake(5, 15, 20, 15);
+    _settings.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
+}
+
 - (AXAlertController *)_normalAlertController {
     AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
     // Set up alert.
