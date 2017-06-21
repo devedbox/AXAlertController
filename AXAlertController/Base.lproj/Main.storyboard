@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13122.17" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="KDV-MW-Grq">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12121" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="KDV-MW-Grq">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13104.14"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12089"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -656,11 +656,60 @@
                             <outlet property="delegate" destination="lKO-u2-V5x" id="Gsb-Hu-TTC"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="AXAlertController" id="nIO-7t-n0x"/>
+                    <navigationItem key="navigationItem" title="AXAlertController" id="nIO-7t-n0x">
+                        <barButtonItem key="rightBarButtonItem" image="more" id="6CC-Cb-PQk">
+                            <connections>
+                                <segue destination="eIq-V8-cMo" kind="showDetail" id="4eV-HB-P7g"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Ggh-dp-fdK" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="-1396" y="821.73913043478262"/>
+        </scene>
+        <!--Setting-->
+        <scene sceneID="Rfb-ft-qkq">
+            <objects>
+                <tableViewController id="87Q-Y3-uGG" customClass="SettingViewController" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="fVb-Rg-9Q8">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="IFn-5I-fAG">
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="IFn-5I-fAG" id="JZN-PB-5xg">
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableViewCellContentView>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="87Q-Y3-uGG" id="BYU-Ao-6Jb"/>
+                            <outlet property="delegate" destination="87Q-Y3-uGG" id="cLI-Tj-FwJ"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Setting" id="eNp-F7-JIz"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Akn-mD-55E" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="209" y="823"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="e22-qe-OLZ">
+            <objects>
+                <navigationController id="eIq-V8-cMo" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="SZb-CN-3oe">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="87Q-Y3-uGG" kind="relationship" relationship="rootViewController" id="xNk-uI-l5G"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="yQb-ny-KPY" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-745" y="823"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="JYo-6P-b0o">
@@ -680,6 +729,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="more" width="20" height="4"/>
         <image name="state" width="44" height="44"/>
     </resources>
 </document>
