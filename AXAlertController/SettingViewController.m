@@ -8,6 +8,9 @@
 
 #import "SettingViewController.h"
 
+@implementation SettingModel
+@end
+
 @interface SettingViewController ()
 /// Translucent of alert.
 @property(weak, nonatomic) IBOutlet UISwitch *alertTranslucentSwitch;
