@@ -275,35 +275,33 @@
     _settings.contentInset = UIEdgeInsetsZero;
     _settings.customViewInset = UIEdgeInsetsMake(5, 15, 20, 15);
     _settings.titleInset = UIEdgeInsetsMake(20, 16, 0, 16);
+    
+    if (sender != nil) {
+        AXAlertController *alert = [self _alertController];
+        alert.title = @"Notice";
+        alert.message = @"Settings has been reset.";
+        [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
+            config.translucent = _settings.actionTranslucent;
+            config.translucentStyle = _settings.actionTranslucentStyle;
+            
+            config.font = [UIFont systemFontOfSize:17];
+            if (_settings.actionTranslucentStyle == AXAlertViewTranslucentDark) {
+                config.backgroundColor = [UIColor grayColor];
+                config.tintColor = [UIColor whiteColor];
+            } else {
+                config.backgroundColor = [UIColor whiteColor];
+                config.tintColor = [UIColor colorWithRed:0 green:0.48 blue:1 alpha:1];
+            }
+            
+            config.cornerRadius = _settings.actionCornerRadius;
+            config.preferredHeight = _settings.actionHeight;
+        }];
+        [self presentViewController:alert animated:YES completion:NULL];
+    }
 }
 
 - (AXAlertController *)_normalAlertController {
-    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
-    // Set up alert.
-    alert.alertView.translucent = _settings.translucent;
-    alert.alertView.translucentStyle = _settings.translucentStyle;
-    if (_settings.translucentStyle == AXAlertViewTranslucentDark) {
-        alert.alertView.backgroundColor = [UIColor grayColor];
-        alert.alertView.titleColor = [UIColor whiteColor];
-        [alert setValue:[UIColor whiteColor] forKeyPath:@"contentView.contentLabel.textColor"];
-    } else {
-        alert.alertView.backgroundColor = [UIColor whiteColor];
-        alert.alertView.titleColor = [UIColor blackColor];
-        [alert setValue:[UIColor darkTextColor] forKeyPath:@"contentView.contentLabel.textColor"];
-    }
-    alert.alertView.hidesOnTouch = _settings.hidesOnTouch;
-    alert.alertView.showsSeparators = _settings.showsSeparators;
-    alert.alertView.padding = _settings.padding;
-    alert.alertView.verticalOffset = _settings.verticalOffset;
-    alert.alertView.opacity = _settings.opacity;
-    alert.alertView.maxAllowedWidth = _settings.maxAllowedWidth;
-    alert.alertView.cornerRadius = _settings.cornerRadius;
-    alert.alertView.actionItemPadding = _settings.actionPadding;
-    alert.alertView.actionItemMargin = _settings.actionMargin;
-    alert.alertView.preferredMargin = _settings.preferedMargin;
-    alert.alertView.contentInset = _settings.contentInset;
-    alert.alertView.customViewInset = _settings.customViewInset;
-    alert.alertView.titleInset = _settings.titleInset;
+    AXAlertController *alert = [self _alertController];
     
     [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.translucent = _settings.actionTranslucent;
@@ -337,6 +335,36 @@
         config.cornerRadius = _settings.actionCornerRadius;
         config.preferredHeight = _settings.actionHeight;
     }];
+    return alert;
+}
+
+- (AXAlertController *)_alertController {
+    AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
+    // Set up alert.
+    alert.alertView.translucent = _settings.translucent;
+    alert.alertView.translucentStyle = _settings.translucentStyle;
+    if (_settings.translucentStyle == AXAlertViewTranslucentDark) {
+        alert.alertView.backgroundColor = [UIColor grayColor];
+        alert.alertView.titleColor = [UIColor whiteColor];
+        [alert setValue:[UIColor whiteColor] forKeyPath:@"contentView.contentLabel.textColor"];
+    } else {
+        alert.alertView.backgroundColor = [UIColor whiteColor];
+        alert.alertView.titleColor = [UIColor blackColor];
+        [alert setValue:[UIColor darkTextColor] forKeyPath:@"contentView.contentLabel.textColor"];
+    }
+    alert.alertView.hidesOnTouch = _settings.hidesOnTouch;
+    alert.alertView.showsSeparators = _settings.showsSeparators;
+    alert.alertView.padding = _settings.padding;
+    alert.alertView.verticalOffset = _settings.verticalOffset;
+    alert.alertView.opacity = _settings.opacity;
+    alert.alertView.maxAllowedWidth = _settings.maxAllowedWidth;
+    alert.alertView.cornerRadius = _settings.cornerRadius;
+    alert.alertView.actionItemPadding = _settings.actionPadding;
+    alert.alertView.actionItemMargin = _settings.actionMargin;
+    alert.alertView.preferredMargin = _settings.preferedMargin;
+    alert.alertView.contentInset = _settings.contentInset;
+    alert.alertView.customViewInset = _settings.customViewInset;
+    alert.alertView.titleInset = _settings.titleInset;
     return alert;
 }
 
