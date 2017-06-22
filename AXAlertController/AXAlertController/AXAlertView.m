@@ -280,8 +280,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _actionItemMargin = .0;
     _horizontalLimits = 2;
     _opacity = 0.4;
-    _preferedHeight = .0;
-    _preferedMargin = UIEdgeInsetsMake(40, 40, 40, 40);
+    _preferredHeight = .0;
+    _preferredMargin = UIEdgeInsetsMake(40, 40, 40, 40);
     _maxAllowedWidth = 270;
     _cornerRadius = 6;
     _actionConfiguration = [[AXAlertViewActionConfiguration alloc] init];
@@ -289,7 +289,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _actionConfiguration.tintColor = [UIColor whiteColor];
     _actionConfiguration.font = [UIFont boldSystemFontOfSize:15];
     _actionConfiguration.cornerRadius = 4;
-    _actionConfiguration.preferedHeight = 44.0;
+    _actionConfiguration.preferredHeight = 44.0;
     _actionConfiguration.translucent = YES;
     _verticalOffset = 0.0;
     
@@ -394,8 +394,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (![[self class] usingAutolayout]) {
         // Get the current frame of SELF.
         CGRect currentFrame = self.frame;
-        CGFloat widthOfContainer = MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth);
-        // Initialize a CGSize struct of custom view and title label using the current frame and prefered magin and the insets.
+        CGFloat widthOfContainer = MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferredMargin), _maxAllowedWidth);
+        // Initialize a CGSize struct of custom view and title label using the current frame and preferred magin and the insets.
         CGSize sizeOfCustomView = CGSizeMake(widthOfContainer - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_customViewInset), 0);
         CGSize sizeOfTitleLabel = CGSizeMake(widthOfContainer - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_titleInset), 0);
         // Calculate size of title label.
@@ -450,31 +450,31 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                     } else {
                         heightOfContainer += _actionItemPadding;
                     }
-                    heightOfContainer += /*0.5+ */config.preferedHeight;
-                    heightOfItems += /*0.5+ */config.preferedHeight;
+                    heightOfContainer += /*0.5+ */config.preferredHeight;
+                    heightOfItems += /*0.5+ */config.preferredHeight;
                 }
             }
         } else {
             if (_actionConfig.count < _actionItems.count) {
-                heightOfItems = MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue], _actionConfiguration.preferedHeight);
+                heightOfItems = MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue], _actionConfiguration.preferredHeight);
             } else {
-                heightOfItems = [[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue];
+                heightOfItems = [[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue];
             }
             heightOfContainer += _padding;
             heightOfContainer += /*0.5+ */heightOfItems;
         }
         heightOfContainer += _contentInset.bottom;
         
-        heightOfContainer = MAX(heightOfContainer, _preferedHeight);
+        heightOfContainer = MAX(heightOfContainer, _preferredHeight);
         
-        CGFloat preferedLeftMargin = CGRectGetWidth(currentFrame)*.5-_maxAllowedWidth*.5;
+        CGFloat preferredLeftMargin = CGRectGetWidth(currentFrame)*.5-_maxAllowedWidth*.5;
         // Frame of container view.
         CGRect rect_container = _containerView.frame;
-        rect_container.origin.x = MAX(_preferedMargin.left, preferedLeftMargin);
+        rect_container.origin.x = MAX(_preferredMargin.left, preferredLeftMargin);
         
-        if (heightOfContainer > CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)) { // Too large to show.
-            rect_container.origin.y = _preferedMargin.top;
-            rect_container.size = CGSizeMake(widthOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin));
+        if (heightOfContainer > CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferredMargin)) { // Too large to show.
+            rect_container.origin.y = _preferredMargin.top;
+            rect_container.size = CGSizeMake(widthOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferredMargin));
             _containerView.frame = rect_container;
             // Enabled the scroll of the content container view.
             _contentContainerView.scrollEnabled = YES;
@@ -484,14 +484,14 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _effectView.frame = CGRectMake(0, 0, CGRectGetWidth(_containerView.frame), heightOfContainer);
         } else {
             if (_verticalOffset == kAXAlertVertivalOffsetPinToTop) {
-                rect_container.origin.y = _preferedMargin.top;
+                rect_container.origin.y = _preferredMargin.top;
             } else if (_verticalOffset == kAXAlertVertivalOffsetPinToBottom) {
-                rect_container.origin.y = CGRectGetHeight(currentFrame) - _preferedMargin.bottom - MIN(heightOfContainer, CGRectGetHeight(currentFrame));
+                rect_container.origin.y = CGRectGetHeight(currentFrame) - _preferredMargin.bottom - MIN(heightOfContainer, CGRectGetHeight(currentFrame));
             } else {
-                rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin))*.5+_verticalOffset;
+                rect_container.origin.y = CGRectGetHeight(currentFrame)*.5-MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferredMargin))*.5+_verticalOffset;
             }
             
-            rect_container.size = CGSizeMake(widthOfContainer, MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferedMargin)));
+            rect_container.size = CGSizeMake(widthOfContainer, MIN(heightOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferredMargin)));
             _containerView.frame = rect_container;
             // Disable the scroll of the content container view.
             _contentContainerView.scrollEnabled = NO;
@@ -984,24 +984,24 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self _setupContentImageOfDimmingView];
 }
 
-- (void)setPreferedHeight:(CGFloat)preferedHeight {
-    _preferedHeight = preferedHeight;
+- (void)setPreferredHeight:(CGFloat)preferredHeight {
+    _preferredHeight = preferredHeight;
 
     if ([[self class] usingAutolayout]) {
-        _heightOfContainer.constant = _preferedHeight;
+        _heightOfContainer.constant = _preferredHeight;
     }
 
     [self configureCustomView];
 }
 
-- (void)setPreferedMargin:(AXEdgeMargins)preferedMargin {
-    _preferedMargin = preferedMargin;
+- (void)setPreferredMargin:(AXEdgeMargins)preferredMargin {
+    _preferredMargin = preferredMargin;
     
     if ([[self class] usingAutolayout]) {
-        _leadingOfContainer.constant = -_preferedMargin.left;
-        _trailingOfContainer.constant = _preferedMargin.right;
-        _topOfContainer.constant = -_preferedMargin.top;
-        _bottomOfContainer.constant = _preferedMargin.bottom;
+        _leadingOfContainer.constant = -_preferredMargin.left;
+        _trailingOfContainer.constant = _preferredMargin.right;
+        _topOfContainer.constant = -_preferredMargin.top;
+        _bottomOfContainer.constant = _preferredMargin.bottom;
         
         [self _updateContraintsOfContainer];
     }
@@ -1222,7 +1222,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             if ([[self class] usingAutolayout]) {
                 if (updateContraints) {
                     [object setTranslatesAutoresizingMaskIntoConstraints:NO];
-                    [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+                    [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferredHeight]];
                     
                     [_stackView addArrangedSubview:object];
                 }
@@ -1234,7 +1234,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                     UIView *lastItem = _actionButtons[i-1];
                     beginContext = CGRectGetMaxY(lastItem.frame) + _actionItemPadding;
                 }
-                [object setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferedHeight)];
+                [object setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferredHeight)];
                 [self.contentContainerView addSubview:object];
             }
             
@@ -1293,11 +1293,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             if ([[self class] usingAutolayout]) {
                 if (updateContraints) {
                     [object setTranslatesAutoresizingMaskIntoConstraints:NO];
-                    [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferedHeight]];
+                    [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferredHeight]];
                     [_stackView addArrangedSubview:object];
                 }
             } else {
-                [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding, buttonWidth, config.preferedHeight)];
+                [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding, buttonWidth, config.preferredHeight)];
                 [self.contentContainerView addSubview:object];
             }
             
@@ -1401,7 +1401,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                     toItem:_containerView
                                  attribute:NSLayoutAttributeLeading
                                 multiplier:1.0
-                                  constant:-_preferedMargin.left];
+                                  constant:-_preferredMargin.left];
     NSLayoutConstraint *trailingOfContainer =
     [NSLayoutConstraint constraintWithItem:self
                                  attribute:NSLayoutAttributeTrailing
@@ -1409,7 +1409,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                     toItem:_containerView
                                  attribute:NSLayoutAttributeTrailing
                                 multiplier:1.0
-                                  constant:_preferedMargin.right];
+                                  constant:_preferredMargin.right];
     NSLayoutConstraint *widthOfContainer =
     [NSLayoutConstraint constraintWithItem:_containerView
                                  attribute:NSLayoutAttributeWidth
@@ -1441,7 +1441,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                     toItem:_containerView
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0
-                                  constant:-_preferedMargin.top];
+                                  constant:-_preferredMargin.top];
     topOfContainer.priority = UILayoutPriorityDefaultHigh;
     NSLayoutConstraint *bottomOfContainer =
     [NSLayoutConstraint constraintWithItem:self
@@ -1450,7 +1450,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                     toItem:_containerView
                                  attribute:NSLayoutAttributeBottom
                                 multiplier:1.0
-                                  constant:_preferedMargin.bottom];
+                                  constant:_preferredMargin.bottom];
     bottomOfContainer.priority = UILayoutPriorityDefaultHigh;
     [self addConstraints:@[leadingOfContainer, trailingOfContainer, centerYOfContainer, centerXOfContainer, widthOfContainer, topOfContainer, bottomOfContainer]];
     
@@ -1714,7 +1714,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (_titleLabel.numberOfLines == 0) {
         heightOfTitle = ceil(_titleLabel.font.lineHeight);
     } else {
-        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
+        CGSize size = [_titleLabel.text boundingRectWithSize:CGSizeMake(MIN(CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferredMargin), _maxAllowedWidth), CGFLOAT_MAX) options:NSStringDrawingUsesLineFragmentOrigin attributes:@{NSFontAttributeName: _titleLabel.font} context:NULL].size;
         heightOfTitle = ceil(size.height);
     }
     return heightOfTitle;
@@ -1790,7 +1790,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 /// Updating the contraints of container if needed. Configurations for the max alowed width.
 - (void)_updateContraintsOfContainer {
-    if (_maxAllowedWidth <= CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferedMargin)) {
+    if (_maxAllowedWidth <= CGRectGetWidth(self.bounds)-UIEdgeInsetsGetWidth(_preferredMargin)) {
         [NSLayoutConstraint deactivateConstraints:@[_leadingOfContainer, _trailingOfContainer]];
         [NSLayoutConstraint activateConstraints:@[_widthOfContainer, _centerXOfContainer]];
     } else {
@@ -1813,7 +1813,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                         toItem:_containerView
                                      attribute:NSLayoutAttributeTop
                                     multiplier:1.0
-                                      constant:-_preferedMargin.top];
+                                      constant:-_preferredMargin.top];
         [self addConstraint:topOfContainer];
         _topOfContainer = topOfContainer;
     } else if (_verticalOffset == kAXAlertVertivalOffsetPinToBottom) {
@@ -1829,7 +1829,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                         toItem:_containerView
                                      attribute:NSLayoutAttributeBottom
                                     multiplier:1.0
-                                      constant:_preferedMargin.bottom];
+                                      constant:_preferredMargin.bottom];
         [self addConstraint:bottomOfContainer];
         _bottomOfContainer = bottomOfContainer;
     } else {
@@ -1912,7 +1912,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                     toItem:_containerView
                                  attribute:NSLayoutAttributeBottom
                                 multiplier:1.0
-                                  constant:_preferedMargin.bottom];
+                                  constant:_preferredMargin.bottom];
     bottomOfContainer.priority = UILayoutPriorityDefaultHigh;
     [self addConstraint:bottomOfContainer];
     _bottomOfContainer = bottomOfContainer;
@@ -1923,7 +1923,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                                     toItem:_containerView
                                  attribute:NSLayoutAttributeTop
                                 multiplier:1.0
-                                  constant:-_preferedMargin.top];
+                                  constant:-_preferredMargin.top];
     topOfContainer.priority = UILayoutPriorityDefaultHigh;
     [self addConstraint:topOfContainer];
     _topOfContainer = topOfContainer;
@@ -2309,7 +2309,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)_getHeightOfContentView:(CGFloat *)height flag:(CGFloat *)flag withContentSize:(CGSize)contentSize {
     CGFloat _height = MAX(contentSize.height, 0.0);
-    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferedMargin)-([self _calculatedHeightOfTitleLabel]+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
+    CGFloat _maxAllowed = CGRectGetHeight(self.bounds)-UIEdgeInsetsGetHeight(_preferredMargin)-([self _calculatedHeightOfTitleLabel]+UIEdgeInsetsGetHeight(_titleInset)+UIEdgeInsetsGetHeight(_contentInset)+_padding+_customViewInset.top);
     
     CGFloat _flag = MAX(0.0, _maxAllowed);
     // _height = MIN(_height, _flag);
@@ -2348,7 +2348,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _customView.layer.mask = nil;
         }
     } else {
-        if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.bounds)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue], _actionConfiguration.preferedHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.bounds)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferedHeight"] floatValue]-_padding-_customViewInset.bottom;
+        if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.bounds)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue], _actionConfiguration.preferredHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.bounds)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue]-_padding-_customViewInset.bottom;
         
         if (heightOfScrollContent >= maxAllowedHeightOfScrollContent && _actionItems.count <= _horizontalLimits) {
             maskView(_customView, visibleHeight);
@@ -2602,7 +2602,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
         _separatorHeight = 0.5;
         _cornerRadius = 4;
-        _preferedHeight = 44.0;
+        _preferredHeight = 44.0;
         _translucent = YES;
         _translucentStyle = AXAlertViewTranslucentLight;
     }
@@ -2616,7 +2616,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     config.backgroundColor = [self.backgroundColor copy];
     config.separatorHeight = self.separatorHeight;
     config.cornerRadius = self.cornerRadius;
-    config.preferedHeight = self.preferedHeight;
+    config.preferredHeight = self.preferredHeight;
     config.translucent = self.translucent;
     config.translucentStyle = self.translucentStyle;
     return config;

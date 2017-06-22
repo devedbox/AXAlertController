@@ -72,7 +72,7 @@
     alertView.actionItemPadding = 0;
     alertView.titleLabel.numberOfLines = 0;
     alertView.hidesOnTouch = YES;
-    alertView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
+    alertView.preferredMargin = UIEdgeInsetsMake(52, 52, 52, 52);
     alertView.title = @"兑换申请已受理";
     UILabel *label = [UILabel new];
     label.font = [UIFont systemFontOfSize:14];
@@ -98,14 +98,14 @@
     
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor whiteColor];
-    cancelConfig.preferedHeight = 44;
+    cancelConfig.preferredHeight = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     // confirmConfig.backgroundColor = [UIColor blackColor];
     confirmConfig.backgroundColor = [UIColor whiteColor];
-    confirmConfig.preferedHeight = 44;
+    confirmConfig.preferredHeight = 44;
     confirmConfig.cornerRadius = .0;
     // confirmConfig.tintColor = [UIColor blackColor];
     confirmConfig.tintColor = [UIColor whiteColor];
@@ -135,18 +135,18 @@
     
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor whiteColor];
-    cancelConfig.preferedHeight = 44;
+    cancelConfig.preferredHeight = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     confirmConfig.backgroundColor = [UIColor whiteColor];
-    confirmConfig.preferedHeight = 44;
+    confirmConfig.preferredHeight = 44;
     confirmConfig.cornerRadius = .0;
     confirmConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
     
-    [alertView setPreferedMargin:UIEdgeInsetsMake(40, 40, 40, 40)];
+    [alertView setPreferredMargin:UIEdgeInsetsMake(40, 40, 40, 40)];
     // [alertView setPreferedHeight:14];
     [alertView setActionItemMargin:0];
     [alertView setActionItemPadding:0];
@@ -197,7 +197,7 @@
     AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
     // alert.image = [UIImage imageNamed:@"Image"];
     [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
-        config.preferedHeight = 44.0;
+        config.preferredHeight = 44.0;
         config.backgroundColor = [UIColor whiteColor];
         config.font = [UIFont boldSystemFontOfSize:17];
         config.cornerRadius = .0;
@@ -251,7 +251,7 @@
      [alertView appendActions:[AXAlertViewAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] image:nil handler:NULL], nil];
      AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
      confirmConfig.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
-     confirmConfig.preferedHeight = 50;
+     confirmConfig.preferredHeight = 50;
      confirmConfig.cornerRadius = .0;
      confirmConfig.tintColor = [UIColor whiteColor];
      // confirmConfig.tintColor = [UIColor blackColor];

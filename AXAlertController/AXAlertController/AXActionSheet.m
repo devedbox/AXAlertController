@@ -44,7 +44,7 @@
 - (void)initializer {
     [super initializer];
     super.horizontalLimits = 0;
-    super.preferedMargin = UIEdgeInsetsMake(64, 0, 0, 0);
+    super.preferredMargin = UIEdgeInsetsMake(64, 0, 0, 0);
     super.cornerRadius = .0;
     super.maxAllowedWidth = 10000.0;
     self.verticalOffset = kAXAlertVertivalOffsetPinToBottom;
@@ -256,7 +256,7 @@
 }
 
 - (void)setPreferedMargin:(AXEdgeMargins)preferedMargin {
-    [super setPreferedMargin:UIEdgeInsetsMake(preferedMargin.top, 0, 0, 0)];
+    [super setPreferredMargin:UIEdgeInsetsMake(preferedMargin.top, 0, 0, 0)];
 }
 
 - (void)setCornerRadius:(CGFloat)cornerRadius {
@@ -315,7 +315,7 @@
             }
             
             AXAlertViewPlaceholderActionConfiguration *config = [AXAlertViewPlaceholderActionConfiguration new];
-            config.preferedHeight = 10;
+            config.preferredHeight = 10;
             if (self.translucent) {
                 if (self.translucentStyle == AXAlertViewTranslucentLight) {
                     config.backgroundColor = [UIColor colorWithWhite:0.98 alpha:0.7];

@@ -192,7 +192,7 @@
             }
             
             config.cornerRadius = _settings.actionCornerRadius;
-            config.preferedHeight = _settings.actionHeight;
+            config.preferredHeight = _settings.actionHeight;
         }];
     }
     [self presentViewController:alert animated:YES completion:NULL];
@@ -224,7 +224,7 @@
             }
             
             config.cornerRadius = _settings.actionCornerRadius;
-            config.preferedHeight = _settings.actionHeight;
+            config.preferredHeight = _settings.actionHeight;
         }];
     }
     [self presentViewController:alert animated:YES completion:NULL];
@@ -300,7 +300,7 @@
     alert.alertView.cornerRadius = _settings.cornerRadius;
     alert.alertView.actionItemPadding = _settings.actionPadding;
     alert.alertView.actionItemMargin = _settings.actionMargin;
-    alert.alertView.preferedMargin = _settings.preferedMargin;
+    alert.alertView.preferredMargin = _settings.preferedMargin;
     alert.alertView.contentInset = _settings.contentInset;
     alert.alertView.customViewInset = _settings.customViewInset;
     alert.alertView.titleInset = _settings.titleInset;
@@ -319,7 +319,7 @@
         config.font = [UIFont boldSystemFontOfSize:17];
         
         config.cornerRadius = _settings.actionCornerRadius;
-        config.preferedHeight = _settings.actionHeight;
+        config.preferredHeight = _settings.actionHeight;
     }];
     [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.translucent = _settings.actionTranslucent;
@@ -335,7 +335,7 @@
         }
         
         config.cornerRadius = _settings.actionCornerRadius;
-        config.preferedHeight = _settings.actionHeight;
+        config.preferredHeight = _settings.actionHeight;
     }];
     return alert;
 }

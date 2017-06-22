@@ -700,7 +700,7 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
             _action.identifier = @"__cancel_ac";
             AXAlertViewActionConfiguration *cancel = [AXAlertViewActionConfiguration new];
             cancel.backgroundColor = [UIColor whiteColor];
-            cancel.preferedHeight = 44;
+            cancel.preferredHeight = 44;
             cancel.cornerRadius = .0;
             cancel.separatorHeight = .0;
             cancel.tintColor = [UIColor redColor];
@@ -787,12 +787,12 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     _alertContentView.actionItemMargin = 0;
     _alertContentView.actionItemPadding = 0;
     _alertContentView.titleLabel.numberOfLines = 0;
-    _alertContentView.preferedMargin = UIEdgeInsetsMake(0, 25, 0, 25);
+    _alertContentView.preferredMargin = UIEdgeInsetsMake(0, 25, 0, 25);
     _alertContentView.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _alertContentView.titleLabel.textColor = [UIColor blackColor];
     AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
     config.backgroundColor = [UIColor whiteColor];
-    config.preferedHeight = 44;
+    config.preferredHeight = 44;
     config.cornerRadius = .0;
     config.tintColor = [UIColor blackColor];
     config.font = [UIFont systemFontOfSize:16];
@@ -820,12 +820,12 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     _actionSheetContentView.actionItemMargin = 0;
     _actionSheetContentView.actionItemPadding = 0;
     _actionSheetContentView.titleLabel.numberOfLines = 0;
-    _actionSheetContentView.preferedMargin = UIEdgeInsetsMake(52, 52, 52, 52);
+    _actionSheetContentView.preferredMargin = UIEdgeInsetsMake(52, 52, 52, 52);
     _actionSheetContentView.titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _actionSheetContentView.titleLabel.textColor = [UIColor blackColor];
     AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
     config.backgroundColor = [UIColor whiteColor];
-    config.preferedHeight = 44;
+    config.preferredHeight = 44;
     config.cornerRadius = .0;
     config.tintColor = [UIColor blackColor];
     [_actionSheetContentView setActionConfiguration:config];

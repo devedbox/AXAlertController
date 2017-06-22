@@ -102,10 +102,10 @@ extern CGFloat const kAXAlertVertivalOffsetPinToBottom;
 @property(assign, nonatomic) NSInteger horizontalLimits UI_APPEARANCE_SELECTOR;
 /// Opacity of the dimed background. Value between [0, 1]. Defaults to 0.4.
 @property(assign, nonatomic) CGFloat opacity UI_APPEARANCE_SELECTOR;
-/// Content prefered height. Default is 0.
-@property(assign, nonatomic) CGFloat preferedHeight UI_APPEARANCE_SELECTOR __deprecated;
-/// Content prefered edge margin. Default is 40.
-@property(assign, nonatomic) AXEdgeMargins preferedMargin UI_APPEARANCE_SELECTOR;
+/// Content preferred height. Default is 0.
+@property(assign, nonatomic) CGFloat preferredHeight UI_APPEARANCE_SELECTOR __deprecated;
+/// Content preferred edge margin. Default is 40.
+@property(assign, nonatomic) AXEdgeMargins preferredMargin UI_APPEARANCE_SELECTOR;
 /// Max width of the alert view. Default is 270.
 @property(assign, nonatomic) CGFloat maxAllowedWidth UI_APPEARANCE_SELECTOR;
 /// Corner radius. Default is 6.
@@ -181,8 +181,8 @@ typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *__weak _Nonnull actio
 @property(assign, nonatomic) CGFloat separatorHeight;
 /// Corner radius.
 @property(assign, nonatomic) CGFloat cornerRadius;
-/// Prefered height. Only used for default configuration.
-@property(assign, nonatomic) CGFloat preferedHeight;
+/// preferred height. Only used for default configuration.
+@property(assign, nonatomic) CGFloat preferredHeight;
 /// Translucent. Defailts to YES.
 @property(assign, nonatomic) BOOL translucent;
 /// Translucent style. Defaults to Light.
