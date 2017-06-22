@@ -81,7 +81,7 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
 /// Overrides light effect.
 @property(assign, nonatomic) BOOL overridesLightStyle;
 @end
-@interface _AXAlertControllerContentView: UIView
+@interface _AXAlertControllerContentView: UIView <UITextFieldDelegate>
 /// Stack view for using autolayout.
 @property(strong, nonatomic) UIStackView *stackView;
 /// Content label.
@@ -381,6 +381,8 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     textField.font = [UIFont systemFontOfSize:13];
     textField.spellCheckingType = UITextSpellCheckingTypeNo;
     textField.autocorrectionType = UITextAutocorrectionTypeNo;
+    textField.returnKeyType = UIReturnKeyNext;
+    textField.delegate = self;
     
     if (configurationHandler) {
         configurationHandler(textField);
@@ -507,6 +509,21 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     }
 }
 
+#pragma mark - UITextFieldDelegate.
+- (BOOL)textFieldShouldReturn:(UITextField *)textField {
+    if (textField.returnKeyType == UIReturnKeyNext) {
+        NSUInteger index = [_textFields indexOfObject:textField];
+        if (index != NSNotFound) {
+            if (index == _textFields.count-1) index = 0; else {
+                index++;
+            }
+            
+            UITextField *_nextTextfield = [_textFields objectAtIndex:index];
+            if (_nextTextfield && [_nextTextfield canBecomeFirstResponder]) [_nextTextfield becomeFirstResponder];
+        }
+    }
+    return NO;
+}
 #pragma mark - Private.
 - (void)_addContraintsOfStackViewToSelf {
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_stackView]|" options:0 metrics:nil views:NSDictionaryOfVariableBindings(_stackView)]];
