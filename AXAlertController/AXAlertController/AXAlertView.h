@@ -32,10 +32,13 @@
 NS_ASSUME_NONNULL_BEGIN
 @protocol AXAlertViewDelegate <NSObject>
 @optional
+/// Called when the alert view is about to show in the container view.
 - (void)alertViewWillShow:(AXAlertView *)alertView;
+/// Called when the alert view did show in the container view.
 - (void)alertViewDidShow:(AXAlertView *)alertView;
-
+/// Called when the alert view is about to hide from the container view.
 - (void)alertViewWillHide:(AXAlertView *)alertView;
+/// Called when the alert view did hide from the container view.
 - (void)alertViewDidHide:(AXAlertView *)alertView;
 @end
 
