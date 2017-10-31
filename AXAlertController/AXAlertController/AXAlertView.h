@@ -42,7 +42,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)alertViewDidHide:(AXAlertView *)alertView;
 @end
 
+/// Defines the block callback when alert view is animating showing or hidding instead of using delegate.
+/// The block call back can eixst with the delegate.
 typedef void(^AXAlertViewShowsBlock)(AXAlertView *alertView, BOOL animated);
+/// Defines the block callback when the alert view is touched.
 typedef void(^AXAlertViewTouchBlock)(AXAlertView *alertView);
 
 typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
