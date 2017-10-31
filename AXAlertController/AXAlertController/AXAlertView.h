@@ -48,8 +48,11 @@ typedef void(^AXAlertViewShowsBlock)(AXAlertView *alertView, BOOL animated);
 /// Defines the block callback when the alert view is touched.
 typedef void(^AXAlertViewTouchBlock)(AXAlertView *alertView);
 
+/// A enum type represents the translucent style of the alert view.
 typedef NS_ENUM(NSInteger, AXAlertViewTranslucentStyle) {
+    /// The light translucent style.
     AXAlertViewTranslucentLight,
+    /// The dark translucent style.
     AXAlertViewTranslucentDark
 };
 
