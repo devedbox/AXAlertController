@@ -139,7 +139,12 @@ extern CGFloat const kAXAlertVertivalOffsetPinToBottom;
 @property(readonly, nonatomic, nullable) UIView *contentView;
 /// Actions.
 @property(readonly, nonatomic, copy, nullable) NSArray<AXAlertViewAction *> *actionItems;
-
+/// Set the actions of the alert view with replacing of the old ones.
+/// @discusstion Using this method to update the actions if you want to
+///              replace the old actions with new actions.
+///
+/// @param actions The actions to replace the old ones of A Mutable-Length va_list.
+///
 - (void)setActions:(__kindof AXAlertViewAction *_Nonnull)actions,...;
 - (void)appendActions:(__kindof AXAlertViewAction *_Nonnull)actions,...;
 - (void)show:(BOOL)animated;
