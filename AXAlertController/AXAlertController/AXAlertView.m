@@ -1382,7 +1382,8 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 #pragma mark - Constraints.
 
-+ (BOOL)usingAutolayout { // return NO;
++ (BOOL)usingAutolayout {
+    return NO; /*
     if (_kPlatform_info.length > 0) {
         return [_kPlatform_info isEqualToString:@"autolayout_true"];
     }
@@ -1390,7 +1391,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _kPlatform_info = @"autolayout_true";  return YES;
     } else {
         _kPlatform_info = @"autolayout_false"; return NO;
-    }
+    } */
 }
 
 - (void)_addContraintsOfContainerToSelf {
