@@ -394,6 +394,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (![[self class] usingAutolayout]) {
         // Get the current frame of SELF.
         CGRect currentFrame = self.frame;
+        if (@available(iOS 11.0, *)) {
+            currentFrame = self.safeAreaLayoutGuide.layoutFrame;
+        }
         CGFloat widthOfContainer = MIN(CGRectGetWidth(currentFrame)-UIEdgeInsetsGetWidth(_preferredMargin), _maxAllowedWidth);
         // Initialize a CGSize struct of custom view and title label using the current frame and preferred magin and the insets.
         CGSize sizeOfCustomView = CGSizeMake(widthOfContainer - UIEdgeInsetsGetWidth(_contentInset)-UIEdgeInsetsGetWidth(_customViewInset), 0);
@@ -474,6 +477,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         
         if (heightOfContainer > CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferredMargin)) { // Too large to show.
             rect_container.origin.y = _preferredMargin.top;
+            if (@available(iOS 11.0, *)) {
+                rect_container.origin.y += self.safeAreaInsets.top;
+            }
             rect_container.size = CGSizeMake(widthOfContainer, CGRectGetHeight(currentFrame)-UIEdgeInsetsGetHeight(_preferredMargin));
             _containerView.frame = rect_container;
             // Enabled the scroll of the content container view.
