@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3DA8ED676693A24D990DA890 /* libPods-AXAlertView.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */; };
 		DCA857B61EE698CB0008E9A4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857A31EE698CB0008E9A4 /* AppDelegate.m */; };
 		DCA857B71EE698CB0008E9A4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DCA857A41EE698CB0008E9A4 /* Assets.xcassets */; };
 		DCA857B81EE698CB0008E9A4 /* AXActionSheet.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857A71EE698CB0008E9A4 /* AXActionSheet.m */; };
@@ -27,6 +26,8 @@
 		37D7438B4F614BD7E4BD7FDA /* Pods-AXAlertView.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertView.release.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView.release.xcconfig"; sourceTree = "<group>"; };
 		525EDD5E82AD48153196FAAB /* Pods-AXAlertView.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertView.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView.debug.xcconfig"; sourceTree = "<group>"; };
 		6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AXAlertView.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9C9FCD55F5D7066860C31901 /* libPods-AXAlertController.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AXAlertController.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D91DA8761FD8A6D3F44323B6 /* Pods-AXAlertController.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertController.release.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertController/Pods-AXAlertController.release.xcconfig"; sourceTree = "<group>"; };
 		DC6399181EE79DB000F23BCC /* AXAlertConstant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AXAlertConstant.h; sourceTree = "<group>"; };
 		DCA857A21EE698CB0008E9A4 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DCA857A31EE698CB0008E9A4 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -49,6 +50,7 @@
 		DCF5FA4D1EF90B0E009CE969 /* SampleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SampleViewController.m; sourceTree = "<group>"; };
 		DCFF5EFC1EFA0F6900744FD2 /* SettingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingViewController.h; sourceTree = "<group>"; };
 		DCFF5EFD1EFA0F6900744FD2 /* SettingViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SettingViewController.m; sourceTree = "<group>"; };
+		E0089C73A6637E46881D83DF /* Pods-AXAlertController.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AXAlertController.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AXAlertController/Pods-AXAlertController.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,7 +58,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3DA8ED676693A24D990DA890 /* libPods-AXAlertView.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,6 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				6D00E16D94EC1983741C476A /* libPods-AXAlertView.a */,
+				9C9FCD55F5D7066860C31901 /* libPods-AXAlertController.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -131,6 +133,8 @@
 			children = (
 				525EDD5E82AD48153196FAAB /* Pods-AXAlertView.debug.xcconfig */,
 				37D7438B4F614BD7E4BD7FDA /* Pods-AXAlertView.release.xcconfig */,
+				E0089C73A6637E46881D83DF /* Pods-AXAlertController.debug.xcconfig */,
+				D91DA8761FD8A6D3F44323B6 /* Pods-AXAlertController.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -146,8 +150,6 @@
 				01BB35891CB35031002B5D1A /* Sources */,
 				01BB358A1CB35031002B5D1A /* Frameworks */,
 				01BB358B1CB35031002B5D1A /* Resources */,
-				778588F1201373AF92D9D57A /* [CP] Embed Pods Frameworks */,
-				D928CC80A8424EC54CB67211 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -211,43 +213,16 @@
 			files = (
 			);
 			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
 			);
 			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-AXAlertController-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
-			showEnvVarsInLog = 0;
-		};
-		778588F1201373AF92D9D57A /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D928CC80A8424EC54CB67211 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AXAlertView/Pods-AXAlertView-resources.sh\"\n";
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -391,7 +366,7 @@
 		};
 		01BB35BB1CB35031002B5D1A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 525EDD5E82AD48153196FAAB /* Pods-AXAlertView.debug.xcconfig */;
+			baseConfigurationReference = E0089C73A6637E46881D83DF /* Pods-AXAlertController.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = TKA48YVS5T;
@@ -406,7 +381,7 @@
 		};
 		01BB35BC1CB35031002B5D1A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 37D7438B4F614BD7E4BD7FDA /* Pods-AXAlertView.release.xcconfig */;
+			baseConfigurationReference = D91DA8761FD8A6D3F44323B6 /* Pods-AXAlertController.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = TKA48YVS5T;

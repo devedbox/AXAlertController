@@ -1,14 +1,3 @@
-PODS:
-  - AXAnimationChain (0.3.0):
-    - AXAnimationChain/CoreAnimation (= 0.3.0)
-  - AXAnimationChain/CoreAnimation (0.3.0)
+PODFILE CHECKSUM: c57a817740dcac5637db621a7ce342e4a4ec967e
 
-DEPENDENCIES:
-  - AXAnimationChain
-
-SPEC CHECKSUMS:
-  AXAnimationChain: d90bdb51df3d7304246ecf9a0c88a7c6aaf62a84
-
-PODFILE CHECKSUM: 55e839e34274d9071531c6dea56d512014aca7d9
-
-COCOAPODS: 1.2.0
+COCOAPODS: 1.6.1

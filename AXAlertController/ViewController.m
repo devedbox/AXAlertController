@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 #import "AXAlertView.h"
-#import <AXAnimationChain/UIView+AnimationChain.h>
+// #import <AXAnimationChain/UIView+AnimationChain.h>
 
 #undef AXAlertViewUsingAutolayout
 #define AXAlertViewUsingAutolayout 0

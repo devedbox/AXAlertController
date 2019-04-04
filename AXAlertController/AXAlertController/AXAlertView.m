@@ -1389,7 +1389,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 #pragma mark - Constraints.
 
 + (BOOL)usingAutolayout {
-    return NO; /*
+    return YES; /*
     if (_kPlatform_info.length > 0) {
         return [_kPlatform_info isEqualToString:@"autolayout_true"];
     }
