@@ -98,14 +98,14 @@
     
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor whiteColor];
-    cancelConfig.preferredHeight = 44;
+    cancelConfig.heightForLayout = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     // confirmConfig.backgroundColor = [UIColor blackColor];
     confirmConfig.backgroundColor = [UIColor whiteColor];
-    confirmConfig.preferredHeight = 44;
+    confirmConfig.heightForLayout = 44;
     confirmConfig.cornerRadius = .0;
     // confirmConfig.tintColor = [UIColor blackColor];
     confirmConfig.tintColor = [UIColor whiteColor];
@@ -135,13 +135,13 @@
     
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor whiteColor];
-    cancelConfig.preferredHeight = 44;
+    cancelConfig.heightForLayout = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     confirmConfig.backgroundColor = [UIColor whiteColor];
-    confirmConfig.preferredHeight = 44;
+    confirmConfig.heightForLayout = 44;
     confirmConfig.cornerRadius = .0;
     confirmConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:confirmConfig forItemAtIndex:1];
@@ -197,7 +197,7 @@
     AXAlertController *alert = [AXAlertController alertControllerWithTitle:@"Some Title..." message:@"Some message..." preferredStyle:AXAlertControllerStyleAlert];
     // alert.image = [UIImage imageNamed:@"Image"];
     [alert addAction:[AXAlertAction actionWithTitle:@"Cancel" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
-        config.preferredHeight = 44.0;
+        config.heightForLayout = 44.0;
         config.backgroundColor = [UIColor whiteColor];
         config.font = [UIFont boldSystemFontOfSize:17];
         config.cornerRadius = .0;
@@ -251,7 +251,7 @@
      [alertView appendActions:[AXAlertViewAction actionWithTitle:[NSString stringWithFormat:@"index%@", @(i)] image:nil handler:NULL], nil];
      AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
      confirmConfig.backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
-     confirmConfig.preferredHeight = 50;
+     confirmConfig.heightForLayout = 50;
      confirmConfig.cornerRadius = .0;
      confirmConfig.tintColor = [UIColor whiteColor];
      // confirmConfig.tintColor = [UIColor blackColor];

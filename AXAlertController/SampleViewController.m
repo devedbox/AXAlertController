@@ -192,7 +192,7 @@
             }
             
             config.cornerRadius = _settings.actionCornerRadius;
-            config.preferredHeight = _settings.actionHeight;
+            config.heightForLayout = _settings.actionHeight;
         }];
     }
     [self presentViewController:alert animated:YES completion:NULL];
@@ -224,7 +224,7 @@
             }
             
             config.cornerRadius = _settings.actionCornerRadius;
-            config.preferredHeight = _settings.actionHeight;
+            config.heightForLayout = _settings.actionHeight;
         }];
     }
     [self presentViewController:alert animated:YES completion:NULL];
@@ -294,7 +294,7 @@
             }
             
             config.cornerRadius = _settings.actionCornerRadius;
-            config.preferredHeight = _settings.actionHeight;
+            config.heightForLayout = _settings.actionHeight;
         }];
         [self presentViewController:alert animated:YES completion:NULL];
     }
@@ -317,7 +317,7 @@
         config.font = [UIFont boldSystemFontOfSize:17];
         
         config.cornerRadius = _settings.actionCornerRadius;
-        config.preferredHeight = _settings.actionHeight;
+        config.heightForLayout = _settings.actionHeight;
     }];
     [alert addAction:[AXAlertAction actionWithTitle:@"OK" style:AXAlertActionStyleDefault handler:NULL] configurationHandler:^(AXAlertActionConfiguration * _Nonnull config) {
         config.translucent = _settings.actionTranslucent;
@@ -333,7 +333,7 @@
         }
         
         config.cornerRadius = _settings.actionCornerRadius;
-        config.preferredHeight = _settings.actionHeight;
+        config.heightForLayout = _settings.actionHeight;
     }];
     return alert;
 }

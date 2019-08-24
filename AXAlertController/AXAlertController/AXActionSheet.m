@@ -315,7 +315,7 @@
             }
             
             AXAlertViewPlaceholderActionConfiguration *config = [AXAlertViewPlaceholderActionConfiguration new];
-            config.preferredHeight = 10;
+            config.heightForLayout = 10;
             if (self.translucent) {
                 if (self.translucentStyle == AXAlertViewTranslucentLight) {
                     config.backgroundColor = [UIColor colorWithWhite:0.98 alpha:0.7];

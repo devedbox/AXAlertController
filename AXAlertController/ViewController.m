@@ -123,13 +123,13 @@ static void test() {
     
     AXAlertViewActionConfiguration *cancelConfig = [AXAlertViewActionConfiguration new];
     cancelConfig.backgroundColor = [UIColor colorWithRed:0.949 green:0.949 blue:0.949 alpha:1.00];
-    cancelConfig.preferredHeight = 44;
+    cancelConfig.heightForLayout = 44;
     cancelConfig.cornerRadius = .0;
     cancelConfig.tintColor = [UIColor blackColor];
     [alertView setActionConfiguration:cancelConfig forItemAtIndex:0];
     AXAlertViewActionConfiguration *confirmConfig = [AXAlertViewActionConfiguration new];
     confirmConfig.backgroundColor = [UIColor blackColor];
-    confirmConfig.preferredHeight = 44;
+    confirmConfig.heightForLayout = 44;
     confirmConfig.cornerRadius = .0;
     confirmConfig.tintColor = [UIColor blackColor];
 //    confirmConfig.translucentStyle = AXAlertViewTranslucentDark;

@@ -289,7 +289,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _actionConfiguration.tintColor = [UIColor whiteColor];
     _actionConfiguration.font = [UIFont boldSystemFontOfSize:15];
     _actionConfiguration.cornerRadius = 4;
-    _actionConfiguration.preferredHeight = 44.0;
+    _actionConfiguration.heightForLayout = 44.0;
     _actionConfiguration.translucent = YES;
     _verticalOffset = 0.0;
     
@@ -324,17 +324,20 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         CGSize contentSize = [change[NSKeyValueChangeNewKey] CGSizeValue];
         CGFloat heightOfScrollContent = 0.0;
         CGFloat maxAllowedHeightOfScrollContent = 0.0;
-        [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent withContentSize:contentSize];
+        
+        [self _getHeightOfContentView:&heightOfScrollContent
+                                 flag:&maxAllowedHeightOfScrollContent
+                      withContentSize:contentSize];
         
         // Enable or disable the scroll property.
-        _contentContainerView.scrollEnabled = ((heightOfScrollContent>=maxAllowedHeightOfScrollContent)?YES:NO);
+        _contentContainerView.scrollEnabled = heightOfScrollContent >= maxAllowedHeightOfScrollContent;
         [self _updateSettingsOfContentScrollView];
         
-        if ([[self class] usingAutolayout]) {
+        if ([self.class usingAutolayout]) {
             [self setNeedsUpdateConstraints];
         }
     } else if ([keyPath isEqualToString:@"text"]) {
-        if ([[self class] usingAutolayout]) {
+        if ([self.class usingAutolayout]) {
             [self setNeedsUpdateConstraints];
         }
     } else if ([keyPath isEqualToString:@"bounds"]) {
@@ -373,7 +376,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 }
 
 - (void)updateConstraints {
-    if (![[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout] == NO) {
         [super updateConstraints];
         return;
     }
@@ -453,15 +456,15 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                     } else {
                         heightOfContainer += _actionItemPadding;
                     }
-                    heightOfContainer += /*0.5+ */config.preferredHeight;
-                    heightOfItems += /*0.5+ */config.preferredHeight;
+                    heightOfContainer += /*0.5+ */config.heightForLayout;
+                    heightOfItems += /*0.5+ */config.heightForLayout;
                 }
             }
         } else {
             if (_actionConfig.count < _actionItems.count) {
-                heightOfItems = MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue], _actionConfiguration.preferredHeight);
+                heightOfItems = MAX([[_actionConfig.allValues valueForKeyPath:@"@max.heightForLayout"] floatValue], _actionConfiguration.heightForLayout);
             } else {
-                heightOfItems = [[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue];
+                heightOfItems = [[_actionConfig.allValues valueForKeyPath:@"@max.heightForLayout"] floatValue];
             }
             heightOfContainer += _padding;
             heightOfContainer += /*0.5+ */heightOfItems;
@@ -531,7 +534,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         [self _getHeightOfContentView:&heightOfScrollContent flag:&maxAllowedHeightOfScrollContent];
         
         if (heightOfScrollContent != 0.0 && maxAllowedHeightOfScrollContent != 0.0) {
-            _contentContainerView.scrollEnabled = ((heightOfScrollContent>=maxAllowedHeightOfScrollContent)?YES:NO);
+            _contentContainerView.scrollEnabled = heightOfScrollContent >= maxAllowedHeightOfScrollContent;
         }
         
         // CGFloat heightOfContent = MAX(0, MIN(height, flag));
@@ -629,7 +632,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _didHide = [didHide copy];
     [self hide:animated];
 }
+
 #pragma mark - Getters
+
 - (UIView *)contentView { return _containerView; }
 
 - (NSArray<AXAlertViewAction *> *)actionItems { return [_actionItems copy]; }
@@ -658,7 +663,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _titleLabel.font = [UIFont boldSystemFontOfSize:17];
     _titleLabel.numberOfLines = 1;
     _titleLabel.textAlignment = NSTextAlignmentCenter;
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
     } else {
         _titleLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -673,7 +678,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _containerView.backgroundColor = [UIColor whiteColor];
     _containerView.layer.cornerRadius = _cornerRadius;
     _containerView.layer.masksToBounds = YES;
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _containerView.translatesAutoresizingMaskIntoConstraints = NO;
     } else {
         _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
@@ -690,7 +695,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _contentContainerView.showsHorizontalScrollIndicator = NO;
     _contentContainerView.alwaysBounceVertical = YES;
     _contentContainerView.delegate = self;
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _contentContainerView.translatesAutoresizingMaskIntoConstraints = NO;
     } else {
         _contentContainerView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -710,7 +715,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     if (_effectView) return _effectView;
     _effectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight]];
     _effectView.frame = self.bounds;
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _effectView.translatesAutoresizingMaskIntoConstraints = NO;
     } else {
         _effectView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
@@ -721,7 +726,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (_AXVisualEffectFilterView *)effectFilterView {
     if (_effectFilterView) return _effectFilterView;
     _effectFilterView = [_AXVisualEffectFilterView new];
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         [_effectFilterView setTranslatesAutoresizingMaskIntoConstraints:NO];
     } else {
         [_effectFilterView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleBottomMargin];
@@ -756,7 +761,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 
 - (void)setTitle:(NSString *)title {
     _titleLabel.text = title;
-    if (![[self class] usingAutolayout]) {
+    if (![self.class usingAutolayout]) {
         [_titleLabel sizeToFit];
         [self _layoutSubviews];
         if ([[self class] usingAutolayout]) [self _setupActionItems];
@@ -769,8 +774,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _containerView.layer.masksToBounds = _cornerRadius!=0?YES:NO;
 }
 
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forKey:(NSString *)key {
-    if (!_actionConfig) {
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration
+                        forKey:(NSString *)key
+{
+    if (_actionConfig == nil) {
         _actionConfig = [@{} mutableCopy];
     }
     [_actionConfig setObject:configuration forKey:key];
@@ -778,12 +785,17 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     [self _updateConfigurationOfItemForKey:key];
 }
 
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forItemAtIndex:(NSUInteger)index {
-    [self setActionConfiguration:configuration forKey:[NSString stringWithFormat:@"%@", @(index)]];
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration
+                forItemAtIndex:(NSUInteger)index
+{
+    [self setActionConfiguration:configuration
+                          forKey:[NSString stringWithFormat:@"%@", @(index)]];
 }
 
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration forAction:(AXAlertViewAction *)action {
-    if (action.identifier.length) {
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *)configuration
+                     forAction:(AXAlertViewAction *)action
+{
+    if ([action.identifier length]) {
         [self setActionConfiguration:configuration forKey:action.identifier];
     }
 }
@@ -791,9 +803,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setCustomView:(UIView *)customView {
     if (customView == nil) {
         [_customView removeFromSuperview];
-        _customView = nil;
+        ;_customView = nil;
         
-        if ([[self class] usingAutolayout]) {
+        if ([self.class usingAutolayout]) {
             // Removing the stack view and readd the contraints.
             
             [_stackView removeFromSuperview];
@@ -823,7 +835,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _titleFont = titleFont;
     _titleLabel.font = _titleFont;
     [self _layoutSubviews];
-    if ([[self class] usingAutolayout]) [self _setupActionItems];
+    if ([self.class usingAutolayout]) [self _setupActionItems];
 }
 
 - (void)setTranslucent:(BOOL)translucent {
@@ -843,7 +855,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _effectView.effect = [UIBlurEffect effectWithStyle:UIBlurEffectStyleExtraLight];
         }
         
-        if ([[self class] usingAutolayout]) {
+        if ([self.class usingAutolayout]) {
             [self _addContraintsOfEffectViewToContainerView];
         } else {
             _effectView.frame = _containerView.bounds;
@@ -871,7 +883,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setShowsSeparators:(BOOL)showsSeparators {
     _showsSeparators = showsSeparators;
     [self _layoutSubviews];
-    if ([[self class] usingAutolayout]) [self _setupActionItems];
+    if ([self.class usingAutolayout]) [self _setupActionItems];
 }
 
 - (void)setTranslucentStyle:(AXAlertViewTranslucentStyle)translucentStyle {
@@ -886,7 +898,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setContentInset:(UIEdgeInsets)contentInset {
     _contentInset = contentInset;
     
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
         _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
         _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
@@ -904,7 +916,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setCustomViewInset:(UIEdgeInsets)customViewInset {
     _customViewInset = customViewInset;
 
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _leadingOfCustom.constant = -_customViewInset.left;
         _trailingOfCustom.constant = _customViewInset.right;
         _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
@@ -917,7 +929,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setTitleInset:(UIEdgeInsets)titleInset {
     _titleInset = titleInset;
 
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _leadingOfTitleLabel.constant = -_contentInset.left-_titleInset.left;
         _trailingOfTitleLabel.constant = _contentInset.right+_titleInset.right;
         _topOfTitleLabel.constant = -_contentInset.top-_titleInset.top;
@@ -925,13 +937,13 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     }
     
     [self _layoutSubviews];
-    if ([[self class] usingAutolayout]) [self _setupActionItems];
+    if ([self.class usingAutolayout]) [self _setupActionItems];
 }
 
 - (void)setPadding:(CGFloat)padding {
     _padding = padding;
     
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _bottomOfTitleAndTopOfContent.constant = -_titleInset.bottom-_padding-_customViewInset.top;
         _bottomOfCustomAndTopOfStack.constant = -_customViewInset.bottom-_padding;
         _topOfStackView.constant = -_padding-_customViewInset.top;
@@ -943,7 +955,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setActionItemMargin:(CGFloat)actionItemMargin {
     _actionItemMargin = actionItemMargin;
 
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _leadingOfStackView.constant = -_actionItemMargin;
         _trailingOfStackView.constant = _actionItemMargin;
         _widthOfStackView.constant = _contentInset.left+_contentInset.right+_actionItemMargin*2;
@@ -955,7 +967,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setVerticalOffset:(CGFloat)verticalOffset {
     _verticalOffset = verticalOffset;
     
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         [self _updatePositionContraintsOfContainer];
         [self setNeedsLayout];
         // [self setNeedsDisplay];
@@ -969,7 +981,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setActionItemPadding:(CGFloat)actionItemPadding {
     _actionItemPadding = actionItemPadding;
 
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         [self _setupActionItems];
     } else {
         [self _layoutSubviews];
@@ -980,7 +992,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     _horizontalLimits = horizontalLimits;
     // Delays to configure action items at layouting subviews.
     [self _layoutSubviews];
-    if ([[self class] usingAutolayout]) [self _setupActionItems];
+    if ([self.class usingAutolayout]) [self _setupActionItems];
 }
 
 - (void)setOpacity:(CGFloat)opacity {
@@ -993,7 +1005,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
 - (void)setPreferredHeight:(CGFloat)preferredHeight {
     _preferredHeight = preferredHeight;
 
-    if ([[self class] usingAutolayout]) {
+    if ([self.class usingAutolayout]) {
         _heightOfContainer.constant = _preferredHeight;
     }
 
@@ -1228,7 +1240,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             if ([[self class] usingAutolayout]) {
                 if (updateContraints) {
                     [object setTranslatesAutoresizingMaskIntoConstraints:NO];
-                    [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferredHeight]];
+                    [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.heightForLayout]];
                     
                     [_stackView addArrangedSubview:object];
                 }
@@ -1240,7 +1252,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                     UIView *lastItem = _actionButtons[i-1];
                     beginContext = CGRectGetMaxY(lastItem.frame) + _actionItemPadding;
                 }
-                [object setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.preferredHeight)];
+                [object setFrame:CGRectMake(_actionItemMargin, beginContext, CGRectGetWidth(_contentContainerView.frame)-_actionItemMargin*2, config.heightForLayout)];
                 [self.contentContainerView addSubview:object];
             }
             
@@ -1252,10 +1264,10 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 if (_showsSeparators) {
                     if (_translucent) {
                         button->_type = 0;
-                        [button _setExceptionAllowedWidth:config.separatorHeight direction:0];
+                        [button _setExceptionAllowedWidth:config.heightForSeparator direction:0];
                     } else {
                         button->_type = -1;
-                        [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:0];
+                        [button _setExceptionSeparatorLayerWidth:config.heightForSeparator direction:0];
                     }
                 } else {
                     if (_translucent) {
@@ -1299,11 +1311,11 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             if ([[self class] usingAutolayout]) {
                 if (updateContraints) {
                     [object setTranslatesAutoresizingMaskIntoConstraints:NO];
-                    [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.preferredHeight]];
+                    [object addConstraint:[NSLayoutConstraint constraintWithItem:object attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1.0 constant:config.heightForLayout]];
                     [_stackView addArrangedSubview:object];
                 }
             } else {
-                [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding, buttonWidth, config.preferredHeight)];
+                [object setFrame:CGRectMake(_actionItemMargin+(buttonWidth+_actionItemPadding)*i, CGRectGetHeight(_customView.bounds)+_customViewInset.bottom+_padding, buttonWidth, config.heightForLayout)];
                 [self.contentContainerView addSubview:object];
             }
             
@@ -1315,7 +1327,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 if (_translucent) {
                     if (_showsSeparators && i < _actionButtons.count-1) {
                         button->_type = 0;
-                        [button _setExceptionAllowedWidth:config.separatorHeight direction:3];
+                        [button _setExceptionAllowedWidth:config.heightForSeparator direction:3];
                     } else {
                         button->_type = 0;
                         [button _setExceptionAllowedWidth:0.0 direction:3];
@@ -1323,7 +1335,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
                 } else {
                     if (_showsSeparators && i < _actionButtons.count-1) {
                         button->_type = -1;
-                        [button _setExceptionSeparatorLayerWidth:config.separatorHeight direction:3];
+                        [button _setExceptionSeparatorLayerWidth:config.heightForSeparator direction:3];
                     } else {
                         button->_type = -1;
                         [button _setExceptionSeparatorLayerWidth:0.0 direction:3];
@@ -2355,7 +2367,7 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
             _customView.layer.mask = nil;
         }
     } else {
-        if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.bounds)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue], _actionConfiguration.preferredHeight)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.bounds)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue]-_padding-_customViewInset.bottom;
+        if (_actionConfig.count < _actionItems.count) visibleHeight = CGRectGetHeight(scrollView.bounds)-MAX([[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue], _actionConfiguration.heightForLayout)-_padding-_customViewInset.bottom; else visibleHeight = CGRectGetHeight(scrollView.bounds)-[[_actionConfig.allValues valueForKeyPath:@"@max.preferredHeight"] floatValue]-_padding-_customViewInset.bottom;
         
         if (heightOfScrollContent >= maxAllowedHeightOfScrollContent && _actionItems.count <= _horizontalLimits) {
             maskView(_customView, visibleHeight);
@@ -2607,9 +2619,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
         _font = [UIFont boldSystemFontOfSize:15];
         _tintColor = [UIColor colorWithRed:0.996 green:0.725 blue:0.145 alpha:1.00];
         _backgroundColor = [UIColor colorWithWhite:1 alpha:0.3];
-        _separatorHeight = 0.5;
+        _heightForSeparator = 0.5;
         _cornerRadius = 4;
-        _preferredHeight = 44.0;
+        _heightForLayout = 44.0;
         _translucent = YES;
         _translucentStyle = AXAlertViewTranslucentLight;
     }
@@ -2621,9 +2633,9 @@ static CGFloat UIEdgeInsetsGetWidth(UIEdgeInsets insets) { return insets.left + 
     config.font = [self.font copy];
     config.tintColor = [self.tintColor copy];
     config.backgroundColor = [self.backgroundColor copy];
-    config.separatorHeight = self.separatorHeight;
+    config.heightForSeparator = self.heightForSeparator;
     config.cornerRadius = self.cornerRadius;
-    config.preferredHeight = self.preferredHeight;
+    config.heightForLayout = self.heightForLayout;
     config.translucent = self.translucent;
     config.translucentStyle = self.translucentStyle;
     return config;

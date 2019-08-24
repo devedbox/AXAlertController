@@ -717,9 +717,9 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
             _action.identifier = @"__cancel_ac";
             AXAlertViewActionConfiguration *cancel = [AXAlertViewActionConfiguration new];
             cancel.backgroundColor = [UIColor whiteColor];
-            cancel.preferredHeight = 44;
+            cancel.heightForLayout = 44;
             cancel.cornerRadius = .0;
-            cancel.separatorHeight = .0;
+            cancel.heightForSeparator = .0;
             cancel.tintColor = [UIColor redColor];
             [self.alertView setActionConfiguration:cancel forKey:_action.identifier];
         }
@@ -809,7 +809,7 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     _alertContentView.titleLabel.textColor = [UIColor blackColor];
     AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
     config.backgroundColor = [UIColor whiteColor];
-    config.preferredHeight = 44;
+    config.heightForLayout = 44;
     config.cornerRadius = .0;
     config.tintColor = [UIColor blackColor];
     config.font = [UIFont systemFontOfSize:16];
@@ -842,7 +842,7 @@ AXAlertCustomViewHooks2(_AXAlertTextfield, UITextField)
     _actionSheetContentView.titleLabel.textColor = [UIColor blackColor];
     AXAlertViewActionConfiguration *config = [AXAlertViewActionConfiguration new];
     config.backgroundColor = [UIColor whiteColor];
-    config.preferredHeight = 44;
+    config.heightForLayout = 44;
     config.cornerRadius = .0;
     config.tintColor = [UIColor blackColor];
     [_actionSheetContentView setActionConfiguration:config];

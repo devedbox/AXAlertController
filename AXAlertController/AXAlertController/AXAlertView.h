@@ -76,7 +76,7 @@ extern CGFloat const kAXAlertVertivalOffsetPinToBottom;
     NSMutableDictionary<NSString*, AXAlertViewActionConfiguration*> *_actionConfig;
 }
 /// Delegate.
-@property(assign, nonatomic) id<AXAlertViewDelegate>delegate;
+@property(weak, nonatomic, nullable) id<AXAlertViewDelegate>delegate;
 /// Title label.
 @property(readonly, nonatomic) UILabel *titleLabel;
 /// Title text color. Default is #FEB925.
@@ -147,25 +147,32 @@ extern CGFloat const kAXAlertVertivalOffsetPinToBottom;
 ///
 - (void)setActions:(__kindof AXAlertViewAction *_Nonnull)actions,...;
 - (void)appendActions:(__kindof AXAlertViewAction *_Nonnull)actions,...;
+
 - (void)show:(BOOL)animated;
 - (void)show:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didShow;
 - (void)hide:(BOOL)animated;
 - (void)hide:(BOOL)animated completion:(AXAlertViewShowsBlock _Nullable)didHide;
 
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration forKey:(NSString *_Nonnull)key UI_APPEARANCE_SELECTOR;
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration forItemAtIndex:(NSUInteger)index;
-- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration forAction:(AXAlertViewAction *_Nonnull)action;
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration
+                        forKey:(NSString *_Nonnull)key UI_APPEARANCE_SELECTOR;
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration
+                forItemAtIndex:(NSUInteger)index;
+- (void)setActionConfiguration:(AXAlertViewActionConfiguration *_Nonnull)configuration
+                     forAction:(AXAlertViewAction *_Nonnull)action;
 
 - (void)viewWillShow:(AXAlertView *)alertView animated:(BOOL)animated NS_REQUIRES_SUPER;
 - (void)viewDidShow:(AXAlertView *)alertView animated:(BOOL)animated NS_REQUIRES_SUPER;
 
 - (void)viewWillHide:(AXAlertView *)alertView animated:(BOOL)animated NS_REQUIRES_SUPER;
 - (void)viewDidHide:(AXAlertView *)alertView animated:(BOOL)animated NS_REQUIRES_SUPER;
+
 @end
 
 @interface AXAlertView (Configurations)
+
 - (void)setNeedsReconfigureItems;
 - (void)reconfigureItemsIfNeeded;
+
 @end
 
 typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *__weak _Nonnull action);
@@ -180,10 +187,16 @@ typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *__weak _Nonnull actio
 /// Handler call back block. If handler is null, then the handler is dismiss by default.
 @property(copy, nonatomic, nullable) AXAlertViewActionHandler handler;
 
-+ (instancetype _Nonnull)actionWithTitle:(NSString *_Nonnull)title handler:(AXAlertViewActionHandler _Nullable)handler;
-+ (instancetype _Nonnull)actionWithTitle:(NSString *_Nonnull)title image:(UIImage *_Nullable)image handler:(AXAlertViewActionHandler _Nullable)handler;
++ (instancetype _Nonnull)actionWithTitle:(NSString *_Nonnull)title
+                                 handler:(AXAlertViewActionHandler _Nullable)handler;
++ (instancetype _Nonnull)actionWithTitle:(NSString *_Nonnull)title
+                                   image:(UIImage *_Nullable)image
+                                 handler:(AXAlertViewActionHandler _Nullable)handler;
 @end
 
+#pragma mark - AXAlertViewActionConfiguration.
+
+/// The configuration of the alert action.
 @interface AXAlertViewActionConfiguration : NSObject <NSCopying>
 /// Font of title.
 @property(strong, nonatomic, nullable) UIFont  *font;
@@ -191,18 +204,19 @@ typedef void(^AXAlertViewActionHandler)(AXAlertViewAction *__weak _Nonnull actio
 @property(strong, nonatomic, nullable) UIColor *tintColor;
 /// Background color.
 @property(strong, nonatomic, nonnull)  UIColor *backgroundColor;
+/// preferred height. Only used for default configuration.
+@property(assign, nonatomic) CGFloat heightForLayout;
 /// Separator height.
-@property(assign, nonatomic) CGFloat separatorHeight;
+@property(assign, nonatomic) CGFloat heightForSeparator;
 /// Corner radius.
 @property(assign, nonatomic) CGFloat cornerRadius;
-/// preferred height. Only used for default configuration.
-@property(assign, nonatomic) CGFloat preferredHeight;
-/// Translucent. Defailts to YES.
-@property(assign, nonatomic) BOOL translucent;
+/// Translucent of the action item. Defailts to YES.
+@property(assign, nonatomic, getter=isTranslucent) BOOL translucent;
 /// Translucent style. Defaults to Light.
 @property(assign, nonatomic) AXAlertViewTranslucentStyle translucentStyle;
 @end
 
 @interface AXAlertViewPlaceholderAction : AXAlertViewAction @end
 @interface AXAlertViewPlaceholderActionConfiguration : AXAlertViewActionConfiguration @end
+
 NS_ASSUME_NONNULL_END
