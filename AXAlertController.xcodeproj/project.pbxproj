@@ -18,6 +18,7 @@
 		DCA857BE1EE698CB0008E9A4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857B11EE698CB0008E9A4 /* main.m */; };
 		DCA857BF1EE698CB0008E9A4 /* TableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857B31EE698CB0008E9A4 /* TableViewController.m */; };
 		DCA857C01EE698CB0008E9A4 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DCA857B51EE698CB0008E9A4 /* ViewController.m */; };
+		DCB3D0382312713D0070487A /* NSLayoutConstraint+Configuration.m in Sources */ = {isa = PBXBuildFile; fileRef = DCB3D0362312713D0070487A /* NSLayoutConstraint+Configuration.m */; };
 		DCF5FA4E1EF90B0E009CE969 /* SampleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DCF5FA4D1EF90B0E009CE969 /* SampleViewController.m */; };
 		DCFF5EFE1EFA0F6900744FD2 /* SettingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DCFF5EFD1EFA0F6900744FD2 /* SettingViewController.m */; };
 /* End PBXBuildFile section */
@@ -47,6 +48,8 @@
 		DCA857B31EE698CB0008E9A4 /* TableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TableViewController.m; sourceTree = "<group>"; };
 		DCA857B41EE698CB0008E9A4 /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		DCA857B51EE698CB0008E9A4 /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		DCB3D0362312713D0070487A /* NSLayoutConstraint+Configuration.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSLayoutConstraint+Configuration.m"; sourceTree = "<group>"; };
+		DCB3D0372312713D0070487A /* NSLayoutConstraint+Configuration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSLayoutConstraint+Configuration.h"; sourceTree = "<group>"; };
 		DCF5FA4C1EF90B0E009CE969 /* SampleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SampleViewController.h; sourceTree = "<group>"; };
 		DCF5FA4D1EF90B0E009CE969 /* SampleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SampleViewController.m; sourceTree = "<group>"; };
 		DCFF5EFC1EFA0F6900744FD2 /* SettingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SettingViewController.h; sourceTree = "<group>"; };
@@ -126,8 +129,18 @@
 				DCA857A71EE698CB0008E9A4 /* AXActionSheet.m */,
 				DCA857AA1EE698CB0008E9A4 /* AXAlertView.h */,
 				DCA857AB1EE698CB0008E9A4 /* AXAlertView.m */,
+				DCB3D0352312713D0070487A /* Categories */,
 			);
 			path = AXAlertController;
+			sourceTree = "<group>";
+		};
+		DCB3D0352312713D0070487A /* Categories */ = {
+			isa = PBXGroup;
+			children = (
+				DCB3D0372312713D0070487A /* NSLayoutConstraint+Configuration.h */,
+				DCB3D0362312713D0070487A /* NSLayoutConstraint+Configuration.m */,
+			);
+			path = Categories;
 			sourceTree = "<group>";
 		};
 		E2AAD5D8A448265B45220D41 /* Pods */ = {
@@ -239,6 +252,7 @@
 				DCA857BE1EE698CB0008E9A4 /* main.m in Sources */,
 				DCF5FA4E1EF90B0E009CE969 /* SampleViewController.m in Sources */,
 				DCA857BF1EE698CB0008E9A4 /* TableViewController.m in Sources */,
+				DCB3D0382312713D0070487A /* NSLayoutConstraint+Configuration.m in Sources */,
 				DCA857BA1EE698CB0008E9A4 /* AXAlertView.m in Sources */,
 				DCFF5EFE1EFA0F6900744FD2 /* SettingViewController.m in Sources */,
 				DCA857B81EE698CB0008E9A4 /* AXActionSheet.m in Sources */,
